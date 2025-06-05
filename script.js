@@ -1,19 +1,21 @@
 async function sendMessage() {
-  const input = document.getElementById('userInput');
-  const chatbox = document.getElementById('chatbox');
-  const userText = input.value.trim();
-  if (!userText) return;
+  const input = document.getElementById("user-input");
+  const message = input.value.trim();
+  if (!message) return;
 
-  chatbox.innerHTML += `<p><strong>You:</strong> ${userText}</p>`;
-  input.value = '';
+  const chatBox = document.getElementById("chat-box");
+  chatBox.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
+  input.value = "";
 
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: userText })
+  const response = await fetch("/api/ask", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ question: message }),
   });
 
   const data = await response.json();
-  chatbox.innerHTML += `<p><strong>Jaswant AI:</strong> ${data.reply}</p>`;
-  chatbox.scrollTop = chatbox.scrollHeight;
+  chatBox.innerHTML += `<div><strong>Jaswant AI:</strong> ${data.answer}</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
