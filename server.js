@@ -1,36 +1,34 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { Configuration, OpenAIApi } = require('openai');
-require('dotenv').config();
-
+const express = require("express");
+const fetch = require("node-fetch");
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+const PORT = process.env.PORT || 3000;
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-});
-const openai = new OpenAIApi(configuration);
+app.use(express.json());
+app.use(express.static(__dirname));
 
-app.post('/api/chat', async (req, res) => {
-  const userMessage = req.body.message;
+app.post("/api/ask", async (req, res) => {
+  const question = req.body.question;
 
   try {
-    const response = await openai.createChatCompletion({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: 'You are a scary AI assistant for Jaswant Bhai.' },
-        { role: 'user', content: userMessage }
-      ],
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: question }],
+      }),
     });
 
-    const reply = response.data.choices[0].message.content;
-    res.json({ reply });
-  } catch (err) {
-    res.status(500).json({ reply: '👻 Saaya kuch keh nahi paaya...' });
+    const data = await response.json();
+    const answer = data.choices?.[0]?.message?.content || "⚠️ No response";
+    res.json({ answer });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ answer: "⚠️ API error occurred." });
   }
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
