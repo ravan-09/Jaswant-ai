@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Video Player with FFmpeg Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #fff;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #00ffe0;
+            text-shadow: 0 0 10px rgba(0, 255, 224, 0.5);
+        }
+        
+        .tagline {
+            font-style: italic;
+            color: #a0a0a0;
+            margin-bottom: 15px;
+        }
+        
+        .player-box {
+            background: #1c1c1c;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 15px #00ffe0;
+            margin-bottom: 15px;
+        }
+        
+        #videoTitle {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00ffe0;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .tab-button:hover {
+            background: #00ffe0;
+            color: #000;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #00ffe0, #00ffa2);
+            color: #000;
+            box-shadow: 0 0 12px #00ffe0;
+        }
+        
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .video-item {
+            background: #1c1c1c;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border-left: 4px solid #00ffe0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .video-item:hover {
+            transform: translateY(-5px);
+            background: #2a2a2a;
+            box-shadow: 0 0 15px #00ffe0;
+        }
+        
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #f0f0f0;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #00ffe0, #00ffa2);
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .download-btn:hover {
+            box-shadow: 0 0 10px #00ffe0;
+            transform: scale(1.05);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 0 25px #00ffe0;
+            border: 1px solid #00ffe0;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+            color: #00ffe0;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #00ffe0;
+            transform: rotate(90deg);
+        }
+        
+        .command-box {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            font-family: monospace;
+            border: 1px solid #444;
+        }
+        
+        .command-text {
+            color: #00ffa2;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, #00ffe0, #00ffa2);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            box-shadow: 0 0 15px #00ffe0;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border-left: 4px solid #00ffa2;
+        }
+        
+        .instructions h3 {
+            color: #00ffe0;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .footer a {
+            color: #00ffe0;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .video-list {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CHAMPIONS Maths Special LIVE BATCH</h1>
+            <div class="tagline">By ADITYA SIR - Arithmetic Classes</div>
+        </header>
+        
+        <div class="player-box">
+            <video id="player" controls autoplay playsinline>
+                <source src="" type="application/x-mpegURL">
+                Your browser does not support the video tag.
+            </video>
+            <div id="videoTitle">Select a video to play</div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('video')">📺 Videos</button>
+            <button class="tab-button" onclick="showTab('pdf')">📄 PDFs</button>
+            <button class="tab-button" onclick="showTab('other')">🧩 Other</button>
+        </div>
+        
+        <div class="tab-content" id="video">
+            <div class="video-list">
+                <div class="video-item">
+                    <div class="video-title">Percentage 01 (Demo)</div>
+                    <button class="download-btn" onclick="playVideo('https://d199elmnfjxoc.cloudfront.net/convert/non_drm_hls/1646658_25301_025000/master-9732842.83712273.m3u8', 'Percentage 01 (Demo)')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://d199elmnfjxoc.cloudfront.net/convert/non_drm_hls/1646658_25301_025000/master-9732842.83712273.m3u8', 'Percentage_01_Demo.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Profit & Loss 01</div>
+                    <button class="download-btn" onclick="playVideo('https://dz0qfk4j816v2.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4346957/17441212563793217648/17441212563793217648_217648.m3u8', 'Profit & Loss 01')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://dz0qfk4j816v2.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4346957/17441212563793217648/17441212563793217648_217648.m3u8', 'Profit_and_Loss_01.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Profit & Loss 02</div>
+                    <button class="download-btn" onclick="playVideo('https://dz0qfk4j816v2.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4348752/174429396717733632701/174429396717733632701_3632701.m3u8', 'Profit & Loss 02')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://dz0qfk4j816v2.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4348752/174429396717733632701/174429396717733632701_3632701.m3u8', 'Profit_and_Loss_02.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Boat & Stream 01</div>
+                    <button class="download-btn" onclick="playVideo('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4475964/175189730822005911247/175189730822005911247_5911247.m3u8', 'Boat & Stream 01')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4475964/175189730822005911247/175189730822005911247_5911247.m3u8', 'Boat_and_Stream_01.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Train 01</div>
+                    <button class="download-btn" onclick="playVideo('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4419773/175086037799855911247/175086037799855911247_5911247.m3u8', 'Train 01')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4419773/175086037799855911247/175086037799855911247_5911247.m3u8', 'Train_01.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Time, Speed & Distance 01</div>
+                    <button class="download-btn" onclick="playVideo('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4397198/174861405955835911247/174861405955835911247_5911247.m3u8', 'Time, Speed & Distance 01')">
+                        <span>▶ Play</span>
+                    </button>
+                    <button class="download-btn" onclick="showDownloadModal('https://d2kbm7ayu3hpk3.cloudfront.net/file_library/videos/channel_vod_non_drm_hls/4397198/174861405955835911247/174861405955835911247_5911247.m3u8', 'Time_Speed_Distance_01.mp4')">
+                        <span>⬇️ Download</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="pdf" style="display: none;">
+            <div class="video-list">
+                <div class="video-item">
+                    <div class="video-title">Profit & Loss (ClassRoom Sheet)</div>
+                    <a href="https://d199elmnfjxoc.cloudfront.net/753admin_v1/file_manager/pdf/203424023878040100.pdf" target="_blank">
+                        <button class="download-btn">
+                            <span>📄 Open PDF</span>
+                        </button>
+                    </a>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Profit & Loss (Class Notes)</div>
+                    <a href="https://d199elmnfjxoc.cloudfront.net/753admin_v1/file_manager/pdf/857080445097836000.pdf" target="_blank">
+                        <button class="download-btn">
+                            <span>📄 Open PDF</span>
+                        </button>
+                    </a>
+                </div>
+                
+                <div class="video-item">
+                    <div class="video-title">Percentage (ClassRoom Sheet)</div>
+                    <a href="https://d199elmnfjxoc.cloudfront.net/753/pdf_files/2024-12-30-0.40100596731909355.pdf" target="_blank">
+                        <button class="download-btn">
+                            <span>📄 Open PDF</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="other" style="display: none;">
+            <div class="video-list">
+                <div class="video-item">
+                    <div class="video-title">Champions Doubt Group By Aditya Ranjan Sir</div>
+                    <a href="https://youtube.com/@starpranks09" target="_blank">
+                        <button class="download-btn">
+                            <span>🌐 Visit YouTube</span>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            DEVELOPED BY <a href="https://youtube.com/@starpranks09">𓍯😀RAVAN💓⚝</a>
+        </div>
+    </div>
+    
+    <!-- Download Modal -->
+    <div class="modal" id="downloadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Download with FFmpeg</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="command-box">
+                <code class="command-text" id="ffmpegCommand">ffmpeg -i "URL" -c copy "filename.mp4"</code>
+            </div>
+            
+            <button class="copy-btn" onclick="copyCommand()">
+                📋 Copy FFmpeg Command to Clipboard
+            </button>
+            
+            <div class="instructions">
+                <h3>How to use this command:</h3>
+                <ol>
+                    <li>Install Termux from Play Store</li>
+                    <li>Open Termux and run: <code>pkg install ffmpeg</code></li>
+                    <li>Paste the copied command and press Enter</li>
+                    <li>The video will be saved in your Termux home directory</li>
+                    <li>To move the file to Downloads: <code>mv filename.mp4 /storage/emulated/0/Download/</code></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function playVideo(url, title) {
+            const player = document.getElementById('player');
+            const videoTitle = document.getElementById('videoTitle');
+            player.src = url;
+            videoTitle.textContent = title;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            player.play();
+        }
+        
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
+            
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function showDownloadModal(url, filename) {
+            const modal = document.getElementById('downloadModal');
+            const commandElement = document.getElementById('ffmpegCommand');
+            
+            // Create the FFmpeg command
+            const command = `ffmpeg -i "${url}" -c copy "/storage/emulated/0/Download/${filename}"`;
+            commandElement.textContent = command;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('downloadModal');
+            modal.style.display = 'none';
+        }
+        
+        function copyCommand() {
+            const commandText = document.getElementById('ffmpegCommand').textContent;
+            navigator.clipboard.writeText(commandText).then(() => {
+                alert('Command copied to clipboard! Paste it in Termux to download.');
+            });
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('downloadModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Show video tab by default
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('video');
+        });
+    </script>
+</body>
+</html>
