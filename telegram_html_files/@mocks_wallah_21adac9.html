@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "101703", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the following sentence.</strong></p> <p>Rimjhim received <ins><strong>a children’s very illustrated colourful atlas</strong></ins> on her 10th birthday.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a colourful very illustrated children’s atlas", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> an very illustrated colourful children’s atlas", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a very illustrated colourful atlas children", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> a very colourful illustrated children’s atlas"], "correct_answer": 3, "solution": "'a very colourful illustrated children’s atlas' will be used because the order of adjectives should follow Quality (very colourful), Condition (illustrated), and Purpose (children’s); Like— Rimjhim received a very colourful illustrated children’s atlas on her 10th birthday."}, {"id": "101706", "question": "<strong>Arrange the following sentences to form a coherent paragraph.</strong><br> <br> P. The regulator, the All India Council for Technical Education (AICTE), should dangle the stick of decisive action in case of failure to maintain standards in the over 6,500 affiliated private technical institutions.<br> Q. Colleges blame operational losses for their inability to provide infrastructure, procure equipment and pay the faculty salaries in the wake of some states putting a cap of Rs 30,000 to Rs 40,000.<br> R. The proposed annual minimum fee of Rs 79,000 for undergraduate engineering disciplines, along with a marginal hike of the maximum fee at Rs 1.89 lakh, is aimed at addressing the financial concerns of institutions.<br> S. After a cap on the maximum fee that could be charged, the relief to the private technical institutes in the form of a minimum fee threshold likely to be put in place from the 2022-23 academic session needs to be conditional.<br>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PSQR", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> SRQP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SQPR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PRQS"], "correct_answer": 1, "solution": "<strong>S:</strong> This sentence is a good opener. It sets the stage by providing an update on a recent policy development related to technical institutes. It gives a brief about the situation regarding the fee structure and how a new minimum fee threshold is being put in place.<br> <strong>R:</strong> Following up on the new minimum fee threshold, this sentence gives more specifics about what this new fee structure might look like. It fits well after the first sentence because it continues to build on the subject of the new fee policy.<br> <strong>Q:</strong> This sentence illustrates why these changes are being proposed in the first place by citing the challenges that colleges face under the old fee structure. Thus, it provides reasoning for the changes mentioned in sentences S and R<br> <strong>P:</strong> Finally, this sentence ties everything together by presenting a possible action from the regulatory authority. This sentence suggests that institutions that don't meet standards should face consequences, which helps to address the issues brought up in sentences S, R, and Q."}, {"id": "101713", "question": "Select the most appropriate <strong>ANTONYM</strong> of the underlined word.</p> <p>The professor's lectures are very conventional and so <ins><strong>tedious</strong></ins>.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Interesting", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Informative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Idle", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Boring"], "correct_answer": 0, "solution": "<strong>Antonym</strong>: <strong>Interesting</strong> (adjective) – Engaging, captivating, stimulating, intriguing, appealing. रोचक"}, {"id": "101704", "question": "<strong>Select the option that will improve the underlined part of the given sentence. In case no improvement is needed, select 'No improvement'.</strong></p> <p>I decided <ins><strong>to took</strong> </ins>matters in my own hands", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to takes", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> to take", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to be taking", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> no improvement"], "correct_answer": 1, "solution": "'to take' will be used instead of 'to took' because after 'to' always the base form of the verb is used; Like— I decided to take matters into my own hands"}, {"id": "101705", "question": "<strong>Select the word segment that substitutes ( replace) bracketed word segment correctly and completes the sentence meaningfully Select the option ·no conection required' if the sentence is correct as given</strong></p> <p>How (can a book such as) be be written before I’ d the incidents it described", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No correction required", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> could such a book", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> must so a book", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> may such a book"], "correct_answer": 1, "solution": "<strong>could such a book'</strong> will be used instead of 'can a book such as' because the sentence is discussing a hypothetical situation in which 'could' is more appropriate to use; Like— How could such a book be written before the incidents it described? Therefore, the correct answer is option B."}, {"id": "101707", "question": "<strong>Arrange the following sentences to form a coherent paragraph.</strong><br> <br> P. Since the notification of the two previous lists, contracts worth Rs 54,000 crore have been signed for domestic procurement. Orders worth more than Rs 2,10,000 crore are likely to be placed with the industry in the next five years, showing, as Defence Minister Rajnath Singh put it, the fast pace of self-reliance in the defence sector.<br> Q. In the past three years, Acceptance of Necessity (AoN) — the first step towards buying military hardware under defence procurement rules — has been accorded for equipment worth Rs 2,47,515 crore from domestic makers.<br> R. The new list of at least 100 weapons and systems that will face an import ban over the next five years comes on the back of two similar lists released in 2020 and 2021.<br> S. Indicative in the announcement is the firm resolve to stay the course on indigenisation of the armament industry, and the growing confidence in the capability of domestic players to deliver as per international standards.<br>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RPQS", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> RSPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SRQP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SPRQ"], "correct_answer": 1, "solution": "<strong>R:</strong> Sentence R introduces the main subject of the paragraph, the banning of imports of certain weapons and systems, and the release of the lists.<br> <strong>S:</strong> Sentence S further elaborates on the implications of this decision, highlighting the move towards self-reliance and confidence in domestic capabilities.<br> <strong>P:</strong> Sentence P continues with the theme of indigenisation, providing data on contracts signed since the release of the two previous lists and projected orders for the next five years.<br> <strong>Q:</strong> Finally, Sentence Q provides further context and supporting data, discussing the Acceptance of Necessity and the monetary value of equipment sourced domestically in the past three years."}, {"id": "101709", "question": "<strong>Select the option that expresses the given sentence in passive voice.</strong></p> <p>They will not water the plants.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> The plants will not be watered by them.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The plants will not be watered by us.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The plants are not be watered by them.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> They shall not water the plants."], "correct_answer": 0, "solution": "<strong>A)</strong> The plants will not be watered by them."}, {"id": "101711", "question": "<strong>Select the best express synonym of the given word</strong></p> <p>The sink was completely <strong>clogged</strong> with debris, making it impossible to wash the dishes.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Heyday", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Agnostic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Synthesis", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Blocked"], "correct_answer": 3, "solution": "<strong>D) Clogged</strong> (adjective) – Blocked, congested, jammed, choked, obstructed जाम हुई"}, {"id": "101708", "question": "<strong>Arrange the following sentences to form a coherent paragraph.</strong><br> <br> P. The situation is no less dismal in the manufacturing sector. According to a study last year by the Centre for Monitoring Indian Economy, the number of employees in this sector dropped from 5.1 crore in 2016-17 to 2.73 crore in 2020-21 — a 46 per cent fall in just half a decade, mostly the pre-pandemic years.<br> Q. The tourism sector has borne the brunt of Covid-19 over the past two years.<br> R. Considering an average household size of five members, these job losses have adversely impacted over 10 crore people.<br> S. The Centre told the Lok Sabha on Monday that about 2.15 crore people in this industry lost jobs due to the three waves of the pandemic, including 1.45 crore during the first wave that witnessed a nationwide lockdown.<br>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QSPR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PSRQ", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> QSRP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQSR"], "correct_answer": 2, "solution": "<strong>Q:</strong> \"The tourism sector has borne the brunt of Covid-19 over the past two years.\" This sentence serves as a good introduction as it sets the context of the impact of Covid-19 on a specific sector, which is tourism"}, {"id": "101712", "question": "Select the most appropriate <strong>ANTONYM</strong> of the underlined word in the given sentence.</p> <p>One may <ins><strong>accomplish</strong> </ins>many things by a little effort.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Qualify", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Retain", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Execute", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Miss"], "correct_answer": 3, "solution": "Antonym: <strong>Miss</strong> (verb) – To fail to achieve or attain, to lose, neglect, overlook. चूकना"}, {"id": "101721", "question": "Select the option that can be used as a <strong>one-word </strong>substitute for the given group of words</p> <p>The group following and attending to some important person, A funeral procession.</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hardened", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Cortege", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Geology", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Jurisdiction"], "correct_answer": 1, "solution": "B) Cortege</strong> – The group following and attending to some important person, A funeral procession. <strong>जूलुस"}, {"id": "101714", "question": "<strong>Choose the correct spelling of the underlined word in the given sentence.</strong></p> <p>We are going on a hiking <ins><strong>expidition</strong></ins>.</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> expedition", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> expedetion", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> exhipidition", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ixpedition"], "correct_answer": 0, "solution": "A) The correct spelling of ‘expidition’ is ‘expedition’ which means ‘a journey undertaken by a group of people with a particular purpose, especially that of exploration, research, or war.’ अभियान, खोजयात्रा"}, {"id": "101719", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence. If there is no need to substitute it, select ‘No substitution required’.</strong></p> <p>He and his father <ins><strong><em>take a ride</em></strong></ins> every morning to the top of the hill.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> takes a ride", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> takes an ride", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No substitution required", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> taking a ride"], "correct_answer": 2, "solution": "दो nouns अगर and से जुड़े हों तो verb plural होता है। लेकिन यदि ये दोनों verb एक ही चीज को इंगित करते हों या मिलकर एक unit बनाते हों तो verb singular होगा। दोनों noun क्या एक इकाई बना रहे हैं इस बात से भी इंगित किया जा सकता है कि दोनों nouns के लिए कितने 'the' का इस्तेमाल हुआ है। अगर दोनों nouns के साथ दो 'the' का इस्तेमाल हुआ है तो इससे दो अलग-अलग चीजों या व्यक्तियों का ज्ञान होता है और verb plural रूप में होगा। अगर एक ही the दोनों nouns के लिए है तो verb singular होगा।"}, {"id": "101717", "question": "<strong>Select the correct spelling from the given options to fill in the blank.</strong></p> <p>Mihika was one of the _______________ in the Master Chef competition held in our society last year.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> contextants", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> contestents", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> contestants", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Kontestants"], "correct_answer": 2, "solution": "C)<strong> 'Contestants'</strong> का प्रयोग होगा क्योंकि यह सही spelling है। \"Master Chef competition\" में भाग लेने वाले लोगों को 'contestants' कहा जाता है।"}, {"id": "101718", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>We should sorted out / the problem ourselves / rather than depending / on the third party.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rather than depending", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> the problem ourselves", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> We should sorted out", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> on the third party"], "correct_answer": 2, "solution": "<strong>C) \"sorted out\" </strong>के बजाय \"sort out\" का उपयोग होगा क्योंकि V1 is used after Modal verbs (i.e. should, would, could, may, must etc.)"}, {"id": "101720", "question": "<strong>Choose the correct meaning of the underlined word in the given sentence.</strong></p> <p>The <ins><strong>orchard</strong> </ins>was a peaceful retreat, with the sound of leaves rustling in the wind and birds chirping in the trees.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A piece of land with lots of houses", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A collection of farmlands", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A collection of apartments", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> A piece of enclosed land with fruit trees"], "correct_answer": 3, "solution": "D) <strong>Orchard</strong> (noun) –A piece of enclosed land with fruit trees फलदार वृक्षों से घिरा भूमिका एक टुकड़ा"}, {"id": "101710", "question": "<strong>Select the best express synonym of the given word in the sentence</strong></p> <p>The <strong>trajectory</strong> of the rocket was carefully calculated to ensure a successful satellite deployment.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Implication", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Path", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Proponent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Moot"], "correct_answer": 1, "solution": "<strong>B) Trajectory</strong> (noun) – Path, course, route, track, direction मार्ग"}, {"id": "101715", "question": "<strong>Identify the INCORRECTLY spelt word in the following sentence and select its correct spelling from the given options.</strong></p> <p>I received good concesions while purchasing a mobile phone.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> recieved", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> whaile", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> concessions", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Paurchasing"], "correct_answer": 2, "solution": "C) The INCORRECTLY spelt word in the given sentence is 'concesions'. The correct spelling is 'concessions' which means “a reduction in price” in English and \"छूट\""}, {"id": "101716", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The _______ nature of the instructions made it difficult for the students to understand the assignment.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ambivalent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ambrosial", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Ambiguous", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ambidextrous"], "correct_answer": 2, "solution": "In this context, the instructions for the assignment are unclear or difficult to interpret, making it hard for the students to understand what is expected of them."}, {"id": "101722", "question": "<strong>Select the most appropriate meaning of the highlighted idiom</strong>.</p> <p>If you're a manager, you can't afford to <strong>take your eye off the ball</strong> for one minute</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To stop paying attention for a moment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Take someone for grated", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Take an advice from a wrong person", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Deteriorating and headed for complete disaster"], "correct_answer": 0, "solution": "A) Take your eye off the ball</strong> (phrase) – To stop paying attention for a moment <strong>एक पल के लिए ध्यान देना बंद करना"}, {"id": "101723", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Jhumpa _____1____ the kitchen and caught hold of her mother saying, “Ma, I am not going to eat this bitter karela (bittergourd). Give me gur (jaggery) and roti.” Ma smiled and said, “You ate roti and sugar in the morning.” Jhoolan ____2_____Jhumpa, “Don’t you get bored of only one kind of taste?” Jhumpa replied quickly, “Do you get bored with licking imli (tarmarind)? I bet your mouth is watering just by hearing the word imli.” “Sure I love the sour imli. But I eat sweet and salty things too. I even eat karela,” said Jhoolan and looked at her mother. They both laughed ____3____. Jhoolan said to Jhumpa, “Let’s play a game. You close your eyes and open your mouth. I will put something to eat in your mouth. You have to tell what it is.” Jhoolan took a few drops of lemon juice in a spoon and put them in Jhumpa’s mouth. “Sour lemon,” Jhumpa replied quickly. Jhoolan then picked up a small piece of jaggery. Her mother suggested, “Crush it, otherwise she will know what it is?” Jhoolan crushed the jaggery but Jhumpa easily guessed it. They played the game with different food items. Jhumpa could tell the fried fish even before tasting it. Jhoolan said, “Now close your nose, and tell me what this is?” Jhumpa was confused, “It is a bit ____4____, a little salty and somewhat sour. Give me one more spoonful.” Jhoolan took another spoonful of the cooked karela, _____5_____ Jhumpa’s eyes, and said, “Here it is, eat!” Jhumpa laughed, “Yes, give me more.”</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> ran into", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> run into", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ran in", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> run in"], "correct_answer": 0, "solution": "No solution available"}, {"id": "101724", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Jhumpa _____1____ the kitchen and caught hold of her mother saying, “Ma, I am not going to eat this bitter karela (bittergourd). Give me gur (jaggery) and roti.” Ma smiled and said, “You ate roti and sugar in the morning.” Jhoolan ____2_____Jhumpa, “Don’t you get bored of only one kind of taste?” Jhumpa replied quickly, “Do you get bored with licking imli (tarmarind)? I bet your mouth is watering just by hearing the word imli.” “Sure I love the sour imli. But I eat sweet and salty things too. I even eat karela,” said Jhoolan and looked at her mother. They both laughed ____3____. Jhoolan said to Jhumpa, “Let’s play a game. You close your eyes and open your mouth. I will put something to eat in your mouth. You have to tell what it is.” Jhoolan took a few drops of lemon juice in a spoon and put them in Jhumpa’s mouth. “Sour lemon,” Jhumpa replied quickly. Jhoolan then picked up a small piece of jaggery. Her mother suggested, “Crush it, otherwise she will know what it is?” Jhoolan crushed the jaggery but Jhumpa easily guessed it. They played the game with different food items. Jhumpa could tell the fried fish even before tasting it. Jhoolan said, “Now close your nose, and tell me what this is?” Jhumpa was confused, “It is a bit ____4____, a little salty and somewhat sour. Give me one more spoonful.” Jhoolan took another spoonful of the cooked karela, _____5_____ Jhumpa’s eyes, and said, “Here it is, eat!” Jhumpa laughed, “Yes, give me more.”</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bruised", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Disposed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Asserted", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Teased"], "correct_answer": 3, "solution": "No solution available"}, {"id": "101725", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Jhumpa _____1____ the kitchen and caught hold of her mother saying, “Ma, I am not going to eat this bitter karela (bittergourd). Give me gur (jaggery) and roti.” Ma smiled and said, “You ate roti and sugar in the morning.” Jhoolan ____2_____Jhumpa, “Don’t you get bored of only one kind of taste?” Jhumpa replied quickly, “Do you get bored with licking imli (tarmarind)? I bet your mouth is watering just by hearing the word imli.” “Sure I love the sour imli. But I eat sweet and salty things too. I even eat karela,” said Jhoolan and looked at her mother. They both laughed ____3____. Jhoolan said to Jhumpa, “Let’s play a game. You close your eyes and open your mouth. I will put something to eat in your mouth. You have to tell what it is.” Jhoolan took a few drops of lemon juice in a spoon and put them in Jhumpa’s mouth. “Sour lemon,” Jhumpa replied quickly. Jhoolan then picked up a small piece of jaggery. Her mother suggested, “Crush it, otherwise she will know what it is?” Jhoolan crushed the jaggery but Jhumpa easily guessed it. They played the game with different food items. Jhumpa could tell the fried fish even before tasting it. Jhoolan said, “Now close your nose, and tell me what this is?” Jhumpa was confused, “It is a bit ____4____, a little salty and somewhat sour. Give me one more spoonful.” Jhoolan took another spoonful of the cooked karela, _____5_____ Jhumpa’s eyes, and said, “Here it is, eat!” Jhumpa laughed, “Yes, give me more.”</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Steadily", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unswervingly", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Heartily", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Expressly"], "correct_answer": 2, "solution": "No solution available"}, {"id": "101726", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Jhumpa _____1____ the kitchen and caught hold of her mother saying, “Ma, I am not going to eat this bitter karela (bittergourd). Give me gur (jaggery) and roti.” Ma smiled and said, “You ate roti and sugar in the morning.” Jhoolan ____2_____Jhumpa, “Don’t you get bored of only one kind of taste?” Jhumpa replied quickly, “Do you get bored with licking imli (tarmarind)? I bet your mouth is watering just by hearing the word imli.” “Sure I love the sour imli. But I eat sweet and salty things too. I even eat karela,” said Jhoolan and looked at her mother. They both laughed ____3____. Jhoolan said to Jhumpa, “Let’s play a game. You close your eyes and open your mouth. I will put something to eat in your mouth. You have to tell what it is.” Jhoolan took a few drops of lemon juice in a spoon and put them in Jhumpa’s mouth. “Sour lemon,” Jhumpa replied quickly. Jhoolan then picked up a small piece of jaggery. Her mother suggested, “Crush it, otherwise she will know what it is?” Jhoolan crushed the jaggery but Jhumpa easily guessed it. They played the game with different food items. Jhumpa could tell the fried fish even before tasting it. Jhoolan said, “Now close your nose, and tell me what this is?” Jhumpa was confused, “It is a bit ____4____, a little salty and somewhat sour. Give me one more spoonful.” Jhoolan took another spoonful of the cooked karela, _____5_____ Jhumpa’s eyes, and said, “Here it is, eat!” Jhumpa laughed, “Yes, give me more.”</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Somber", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hamper", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Batter", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Bitter"], "correct_answer": 3, "solution": "No solution available"}, {"id": "101727", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Jhumpa _____1____ the kitchen and caught hold of her mother saying, “Ma, I am not going to eat this bitter karela (bittergourd). Give me gur (jaggery) and roti.” Ma smiled and said, “You ate roti and sugar in the morning.” Jhoolan ____2_____Jhumpa, “Don’t you get bored of only one kind of taste?” Jhumpa replied quickly, “Do you get bored with licking imli (tarmarind)? I bet your mouth is watering just by hearing the word imli.” “Sure I love the sour imli. But I eat sweet and salty things too. I even eat karela,” said Jhoolan and looked at her mother. They both laughed ____3____. Jhoolan said to Jhumpa, “Let’s play a game. You close your eyes and open your mouth. I will put something to eat in your mouth. You have to tell what it is.” Jhoolan took a few drops of lemon juice in a spoon and put them in Jhumpa’s mouth. “Sour lemon,” Jhumpa replied quickly. Jhoolan then picked up a small piece of jaggery. Her mother suggested, “Crush it, otherwise she will know what it is?” Jhoolan crushed the jaggery but Jhumpa easily guessed it. They played the game with different food items. Jhumpa could tell the fried fish even before tasting it. Jhoolan said, “Now close your nose, and tell me what this is?” Jhumpa was confused, “It is a bit ____4____, a little salty and somewhat sour. Give me one more spoonful.” Jhoolan took another spoonful of the cooked karela, _____5_____ Jhumpa’s eyes, and said, “Here it is, eat!” Jhumpa laughed, “Yes, give me more.”</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Uncovered", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ensnared", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Entangled", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Covered"], "correct_answer": 0, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
