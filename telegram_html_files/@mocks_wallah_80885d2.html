@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">20:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "142421", "question": "<strong>Select the most appropriate idiom to replace the underlined segment.</strong></p> <p>He thinks his new plan will undoubtedly <ins><strong>produce the desired result.</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sour grapes", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> go pear-shaped", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> go suck a lemon", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> bear fruit"], "correct_answer": 3, "solution": "D) <strong>Bear fruit </strong>(idiom) – Produce the desired result फल देना"}, {"id": "142426", "question": "<strong>Select the most appropriate option to substitute the underlined segment in the given sentence</strong></p> <p>During his <ins><strong>short period when he stays </strong></ins>in Paris, he immersed himself in the city's art and culture.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Summit", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sojourn", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Convocation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Itinerary"], "correct_answer": 1, "solution": "B) <strong>Sojourn</strong> (noun) – a temporary stay, especially when traveling. अस्थायी प्रवास"}, {"id": "142431", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>Due to _________ 'eve teasing', parents conclude that it is not worth the danger of sending their daughters to school.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rectified", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> localised", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> narrow", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> widespread"], "correct_answer": 3, "solution": "<strong>Widespread'</strong> will be used because it means \"extensively prevalent.\" The sentence implies that due to the extensive prevalence of 'eve teasing,' parents find it risky to send their daughters to school, making 'widespread' the correct option. Whereas: 'Rectified' means to correct a problem, which does not fit the context. 'Localised' means confined to a specific area, but the sentence emphasizes the prevalence, not restriction. 'Narrow' means limited or restricted, which is not appropriate in this context."}, {"id": "142422", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>She was <ins><strong>overly</strong> </ins>concerned about the results, which affected her ability to focus.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Loud", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Distinct", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Moderately", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cacophonous"], "correct_answer": 2, "solution": "<strong>Antonym:</strong> <strong>Moderately</strong> (adverb) – Reasonably, Slightly, Fairly, Adequately संयमित"}, {"id": "142435", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong><br> <strong>A) </strong>The monthly average price of the Indian basket of crude began to increase after Russia invaded Ukraine in February 2022.<br> <strong>B) </strong>It peaked at $116/bbl in June 2022.<br> <strong>C)</strong> By May 2023, the price crashed to $75.<br> <strong>D) </strong> But India’s retail fuel prices have remained frozen – no changes since May 22, 2022.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ABDC", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> ABCD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CDAB", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BCDA"], "correct_answer": 1, "solution": "<strong>A:</strong> \"The monthly average price of the Indian basket of crude began to increase after Russia invaded Ukraine in February 2022.\" This sentence serves as a good starting point, providing the background and context for the subsequent events"}, {"id": "142429", "question": "<strong>Select the INCORRECTLY spelt word.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Celebrate", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Entertenment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Outburst", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Conscious"], "correct_answer": 1, "solution": "B) The correct spelling is <strong>Entertainment</strong>, which means \"the action of providing or being provided with amusement or enjoyment\" (मनोरंजन)"}, {"id": "142417", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The controversial topic seemed to <ins><strong>polarise</strong> </ins>the audience into two opposing groups.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unite", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Divide", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Harmonise", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reconcile"], "correct_answer": 1, "solution": "<strong>Synonym: Divide </strong>(verb) – Split, separate, polarise, fragment, disunite विभाजित करना"}, {"id": "142428", "question": "<strong>Identify the INCORRECTLY spelt word in the given sentence.</strong></p> <p>BBC Media has shown exponenteal growth in their revenue this year.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> revenue", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> year", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> exponenteal", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> media"], "correct_answer": 2, "solution": "C) The correct spelling of <strong>'exponenteal'</strong> is <strong>'exponential'</strong>, which means “increasing rapidly by successive increments or multiples” (अत्यधिक तीव्रता से बढ़ना)."}, {"id": "142430", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The detail given by the instructor was the ______ one.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> updating", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> more updation", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> most updated", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> updates"], "correct_answer": 2, "solution": "'Most updated' is correct because it is a superlative adjective that means the most recent or latest. The sentence refers to a specific detail provided by the instructor, which is described as the most current or up-to-date information. Superlative forms like \"most updated\" are used when comparing one thing against all others, which fits here since \"the detail\" is singular and specific. updating – \"Updating\" is a present participle, which means the process of updating. It cannot act as an adjective to describe \"the detail\" in this context. \"Updates\" is a plural noun, but the sentence refers to a singular \"detail,\" making it grammatically incorrect."}, {"id": "142416", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The architect presented the <ins><strong>contour</strong> </ins>of the building, highlighting its unique design and structure.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Interior", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Color", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Outline", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Texture"], "correct_answer": 2, "solution": "<strong>Synonym: Outline</strong> (noun) – Contour, framework, structure, shape, sketch रूपरेखा"}, {"id": "142427", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words</strong>.</p> <p>Tom is <ins><strong>a person who searches for and collects discarded items</strong></ins>, turning what others throw away into valuable treasures for his community.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Scavenger", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Forager", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hunter", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gatherer"], "correct_answer": 0, "solution": "A) <strong>Scavenger</strong> (noun) – a person who searches for and collects discarded items. कचरा बीनने वाला व्यक्ति"}, {"id": "142423", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>Due to its <ins><strong>lethal</strong> </ins>potential, handling the chemical requires extreme caution.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Harmless", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Deadly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Dangerous", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Devastating"], "correct_answer": 0, "solution": "<strong>Antonym: Harmless</strong> (adjective) – Not able or likely to cause harm. हानिरहित"}, {"id": "142415", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The <ins><strong>looming</strong> </ins>deadline for the project has everyone working overtime to meet expectations.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Distant", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Remote", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unlikely", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Impending"], "correct_answer": 3, "solution": "<strong>Synonym: Impending</strong> (adjective) – Looming, Approaching, Forthcoming, Imminent, Upcoming (आसन्न)"}, {"id": "142419", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Out of spirits", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hurt", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Obsolete", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cheerful", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Gloomy"], "correct_answer": 3, "solution": "D) <strong>Out of spirits </strong>(idiom) – Gloomy (उदास)"}, {"id": "142432", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence. If there is no need to substitute it, select ‘No substitution required’.</strong></p> <p>The White man had to swallow his bombast and <ins><strong>have completed the journey in mortified.</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> completes the journey mortifying", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> completing the mortifying journey", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> complete the journey in mortification", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> no substitution required"], "correct_answer": 2, "solution": "Incorrect: He had to have finished the work."}, {"id": "142420", "question": "<strong>Select the most appropriate meaning of the underlined phrase.</strong></p> <p>In the <ins><strong>absence of government rule</strong></ins>, riots have broken out all over the country and everything is in a state of complete chaos.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Dictatorship", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Monarchy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Oligarchy", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Anarchy"], "correct_answer": 3, "solution": "<strong>Dictatorship</strong> (noun) – A form of government in which a single leader or party has absolute power. तानाशाही"}, {"id": "142418", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Like a dying duck in a thunderstorm", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Dejected or hopeless", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fearful or scared of water", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bad swimmer or practitioner", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Harmful or vigilant"], "correct_answer": 0, "solution": "A) <strong>Like a dying duck in a thunderstorm</strong> – Dejected or hopeless अत्यधिक निराश, उदास या असहाय दिखना (व्यक्ति की पूरी निराशा और दयनीय स्थिति को दर्शाता है, जैसे एक मरता हुआ बत्तख गरज और बारिश में होता है।)"}, {"id": "142433", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>Japan’s prime minister, Shinzo Abe, urged G20 leaders to / work together to defuse trade / and political tensions, describing it as / threats to global economic growth and stability.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Japan’s prime minister, Shinzo Abe, urged G20 leaders to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> work together to defuse trade", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> and political tensions, describing it as", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> threats to global economic growth and stability."], "correct_answer": 2, "solution": "• 'describing them as' will be used instead of 'describing it as' because here 'it' is being used for 'trade and political tensions' (plural), which is incorrect. For plural noun, we will use 'them'; Like— The teacher gave the students their books and asked them to read."}, {"id": "142434", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>Giving the large base of tanks and (A) / reservoirs in Greater Chennai, (B) / prudent rainfall management can help it through (C) / withering summers and weak monsoons. (D)", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Giving the large base of tanks and", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> reservoirs in Greater Chennai,", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> prudent rainfall management can help it through", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> withering summers and weak monsoons."], "correct_answer": 0, "solution": "• <strong>'Given'</strong> will be used instead of <strong>'Giving'</strong> because there is a <strong>preposition/participle error</strong>. <strong>\"Given\"</strong> means <strong>\"considering/taking into account\"</strong>, whereas <strong>\"Giving\"</strong> (to give) does not fit here; Like—<br> <em>Given the heavy traffic, we should leave early.</em>"}, {"id": "142436", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong><br> <strong>A) </strong>So, as our MPs get ready to work from a swanky new office, they and, even more, their party leaders must ask what use is India’s new House for India if it can’t house thoughtful, civil debates and pass well-scrutinised laws that make things better for citizens.<br> <strong>B) </strong> If the splendour and hi-tech amenities reflected new ambitions, the war of tweets and statements pointed to a bitter political divide that can act as a drag on that ambition.<br> <strong>C) </strong>A grand ceremony and sharp political rhetoric greeted the new Parliament.<br> <strong>D) </strong> Which is to say it would be tragic were the ways of the old Parliament carry over to the new one.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> CBAD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BADC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BACD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CBDA"], "correct_answer": 0, "solution": "<strong>C:</strong> \"A grand ceremony and sharp political rhetoric greeted the new Parliament.\""}, {"id": "142438", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>George Patton Jr said, “I don’t measure man’s success by how high he climbs, but how high he bounces back _____1_____ he hits the bottom.” Emotional and physical _____2______ often _____3______ us. Stages of life are soaked with such experiences. As a child, we were frustrated ____4______not getting things that we wanted dearly. In youth we may have been bullied and rejected. And so the story goes on in our working and home lives, as we grow older.</p> <p>_______5_____, each time, we manage to recover, after a few gaps of silent suffering. During these gaps we intentionally or unintentionally, disconnect and withdraw ourselves from outward happenings, silently submitting and somehow connecting with something deeper and mysterious that overtakes us, and finally gathering the strength to bounce back. This mysterious power is what drove us to rise above all challenges and carry on with life to the best of our abilities.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> When", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Which", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Where", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Whose"], "correct_answer": 0, "solution": "No solution available"}, {"id": "142439", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>George Patton Jr said, “I don’t measure man’s success by how high he climbs, but how high he bounces back _____1_____ he hits the bottom.” Emotional and physical _____2______ often _____3______ us. Stages of life are soaked with such experiences. As a child, we were frustrated ____4______not getting things that we wanted dearly. In youth we may have been bullied and rejected. And so the story goes on in our working and home lives, as we grow older.</p> <p>_______5_____, each time, we manage to recover, after a few gaps of silent suffering. During these gaps we intentionally or unintentionally, disconnect and withdraw ourselves from outward happenings, silently submitting and somehow connecting with something deeper and mysterious that overtakes us, and finally gathering the strength to bounce back. This mysterious power is what drove us to rise above all challenges and carry on with life to the best of our abilities.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Knocks", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Enhancements", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Improves", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Setbacks"], "correct_answer": 3, "solution": "No solution available"}, {"id": "142440", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>George Patton Jr said, “I don’t measure man’s success by how high he climbs, but how high he bounces back _____1_____ he hits the bottom.” Emotional and physical _____2______ often _____3______ us. Stages of life are soaked with such experiences. As a child, we were frustrated ____4______not getting things that we wanted dearly. In youth we may have been bullied and rejected. And so the story goes on in our working and home lives, as we grow older.</p> <p>_______5_____, each time, we manage to recover, after a few gaps of silent suffering. During these gaps we intentionally or unintentionally, disconnect and withdraw ourselves from outward happenings, silently submitting and somehow connecting with something deeper and mysterious that overtakes us, and finally gathering the strength to bounce back. This mysterious power is what drove us to rise above all challenges and carry on with life to the best of our abilities.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Overwhelm", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Succumb", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Yield", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sympathize"], "correct_answer": 0, "solution": "No solution available"}, {"id": "142441", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>George Patton Jr said, “I don’t measure man’s success by how high he climbs, but how high he bounces back _____1_____ he hits the bottom.” Emotional and physical _____2______ often _____3______ us. Stages of life are soaked with such experiences. As a child, we were frustrated ____4______not getting things that we wanted dearly. In youth we may have been bullied and rejected. And so the story goes on in our working and home lives, as we grow older.</p> <p>_______5_____, each time, we manage to recover, after a few gaps of silent suffering. During these gaps we intentionally or unintentionally, disconnect and withdraw ourselves from outward happenings, silently submitting and somehow connecting with something deeper and mysterious that overtakes us, and finally gathering the strength to bounce back. This mysterious power is what drove us to rise above all challenges and carry on with life to the best of our abilities.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> With", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> On", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> By", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To"], "correct_answer": 2, "solution": "No solution available"}, {"id": "142442", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>George Patton Jr said, “I don’t measure man’s success by how high he climbs, but how high he bounces back _____1_____ he hits the bottom.” Emotional and physical _____2______ often _____3______ us. Stages of life are soaked with such experiences. As a child, we were frustrated ____4______not getting things that we wanted dearly. In youth we may have been bullied and rejected. And so the story goes on in our working and home lives, as we grow older.</p> <p>_______5_____, each time, we manage to recover, after a few gaps of silent suffering. During these gaps we intentionally or unintentionally, disconnect and withdraw ourselves from outward happenings, silently submitting and somehow connecting with something deeper and mysterious that overtakes us, and finally gathering the strength to bounce back. This mysterious power is what drove us to rise above all challenges and carry on with life to the best of our abilities.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Still", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Similarly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Besides", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Yet"], "correct_answer": 3, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=20*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=20*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
