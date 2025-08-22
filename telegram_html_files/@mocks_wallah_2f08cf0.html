@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23997", "question": "<strong>Q1. Select the most appropriate antonym of the given word.</strong></p> <p>INDISPENSABLE</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> FUNDAMENTAL", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CRUCIAL", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> INESSENTIAL", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BASIC"], "correct_answer": 2, "solution": "<strong>Antonym</strong>: <strong>Inessential</strong> (adjective) – Unnecessary, unneeded, redundant, dispensable अनावश्यक"}, {"id": "23998", "question": "<strong>Q2. Choose the incorrectly spelt word</strong>.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Prepaer", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mushy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Busiest", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Matter"], "correct_answer": 0, "solution": "A) The correct spelling of ‘Prepaer’ is ’prepare’ which means ‘to make ready’ तैयार करना"}, {"id": "23999", "question": "<strong>Q3. Select the most appropriate option to fill in the blank</strong>.</p> <p>Howard tried to speak but all that came out was an __________, squeaky gargle.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> implausible", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sincere", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> easy", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> inarticulate"], "correct_answer": 3, "solution": "किसी word के पहले Indefinite article \"An\" का प्रयोग तब होता है, जब word की शुरुआत vowel sound से होता है। दिए गए options में, option B \"Sincere\" consonant sound से शुरू हो रहा है, \"S\" का उच्चारण \"See\" की तरह होता है, जो Indefinite article \"An\" का उपयोग करने की आवश्यकता को पूरा नहीं करता है। अतः, option B eliminate हो जाएगा ।"}, {"id": "24000", "question": "<strong>Q4. Choose the word that is opposite in meaning to the given word</strong>.</p> <p>Ignominy</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Esteem", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Disrepute", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stigma", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Infamy"], "correct_answer": 0, "solution": "<strong>Antonym</strong>: <strong>Esteem</strong> (adjective) – Regard, reverence, honour, approval, respect सम्मान"}, {"id": "24001", "question": "Q5. Select the word segment that substitutes (replaces) the bracketed word segment correctly and completes the sentence meaningfully. Select the option 'no correction required' if the sentence is correct as given.</p> <p>Titanic <strong>(was sink)</strong> after midnight.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> was drown", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sunked", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No correction required", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sunk"], "correct_answer": 3, "solution": "D) \"was sink\" के स्थान पर \"sunk\" का प्रयोग होगा क्योंकि इस case में हमें verb \"Sink\" के past participle form की आवश्यकता है।"}, {"id": "24002", "question": "<strong>Q6. In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase</strong>.</p> <p>To make a mountain of a mole hill</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To violate the rules", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To make unnecessary comments", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To give great importance to trifles", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To achieve big success"], "correct_answer": 2, "solution": "C) To make a mountain of a mole hill (phrase) – To give great importance to trifles छोटी सी समस्या को बढ़ा-चढ़ाकर बताना"}, {"id": "24003", "question": "<strong>Q7. Select the correct indirect form of the given sentence</strong>.</p> <p>Pritam said, \"The prisoner had slept throughout the journey.\"</p> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pritam said that the prisoner had been sleeping throughout the journey.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pritam said that the prisoner had sleep throughout the journey.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Pritam said that the prisoner had slept throughout the journey.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pritam said that the prisoner has slept throughout the journey."], "correct_answer": 2, "solution": "C) Pritam said that the prisoner had slept throughout the journey."}, {"id": "24004", "question": "<strong>Q8.In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase</strong>.</p> <p>A bite at the cherry</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A wrong move", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> An attempt or opportunity to do something", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To have a leverage over someone", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A dog bite"], "correct_answer": 1, "solution": "B) A bite at the cherry (phrase) – An attempt or opportunity to do something"}, {"id": "24005", "question": "<strong>Q9. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct</strong>.</p> <p>Remember to close the windows before <strong>you leave</strong>.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> your leave", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> you leaves", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> you have leaving"], "correct_answer": 1, "solution": "B) No improvement"}, {"id": "24006", "question": "<strong>Q10. Fill in the blank with an appropriate option</strong>.</p> <p>The oil in the diya symbolises the dirt in the human mind such as greed, ______, hate, etc.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> envy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> slavery", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> joy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> merry"], "correct_answer": 0, "solution": "A) <strong>Envy</strong> (noun) – Jealousy, greed, bitterness, spite, desire विद्वेष"}, {"id": "24007", "question": "<strong>Q11. Choose the sentence with no spelling error</strong>.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> We can never solvve our problems.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> We can never solve our problems.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> We can never solve our problams.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> We can nver solve our problems."], "correct_answer": 1, "solution": "B) We can never solve our problems"}, {"id": "24008", "question": "<strong>Q12. Find the part of the given sentence that has an error in it. If there is no error, choose</strong></p> <p><strong>‘No error’</strong>.</p> <p>Bushfire have created havoc and exacerbated the conditions of animals in the forest.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Bushfire have created havoc", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> and exacerbated the conditions", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> of animals in the forest."], "correct_answer": 0, "solution": "A) 'Have' के बदले 'has' का प्रयोग होगा क्योंकि subject ‘Bushfire’ singular है जिसके लिए helping verb भी singular होगा।"}, {"id": "24009", "question": "<strong>Q13. Choose the word that is opposite in meaning to the given word</strong>.</p> <p>Vivacity</p> <ol> </ol> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sap", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Vim", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lush", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Apathy"], "correct_answer": 3, "solution": "Antonym: <strong>Apathy</strong> (noun) – Indifference, lethargy, laziness, boredom, ennui उदासीनता"}, {"id": "24010", "question": "<strong>Q15. Choose the word that can substitute the given group of words</strong>.</p> <p>Travelling from place to place</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Recluse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Arcane", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reverent", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Itinerant"], "correct_answer": 3, "solution": "D) <strong>Itinerant</strong> – Travelling from place to place यात्राशील"}, {"id": "24011", "question": "<strong>Q15. Choose the word that means the same as the given word.</strong></p> <p>Obligation</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Imperative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Loophole", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Discharge", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Quietus"], "correct_answer": 0, "solution": "A) <strong>Obligation</strong> (noun) – Duty, commitment, onus, responsibility कर्तव्य"}, {"id": "24012", "question": "<strong>Q16. Select the correct passive form of the given sentence</strong>.</p> <p>Picasso painted Guernica in 1937.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Guernica was painting by Picasso in 1937.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Guernica was been painted by Picasso in 1937.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Guernica was paint by Picasso in 1937.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Guernica was painted by Picasso in 1937."], "correct_answer": 3, "solution": "D) Guernica was painted by Picasso in 1937."}, {"id": "24013", "question": "<strong>Q17. Rearrange the parts of the sentence in correct order</strong>.</p> <p>P. on the US naval base, close to the prison compounds</p> <p>Q. housing the remaining 39 detainees held in the “war on terror”</p> <p>R. inviting tenders for private contractors to run the Migrant Operations Center</p> <p>S. the Immigration and Customs Enforcement (ICE) bureau is<span id=\"cke_bm_544C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RPQS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QSRP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SPQR", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> SRPQ"], "correct_answer": 3, "solution": "The Immigration and Customs Enforcement (ICE) bureau is inviting tenders for private contractors to run the Migrant Operations Center on the US naval base, close to the prison compounds housing the remaining 39 detainees held in the “war on terror”"}, {"id": "24014", "question": "<strong>Q18. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct</strong>.</p> <p>None of the <strong>witnessed could identify</strong> the suspect.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> witness had identify", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> witnessed could identified", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> witnesses could identify"], "correct_answer": 3, "solution": "दिए गए वाक्य में \"witnessed\" शब्द का प्रयोग गलत है, क्योंकि article 'The' से स्पष्ट होता है कि हमें 'noun’ (i.e. witness) की आवश्यकता है, न कि verb की, इसलिए विकल्प D सही है।"}, {"id": "24015", "question": "<strong>Q19. Fill in the blank with an appropriate option</strong>.</p> <p>We can usefully distinguish four types of claims that have been traditionally made using the ______“human nature”.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> collateral", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> application", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> nuance", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> expression"], "correct_answer": 3, "solution": "D) <strong>Expression</strong> (noun) – a word or phrase, especially an idiomatic one, used to convey an idea वाक्यांश"}, {"id": "24016", "question": "<strong>Q20. Find the part of the given sentence that has an error in it. If there is no error, choose</strong></p> <p><strong>‘No error’</strong>.</p> <p>You will never regret this wonderful experience with your life.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> regret this wonderful", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> experience with your life.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> You will never", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 1, "solution": "B) “In” should be used instead of “With” because the preposition \"with\" is generally used to denote accompaniment or association, whereas \"in\" is used to express a state or condition."}, {"id": "24017", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Improving your well-being is considered to be the fundamental (1) ______of travelling.</p> <p>Travelling helps to decrease the risks of heart disease and anxiety (2)______developing our brain health. There have been studies proving that travel can have a positive impact on our heart (3) ______. The health benefit of travelling is that when you travel to new surroundings you (4) ______a restart button to your body and mind. This brings in fresh energy when you get back to your normal (5) ______ activities.</p> <p><strong>Q21. Select the most appropriate option to fill in blank number 1</strong>.<span id=\"cke_bm_594C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rancidity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sanctity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sanity", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> benefit"], "correct_answer": 3, "solution": "word \"Benefit\" संदर्भ में फिट बैठता है क्योंकि passage में यात्रा के positive प्रभावों या फायदों पर चर्चा की है ।"}, {"id": "24018", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Improving your well-being is considered to be the fundamental (1) ______of travelling.</p> <p>Travelling helps to decrease the risks of heart disease and anxiety (2)______developing our brain health. There have been studies proving that travel can have a positive impact on our heart (3) ______. The health benefit of travelling is that when you travel to new surroundings you (4) ______a restart button to your body and mind. This brings in fresh energy when you get back to your normal (5) ______ activities.</p> <p><strong>Q22. Select the most appropriate option to fill in blank number 2</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> as", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> because", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> so", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> while"], "correct_answer": 3, "solution": "D) \"while\" का अर्थ है कि दो चीजें एक साथ लेकिन स्वतंत्र रूप से हो रही हैं। यह सबसे अच्छा option है, क्योंकि इससे पता चलता है कि यात्रा दोनों एक ही समय में हमारे brain health को विकसित करने में और जोखिम को कम करने में मदद करती है।"}, {"id": "24019", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Improving your well-being is considered to be the fundamental (1) ______of travelling.</p> <p>Travelling helps to decrease the risks of heart disease and anxiety (2)______developing our brain health. There have been studies proving that travel can have a positive impact on our heart (3) ______. The health benefit of travelling is that when you travel to new surroundings you (4) ______a restart button to your body and mind. This brings in fresh energy when you get back to your normal (5) ______ activities.</p> <p><strong>Q23. Select the most appropriate option to fill in blank number 3</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> health", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> bloom", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> pace", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> being"], "correct_answer": 0, "solution": "Passage यात्रा के health benefits के बारे में बात कर रहा है, विशेष रूप से heart disease और brain health का उल्लेख किया गया है। passage में कहा गया है कि \" travel can have a positive impact on our heart... ...\", इसलिए ‘Health’ विकल्प उपयुक्त है।"}, {"id": "24020", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Improving your well-being is considered to be the fundamental (1) ______of travelling.</p> <p>Travelling helps to decrease the risks of heart disease and anxiety (2)______developing our brain health. There have been studies proving that travel can have a positive impact on our heart (3) ______. The health benefit of travelling is that when you travel to new surroundings you (4) ______a restart button to your body and mind. This brings in fresh energy when you get back to your normal (5) ______ activities.</p> <p><strong>Q24. Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> press", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> heap", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> usurp", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> snatch"], "correct_answer": 0, "solution": "The verb 'press' fits the context of the sentence better than the other options. The idea is that when you travel, you are metaphorically pressing a 'restart button' to your body and mind."}, {"id": "24021", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Improving your well-being is considered to be the fundamental (1) ______of travelling.</p> <p>Travelling helps to decrease the risks of heart disease and anxiety (2)______developing our brain health. There have been studies proving that travel can have a positive impact on our heart (3) ______. The health benefit of travelling is that when you travel to new surroundings you (4) ______a restart button to your body and mind. This brings in fresh energy when you get back to your normal (5) ______ activities.</p> <p><strong>Q25. Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> regular", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sedentary", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> arbitrate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> moderate"], "correct_answer": 0, "solution": "'Regular' सबसे अच्छा option है क्योंकि यह किसी ऐसी चीज को refer करता है जो नियमित रूप से या आदतन की जाती है, जो passage के संदर्भ में अच्छी तरह से फिट बैठती है। phrase 'get back to your normal activities” यात्रा या छुट्टी की अवधि के बाद अपनी दैनिक दिनचर्या या अपनी नियमित गतिविधियों पर लौटने को संदर्भित करता है।"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
