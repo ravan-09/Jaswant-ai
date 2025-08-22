@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/100</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 100</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah" target="_blank" rel="noopener">VISHAL😁RAVAN</a> <a href="https://youtube.com/@Vlogsbyvishalravan" target="_blank" rel="noopener" style="font-size:12px;opacity:.85;margin-left:6px;">(YouTube backup)</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/200</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/46c281e3-3380-420f-85f1-bb6afd09a640.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/0bbb9c26-b460-473a-972b-a1ca21f6679b.png'>",
+    "question_index": 0,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8c580f3a-94b4-42e1-b66a-b08a196f2dd9.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/46a347d3-f24c-4f4a-9b36-87a9bd574374.png'>",
+    "question_index": 1,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/94428dd7-9810-4540-9a63-d3ac97b40e90.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/061380cc-f2ef-4969-b1b9-03a1e2502ee4.png'>",
+    "question_index": 2,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1474c0a5-1f33-455a-a666-8ff49808b2c2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ce9e2b9b-df4b-4e31-9a25-63eafbdca2ea.png'>",
+    "question_index": 3,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e1d8f10c-3abf-47e1-890e-eb1669cb07bb.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6270f2c7-ae38-415d-b3c9-09a5cb738cb4.png'>",
+    "question_index": 4,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/97559537-cd0d-4d62-8e71-1b81406192cd.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6f4878ac-0963-42a4-9a83-9d4a529866ce.png'>",
+    "question_index": 5,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/010e18b8-e1e0-4439-9144-6bed836003af.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1e8b5c02-6808-45a4-8f41-b0183283a87c.png'>",
+    "question_index": 6,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f8aafb40-b98b-4b9e-bb49-0ed8536dd020.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1f21364a-0584-4306-88a1-ee717370372d.png'>",
+    "question_index": 7,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/30fc3f04-5d6a-4cf2-b995-601f92c07903.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b6764aa3-4980-48aa-acfc-3e10d384f274.png'>",
+    "question_index": 8,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8c8115e0-8d77-41df-b458-17aa0aebfa91.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/19dda153-3ce8-4eeb-8734-b1587d7164cf.png'>",
+    "question_index": 9,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7862268f-4d6e-41d6-8a57-290ec76fac7e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/287e301f-ad3c-4240-b9b5-80ffb26523c6.png'>",
+    "question_index": 10,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/fc28053e-b211-4a39-9c12-2187bf2ff848.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1b3ca449-ff86-4b1c-b75e-84385945cd51.png'>",
+    "question_index": 11,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b3d881c4-a424-4be4-9592-5d8f2b5b7fd1.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1eedc56f-99c7-44bf-b7de-73fa35519d24.png'>",
+    "question_index": 12,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/53d112e6-e92f-4257-b3eb-c18add44043f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e36b9dc7-6553-49d9-8e44-a58cc40dde58.png'>",
+    "question_index": 13,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ac0ba89b-cb53-4cb5-b1b0-0348f27690ca.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/2fa2a5bd-ccf3-4db4-8dee-748df2fb850b.png'>",
+    "question_index": 14,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e69e4e9b-b508-4f23-ad7a-0d80c636e781.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/274b2444-a9ae-453b-81ba-bb63d1bb4465.png'>",
+    "question_index": 15,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c5f0fc6e-8e93-4791-9b21-3f5f8bece202.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/9ba133ec-b43d-4178-9e97-4669c49ca8a4.png'>",
+    "question_index": 16,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f2c52730-c5c3-44dd-92b9-2436b76b7254.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/d54669c9-32b8-472a-be7f-4c4896bde1a5.png'>",
+    "question_index": 17,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5876b65a-8d8e-44b1-9f30-2e989f697e97.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/491412e2-b241-47c9-bcfd-3d7028458ff0.png'>",
+    "question_index": 18,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a01f4399-9f99-4239-b287-c8b8dd989d82.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/50bb6738-fdcc-474f-a416-5dccb72e079a.png'>",
+    "question_index": 19,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/cab9dee9-0744-4d82-8228-ff029f902625.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/bc997238-9171-4474-8a65-c81cac6d2b62.png'>",
+    "question_index": 20,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/02707e02-f80e-49da-80ba-03aac89430a5.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/0a13831e-2044-4a89-b646-168d16f74b37.png'>",
+    "question_index": 21,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e7a45de5-fb46-4ddc-bfda-f1508209e980.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ec0de400-adca-4f6f-a11a-afd7ad5b4f00.png'>",
+    "question_index": 22,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6036a43e-ac40-4464-be41-17fe60612b9f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/d63e21db-983b-4ed9-9377-8cd99552fdb2.png'>",
+    "question_index": 23,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ef82aa3a-f526-499d-b8cf-80207aa55db4.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b69471f9-6fce-4226-9508-f06426a6d2ec.png'>",
+    "question_index": 24,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/4fab4376-7016-4169-bde8-6351b149fb6d.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ccee835b-78f5-4bbc-9758-66fe23ab85a4.png'>",
+    "question_index": 25,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/4b89be91-9402-4fe7-a09d-aeb6c9b43322.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ce213111-d1aa-4f44-9e7a-b3e601bf9a24.png'>",
+    "question_index": 26,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ee4f4968-a524-425c-a365-c264c040b21d.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/99ab62cf-a118-4ef4-bbe0-2c8e961273ed.png'>",
+    "question_index": 27,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e4eea29d-8359-4567-a7a1-222c05f8c0d2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/64a62f59-9a55-4d41-b0e6-34105e82e987.png'>",
+    "question_index": 28,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/0afd2768-dcd9-46ea-88d6-42cc76771362.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b8383d73-b77b-40bf-aea9-e84e332d5e6f.png'>",
+    "question_index": 29,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6f8df097-a7e7-4f08-a76f-0f7de6fe4451.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b07a65dc-97d0-43a9-b03e-698d74a7139c.png'>",
+    "question_index": 30,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/77969d8e-5d1d-4fc5-bf64-b594b3cd8382.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/fc2d011b-d0bd-4eb4-9a9d-98ab896c5fa3.png'>",
+    "question_index": 31,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a396b432-17f8-4b7f-bdd8-9657ad19b091.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/eaad7ae2-14cd-4db4-9420-3a99890d7756.png'>",
+    "question_index": 32,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/24fa6cbb-21c7-4606-9d08-65ab134a0b7a.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f2c9d3cd-778a-4550-bca1-80041e0c335b.png'>",
+    "question_index": 33,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/4ab4b48a-9785-4af7-aaf5-b7c8963d89f7.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/67123e66-2c4e-4421-99b5-204c518cea61.png'>",
+    "question_index": 34,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/78519232-2f1e-4f16-9096-b9bd006fea6f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/2c2871f3-e61a-409b-a7e8-16bc2c2fbbba.png'>",
+    "question_index": 35,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c96ed1d0-9a86-40e3-a822-7c3b0f2892a3.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/32da0595-7e70-4b4b-94e0-abc74b3ade16.png'>",
+    "question_index": 36,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/aa3fb650-ff15-45ee-a1f4-ba687e188930.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8cec3865-3187-4004-9a1c-3c56e0ec1ada.png'>",
+    "question_index": 37,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/143ede51-ecc9-4747-9b81-91ff4e97a03f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8878bc0f-7df4-44d5-8955-3b931aea761b.png'>",
+    "question_index": 38,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/42c6a536-83cb-4514-81c0-0c194fdef30e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/eb4cc1d8-9249-437b-8a22-0a41394fd909.png'>",
+    "question_index": 39,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/accb3e30-fa06-4569-8d7c-63093598ce20.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/962402ad-e56c-482b-bb86-49606f904d12.png'>",
+    "question_index": 40,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/360ea3f3-cca4-4b35-8cb0-aad4a5456cac.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3ce365cb-28df-483b-b387-f1030f9f6453.png'>",
+    "question_index": 41,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/40426895-4037-4ced-8fcd-a21f2fbed489.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/0bc07d09-b265-473a-9bf0-7cbe83a9ddf1.png'>",
+    "question_index": 42,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/07c64b36-dd0f-48de-bad8-645b5aae752e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c35f7026-f55d-4765-a971-81c52b6b4657.png'>",
+    "question_index": 43,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a2becfcd-72c8-4152-968f-378166eb44fc.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6e320aff-b63e-46c6-8698-90a02e11e758.png'>",
+    "question_index": 44,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a4061b2b-a27e-455b-932a-39aa7c43ab7a.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ad883d85-d659-4f4b-8447-f511d9dd9aa8.png'>",
+    "question_index": 45,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/d1e2570f-3c4d-4ca5-84d1-8e8977dcb74d.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f99778de-08a9-462a-a9fe-2487e18ad78b.png'>",
+    "question_index": 46,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/bb7aa57b-27b1-4b63-8ad2-104aa59809e6.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c9682a84-663b-4705-b2d3-dee98cc63474.png'>",
+    "question_index": 47,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3e5bb2d7-ea8a-4286-ab71-afd003cd0634.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/13750f6b-3e94-48a2-821a-4537f2c93b73.png'>",
+    "question_index": 48,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/cb4009a6-ed69-4687-bb90-601df4f23411.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/34f64d53-7aa6-47b7-92e0-1fd752c4c2f7.png'>",
+    "question_index": 49,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/329fb122-29c9-4550-9cf8-8fefdb838151.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5beb6c3d-eb7b-45ad-b957-c075ea8527fa.png'>",
+    "question_index": 50,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1c442904-9610-471c-83ae-ac9817e9aa08.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/eb04d2d3-a04b-4987-b2c7-327da21f5cd3.png'>",
+    "question_index": 51,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e5bff746-a5ce-474c-b9f6-debc2e35c1a2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/35c36879-18f9-477a-aa3b-fdc08fe7535b.png'>",
+    "question_index": 52,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/4c950614-e290-4432-8be8-774b095f7cda.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/74831d3f-25d4-437d-8525-692ab33d350b.png'>",
+    "question_index": 53,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f41604d2-31d3-4605-884f-6c8f14e924ec.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8279875d-2367-4c4f-adf9-c3e9660dc5f6.png'>",
+    "question_index": 54,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/dca790ab-3672-42f5-8822-4d88f805cad1.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6331f2cd-b056-49a3-8213-42e4d873bc3a.png'>",
+    "question_index": 55,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/99a1189a-9f4b-4472-a5aa-3e2579edb7cd.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a6cc029d-29c7-4e95-9150-6511fc0ae0a5.png'>",
+    "question_index": 56,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b63d3f54-3cd8-437c-b79d-8739306b1042.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a2792ceb-bd96-4a87-babe-1dab6db3b995.png'>",
+    "question_index": 57,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/9225eece-7f94-406a-b3c8-50d2c40eedac.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/215f5da5-15fd-4346-b165-811c213baffb.png'>",
+    "question_index": 58,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5295a077-6b58-4a8f-8b76-800e78c59d9f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6d44fcb2-ee16-4cd8-9685-c19c7903785a.png'>",
+    "question_index": 59,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e3537524-8010-4512-8302-8c83fedac1ac.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ea0f33e2-64ff-459a-9ca3-88f3891af8bb.png'>",
+    "question_index": 60,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/fff9633f-e44b-45b2-8ff0-0eb686774db5.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/d96f58a6-7edf-497e-81b8-6f22c1452616.png'>",
+    "question_index": 61,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/9b09511d-51c9-42ea-ab20-845dd834cf6d.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/61af7e04-b4fc-4458-8cd2-5e158bcd16e9.png'>",
+    "question_index": 62,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/323d588a-f8ce-4cb7-b54b-60758ac2b454.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b634338b-cb44-4f34-9cdc-583195fd9287.png'>",
+    "question_index": 63,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/87222404-cd5b-4868-a596-c6381c8bc592.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c9a70ea4-cd4f-4431-a5f3-a8862b7ec293.png'>",
+    "question_index": 64,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/83e017d2-0565-42fc-ab69-b9dcd74be08e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7d4731ec-ec94-4782-a4e1-958e54f7deb8.png'>",
+    "question_index": 65,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5b86b83a-1e59-42b4-873c-3c309df1f932.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6d66f927-a12f-413d-930f-313556c036c8.png'>",
+    "question_index": 66,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/12918b2b-b3ed-4d4b-bbf5-a6edb22446d0.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c81658d1-b4a8-41d0-ba6c-b477acec10b8.png'>",
+    "question_index": 67,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/9a4b06da-0048-48de-9de8-6c87de9048e2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/53a7c0d8-2985-4886-bb38-a66a1962b67e.png'>",
+    "question_index": 68,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/48aa2334-dac7-43b4-b22a-7a4a27c39e28.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/54fd576d-704b-45ae-a5f4-e4eb6c3c2789.png'>",
+    "question_index": 69,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7b40e10b-1831-41c0-903a-1db8d93d56f3.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ab7ff80f-97c5-434c-a8ca-e92309823e23.png'>",
+    "question_index": 70,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ef0c4539-50f5-46fe-9bff-84bfa9a56647.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b310ce36-1a06-4968-8658-31f74374ee40.png'>",
+    "question_index": 71,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8d5c6605-9a6d-4d7f-9180-ac177bd00ee5.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/519ef5c2-c14f-4e00-bb68-689cf7db2384.png'>",
+    "question_index": 72,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7df17282-a369-4dd6-8116-70370bbe84d7.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5ebef460-9454-4bef-a3eb-d63e33fb936f.png'>",
+    "question_index": 73,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a344e0df-287c-4857-8b9d-d53042361fa2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/cd4b539e-fb24-4b70-8ae1-b11866fdb589.png'>",
+    "question_index": 74,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/1cbed769-e457-4226-8ef8-57ec2549cc20.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/31b0a712-38d8-465b-860d-60b4b80a74d4.png'>",
+    "question_index": 75,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/a53173dc-6f4e-4344-a33c-3fa241598b2f.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f08478f7-d44f-4295-865f-4e98a41bd019.png'>",
+    "question_index": 76,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/89bbd1ad-18aa-456f-985e-9c04577dfa7e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b9424a79-b4bf-4e99-a5f2-11fda03924c0.png'>",
+    "question_index": 77,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/da30d33a-df5d-4087-8d12-a8a9bb219fc5.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3c8604e0-4fa6-408e-b0c9-89bd134b19bc.png'>",
+    "question_index": 78,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b77f7ca6-621b-499e-aedc-ea8d9eb85547.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7a64e5c1-4259-40db-91db-a13a5c491c71.png'>",
+    "question_index": 79,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/4df8fc87-cc35-4a0a-a4c7-db89ad7dbb47.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/7f25da48-dc96-40c9-b17e-f367d59cbf91.png'>",
+    "question_index": 80,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c848a051-7e72-4638-891a-fe63bb116f70.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/efb25b9b-8353-4fd9-bd38-5834cde08ef6.png'>",
+    "question_index": 81,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c1da115f-9302-4069-97ea-4d822f66699c.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/71105956-5063-47ef-9842-01ba5c4ca6f7.png'>",
+    "question_index": 82,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e2fe9bf2-cd23-4fb4-ba1f-f88d53100348.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/02e8d498-6671-4aef-b902-e0d535e3074f.png'>",
+    "question_index": 83,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/179c081b-c356-4432-9d30-effea4013e78.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c08fc078-023e-4ba8-b6ef-f1f5107b51a2.png'>",
+    "question_index": 84,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/c3744e34-014c-45af-8d2c-493e14388e1e.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/71eb3102-5c80-44b8-ba7c-53b25f45596a.png'>",
+    "question_index": 85,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5aadf6a9-cb76-4735-b0cc-aa27a6afdbae.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/0fe9c6dc-36fa-443b-b7cf-0d9c12f499d5.png'>",
+    "question_index": 86,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3830902c-ae74-4d03-8494-98b6ca7f37f2.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b223cb14-d33a-4166-9f34-6f8ba11370a3.png'>",
+    "question_index": 87,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3f8d3fdd-b031-40d2-a1c8-d59f9590dc42.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f3514d67-e5c3-4e46-859b-2483d291d35c.png'>",
+    "question_index": 88,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/ace3edb6-8e6a-4d9e-9cf3-c0a47de481fe.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/600c83c5-19d6-4a2a-96d2-190914db9e10.png'>",
+    "question_index": 89,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/5bb4ea42-8e03-40b6-ad3a-de23c14923ec.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 2,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/eddc6dcf-3c4c-4063-9ea2-e34ab0370c80.png'>",
+    "question_index": 90,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/bef302f8-8aad-497f-9858-a77cf555e422.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/d6a1d4b2-8f79-432e-968f-e70cbf7ad948.png'>",
+    "question_index": 91,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/3be2e4c4-49f7-4178-938d-0085f5a6ee0c.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/2e56e213-9d65-4d09-8daf-c3caefa9667a.png'>",
+    "question_index": 92,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/b2a33d8f-8b88-4bc1-b4e9-634863fa2a75.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/544a4971-263f-4237-af5b-d3ab995dac5f.png'>",
+    "question_index": 93,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/6e9c9532-50f9-43a1-b0f0-df93d7502e7c.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/67c22b49-0bb8-4d48-9cb5-298fa0035c23.png'>",
+    "question_index": 94,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/e9194bc5-a7d0-4eb3-8916-d3d167192153.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/adefa6bf-bc8d-450a-9a53-df2310f84dc5.png'>",
+    "question_index": 95,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/fb3b9dfa-af71-4408-9277-3e0ce03779b1.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/39054f5e-e4a3-402e-a61d-8ae3b8a3be5e.png'>",
+    "question_index": 96,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8bd90380-27f2-49d9-a749-f4360eaf82be.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 3,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/02e0072a-05e9-4ca6-968a-ad37664d8bff.png'>",
+    "question_index": 97,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/f141771b-1982-4cb3-b071-f64de8363842.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 0,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/aa7042e3-f3fd-4503-8584-aaf0432b04b6.png'>",
+    "question_index": 98,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  },
+  {
+    "question": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/9f8e9d40-908b-4241-a704-5d218577700b.png'>",
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "correct_option_id": 1,
+    "solution": "<img src='https://d2bps9p1kiy4ka.cloudfront.net/5b09189f7285894d9130ccd0/8d9bc3be-4c48-42d0-803d-d79245bce9d3.png'>",
+    "question_index": 99,
+    "pos_mark": 2,
+    "negative_mark": 0.5,
+    "maxduration": 60,
+    "language": "en"
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 60 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.5;
+                        console.log(`Q${i + 1}: INCORRECT (-0.5 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/200`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
