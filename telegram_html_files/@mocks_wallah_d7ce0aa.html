@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">20:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "147356", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>Her <ins><strong>inquisitive</strong> </ins>nature led her to pursue a career in scientific research.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Curious", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Investigative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Probing", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Indifferent"], "correct_answer": 3, "solution": "<strong>Antonym: Indifferent</strong> (adjective) – Uninterested, unconcerned (उदासीन)"}, {"id": "147394", "question": "<strong>Select the correct spelling of the underlined word in the given sentence.</strong></p> <p>We do not <ins><strong>expet</strong> </ins>Reema to follow all the rules from the first day of work.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> expect", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> expact", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> expict", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> except"], "correct_answer": 0, "solution": "A) The correct spelling of the underlined word ‘<strong>expet’</strong> is ‘<strong>expect’</strong>, which means “to think or believe that something will happen or someone will do something” (उम्मीद करना, अपेक्षा करना)."}, {"id": "147399", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong></p> <p>I have (A) / made the cupcakes so (B) / please hand out them (C) / to me (D)", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> C", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> D", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> B"], "correct_answer": 0, "solution": "• Pick the books up → Pick them up (✓)"}, {"id": "147357", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>A person who travels from place to place, especially for work", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Itinerant", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Vagrant", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nomad", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pilgrim"], "correct_answer": 0, "solution": "<strong>Vagrant</strong> (noun) – A person without a settled home or regular work who wanders from place to place. आवारा व्यक्ति,"}, {"id": "147403", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Select the option that arranges the sentences in the correct logical sequence to form a meaningful and coherent paragraph.</strong></p> <p><strong>a</strong>. This figure is predicted to climb as the percentage of Americans residing in rural areas falls by an average of 1.6% annually.</p> <p><strong>b</strong>. The United Nations reports that India’s urban population is growing at a rate of 1.1 percent annually, while the country's rural population is shrinking at a rate of 0.37 percent annually.</p> <p><strong>c</strong>. While 82% of Americans live in urban settings, only 30% of Indians do so.</p> <p><strong>d</strong>. It's still a considerably smaller percentage of the Indian population than it is in the US that resides in urban areas.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> d, b, a, c", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a, c, b, d", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> b, d, a, c", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> b, d, c, a"], "correct_answer": 3, "solution": "The United Nations reports that India’s urban population is growing at a rate of 1.1 percent annually, while the country's rural population is shrinking at a rate of 0.37 percent annually It's still a considerably smaller percentage of the Indian population than it is in the US that resides in urban areas While 82% of Americans live in urban settings, only 30% of Indians do so This figure is predicted to climb as the percentage of Americans residing in rural areas falls by an average of 1.6% annually"}, {"id": "147397", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>I will not be able to ___________ my assignment in time", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> completes", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> completing", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> complete", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> completed"], "correct_answer": 2, "solution": "<strong>complete'</strong> will be used because it is the base form of the verb, and in future tense sentences, 'will' is followed by the base form. The sentence indicates that the speaker will not be able to finish their assignment on time. Whereas, 'completes' is used in present tense for the third person singular (he, she, it). 'Completing' is the present participle used in continuous tenses, which does not fit here. 'Completed' is the past tense or past participle and is not suitable for this future tense sentence."}, {"id": "147352", "question": "<strong>Select the most appropriate option to substitute the underlined idiom/phrase in the given sentence.</strong></p> <p>The salesman informed the customers that if they had any questions, they could <ins><strong>drop a line</strong>.</ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> call his secretary", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> come back with the items", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> complain against him", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> send a brief letter"], "correct_answer": 3, "solution": "D) <strong>Drop a line</strong> (idiom) – To send a brief letter or note. एक छोटा सा पत्र या नोट भेजना।"}, {"id": "147396", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>As 'brutal' is synonymous to 'harsh', 'naive' is synonymous to ________.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> simple", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> worldly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> wise", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> hospitable"], "correct_answer": 0, "solution": "<strong>'Simple'</strong> will be used because 'naive' means innocent or straightforward, which is synonymous with 'simple'. The question discusses the synonym relationship between the given words. Whereas, 'worldly' means sophisticated or experienced, 'wise' means intelligent, and 'hospitable' means welcoming or generous, none of which fit in this context."}, {"id": "147398", "question": "<strong>The following sentence has been divided into parts. One of them may contain an error. Select the part that contains the error from the given options. If you don’t find any error, mark ‘No error’ as your answer.</strong></p> <p>My cousin thinks that / English is difficult / than other subjects", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> than other subjects", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> English is difficult", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> My cousin thinks that"], "correct_answer": 2, "solution": "‘more difficult than other subjects’ will be used instead of ‘difficult than other subjects’ because when comparing using adjectives that have two or more syllables (like difficult), the comparative form is made by adding ‘more’ before the adjective. So, to make a grammatically correct comparative sentence, it should be: English is more difficult than other subjects; Like— English is more difficult than Mathematics."}, {"id": "147351", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The manager’s <ins><strong>arbitrary</strong> </ins>decisions frustrated the employees.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fair", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Random", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Justified", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reasonable"], "correct_answer": 1, "solution": "<strong>Synonym: Random</strong> (adjective) – Arbitrary, chance, unplanned. (यादृच्छिक)"}, {"id": "147395", "question": "<strong>Select the correct spelling from the given options to fill in the blank.</strong></p> <p>They may vary and seem very different, but they are not ________.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> irrecosilable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ireconcilable", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> irreconcilable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> irrecincilable"], "correct_answer": 2, "solution": "\"<strong>Irreconcilable</strong>\" means \"impossible to reconcile or bring into agreement.\" In the sentence, it is implied that while the subjects may differ or seem very different, they are not \"irreconcilable,\" suggesting that reconciliation or harmony is possible. Thus, the correct spelling is <strong>\"irreconcilable.</strong>"}, {"id": "147358", "question": "<strong>Select the option that can be used as a one-word substitute for the highlighted group of words in the given sentence.</strong></p> <p>RK Laxman was well-known for his drawings of people in such a highly exaggerated manner as to cause laughter.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sketches", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> articles", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> portraits", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> caricatures"], "correct_answer": 3, "solution": "<strong>Sketches</strong> (noun) – A simple, quickly made drawing without much detail. रेखाचित्र"}, {"id": "147350", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The <ins><strong>resultant</strong> </ins>effect of the heavy rains was severe flooding in the city.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Initial", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Ensuing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Primary", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Original"], "correct_answer": 1, "solution": "<strong>Synonym: Ensuing</strong> (adjective) – Happening as a result (आगामी / परिणामस्वरूप)"}, {"id": "147354", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>To throw caution to the wind", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To do something with care and attention", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To give answer with utmost attention", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To roam here and there aimlessly", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To do something without worrying about risk"], "correct_answer": 3, "solution": "D) <strong>To throw caution to the wind</strong> (idiom) – To do something without worrying about risk \"जोखिम की परवाह किए बिना कुछ करना।\""}, {"id": "147400", "question": "<strong>The following sentence has been divided into parts. One of them may contain an error. Select the part that contains the error from the given options. If you don’t find any error, mark ‘No error’ as your answer.</strong></p> <p>Whenever she is coming / here, she brings / many gifts for everyone.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> here, she brings", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> whenever she is coming", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> many gifts for everyone."], "correct_answer": 2, "solution": "The error lies in part C: \"Whenever she is coming.\""}, {"id": "147355", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>The government introduced new policies to <ins><strong>curb</strong> </ins>the rising pollution levels in the city.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Encourage", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Restrict", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Suppress", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Control"], "correct_answer": 0, "solution": "<strong>Antonym: Encourage</strong> (verb) – To stimulate, support, or promote (प्रोत्साहित करना)"}, {"id": "147353", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Pull someone’s leg", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To avert a great danger", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To tease or play a joke on someone", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To take a situation seriously or earnestly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To physically pull the legs of a person"], "correct_answer": 1, "solution": "B) <strong>Pull someone’s leg (Idiom)</strong> – To tease or play a joke on someone किसी का मजाक बनाना या छेड़ना।"}, {"id": "147401", "question": "<strong>The following sentence has been divided into parts. One of them may contain an error. Select the part that contains the error from the given options. If you don’t find any error, mark ‘No error’ as your answer.</strong></p> <p>She often goes for a walk / with her dog / in the night.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> in the night", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> with her dog", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> She often goes for a walk", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 0, "solution": "The phrase 'in the night' is incorrect in this context because it is not the appropriate idiomatic expression for general nighttime activities. The correct phrase is 'at night'. The preposition 'in' is used for specific parts of the night (e.g., in the middle of the night) but not for general references."}, {"id": "147402", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>The US may want to pass laws about (A) / Hong Kong’s special position, but with (B) / US and China now at logerheads, Hong Kong residents (C) / will have to decide where their ultimate loyalty lies. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The US may want to pass laws about", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hong Kong’s special position, but with", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> US and China now at logerheads, Hong Kong residents", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> will have to decide where their ultimate loyalty lies."], "correct_answer": 2, "solution": "'<strong>loggerheads</strong>' will be used instead of 'logerheads' because 'loggerheads' is the correct spelling which means 'a state of open dispute or conflict'."}, {"id": "147405", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p>P. Whether it is scorching summers or bone-chilling winters,</p> <p>Q. In India, tea transcends mere consumption; it embodies a lifestyle</p> <p>R. Whether in the bustling streets of Mumbai or the serene backwaters of Kerala, the clinking of tea cups resonates, marking the essence of every region in the country</p> <p>S. tea is a remedy that brings Indians together to start the day, refuel, or simply enjoy a moment of solace", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RSPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PRQS", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> QRPS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SQPR"], "correct_answer": 2, "solution": "Q sentence paragraph की शुरुआत करता है क्योंकि यह बताता है कि “In India, tea transcends mere consumption; it embodies a lifestyle” यानी भारत में चाय सिर्फ एक पेय नहीं है, यह एक lifestyle का हिस्सा है। यह पूरे paragraph का main idea सेट करता है और चाय की cultural significance को introduce करता है।"}, {"id": "147406", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Fill in the blanks with the help ofthe alternatives given. Select the most appropriate option for each blank.</strong></p> <p>She was, I think, a good woman – and she had him sent (1) _______. When her husband died, she (2) _________ the truth. And so, to save the man she loved, she tried to destroy the (3) ________ against him. Later, I think, he (4) _________ her that her suspicions were (5) _________, and she consented to marry him</p> <p><strong>Select the most appropriate option to fill in blank no. 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> on", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> away", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> by", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> through"], "correct_answer": 1, "solution": "No solution available"}, {"id": "147407", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Fill in the blanks with the help ofthe alternatives given. Select the most appropriate option for each blank.</strong></p> <p>She was, I think, a good woman – and she had him sent (1) _______. When her husband died, she (2) _________ the truth. And so, to save the man she loved, she tried to destroy the (3) ________ against him. Later, I think, he (4) _________ her that her suspicions were (5) _________, and she consented to marry him</p> <p><strong>Select the most appropriate option to fill in blank no. 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> smuggled", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> suspected", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> debited", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> filed"], "correct_answer": 1, "solution": "No solution available"}, {"id": "147408", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Fill in the blanks with the help ofthe alternatives given. Select the most appropriate option for each blank.</strong></p> <p>She was, I think, a good woman – and she had him sent (1) _______. When her husband died, she (2) _________ the truth. And so, to save the man she loved, she tried to destroy the (3) ________ against him. Later, I think, he (4) _________ her that her suspicions were (5) _________, and she consented to marry him</p> <p><strong>Select the most appropriate option to fill in blank no. 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> time", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> crime", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> evidence", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> opportunity"], "correct_answer": 2, "solution": "No solution available"}, {"id": "147409", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Fill in the blanks with the help ofthe alternatives given. Select the most appropriate option for each blank.</strong></p> <p>She was, I think, a good woman – and she had him sent (1) _______. When her husband died, she (2) _________ the truth. And so, to save the man she loved, she tried to destroy the (3) ________ against him. Later, I think, he (4) _________ her that her suspicions were (5) _________, and she consented to marry him</p> <p><strong>Select the most appropriate option to fill in blank no. 4.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> guessed", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> persuaded", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> killed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> pondered"], "correct_answer": 1, "solution": "No solution available"}, {"id": "147410", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Fill in the blanks with the help ofthe alternatives given. Select the most appropriate option for each blank.</strong></p> <p>She was, I think, a good woman – and she had him sent (1) _______. When her husband died, she (2) _________ the truth. And so, to save the man she loved, she tried to destroy the (3) ________ against him. Later, I think, he (4) _________ her that her suspicions were (5) _________, and she consented to marry him</p> <p><strong>Select the most appropriate option to fill in blank no. 5.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> true", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> facts", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> concrete", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> unfounded"], "correct_answer": 3, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=20*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=20*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
