@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23761", "question": "<strong>Q1. Select the word that is similar in meaning (SYNONYM) to the word given below</strong></p> <p>Craven</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bold", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unabashed", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Cowardly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gallant"], "correct_answer": 2, "solution": "C) <strong>Craven</strong> (adjective) – Cowardly, gutless, weak, timorous, fearful डरपोक"}, {"id": "23762", "question": "<strong>Q2. Choose the word that is opposite in meaning to the given word</strong>.</p> <p>Coarse</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Devoted", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Buttery", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unrefined", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gruntled"], "correct_answer": 1, "solution": "No solution available"}, {"id": "23763", "question": "<strong>Q3. Select the wrongly spelt word</strong>.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Benign", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Besiege", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Beneficiel", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bifurcate"], "correct_answer": 2, "solution": "C) The correct spelling of ‘Beneficiel’ is ‘Beneficial’ which means “Helpful, useful, valuable, advantageous, favourable” लाभदायक"}, {"id": "23764", "question": "<strong>Q4. Some parts of a sentence have been jumbled up, and labelled P, Q, R and S. Select the option that gives the correct sequence in which these parts can be rearranged to form a meaningful and grammatically correct sentence.</strong><br> <br> Many retailers have invested<br> P. time and money into understanding its<br> Q. make them healthier so they can continue to be marketed<br> R. promotions work, and changing product ingredients to<br> S. complexity, refitting shops, trialling which healthier", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PSRQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SRPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QRPS"], "correct_answer": 0, "solution": "Many retailers have invested time and money into understanding its complexity, refitting shops, trialling which healthier promotions work, and changing product ingredients to make them healthier so they can continue to be marketed"}, {"id": "23765", "question": "<strong>Q5. Select the wrongly spelt word.</strong></p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Circumspect", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Camor", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cloying", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Coffer"], "correct_answer": 1, "solution": "B) The correct spelling of ‘Camor’ is “Clamour” which means “Uproar, commotion, noise, shouting” कोलाहल"}, {"id": "23766", "question": "<strong>Q6. Fill in the blank with an appropriate option.</strong></p> <p>Just one ______ of paper can lead to a whole lot of fun.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> sheet", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> bunch", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> bulk", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> group"], "correct_answer": 0, "solution": "A) The word \"sheet\" is commonly used to refer to a single piece of paper. Therefore, it is the most appropriate choice in the context of the sentence, which refers to the fun that can come from a single unit of paper."}, {"id": "23767", "question": "<strong>Q7. Select the correct passive form of the given sentence</strong>.</p> <p>The cat ate all the pastries.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> All the pastries is eaten by the cat.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> All the pastries were eaten by the cat.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> All the pastries had been eaten by the cat.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> All the pastries are eaten by the cat."], "correct_answer": 1, "solution": "B) All the pastries were eaten by the cat."}, {"id": "23768", "question": "<strong>Q8. Find the part of the given sentence that has an error in it. If there is no error, choose ‘No error’</strong>.</p> <p>A guru is someone who does not charge you a fee because someone who is tied in greed couldn’t release you.</p> <ol> </ol> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Charge you a fee because someone", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Who is tied in greed couldn’t release you.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A guru is someone who does not", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 1, "solution": "<strong>Tie up in</strong> (phrasal verb) – To keep occupied; engage में लिप्त होना"}, {"id": "23769", "question": "<strong>Q9. Select the word that is closest in meaning (SYNONYM) to the word given below</strong>.</p> <p>Buddy</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stylist", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Foe", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Associate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Enemy"], "correct_answer": 2, "solution": "C) <strong>Buddy</strong> (noun) – Friend, playmate, companion, partner, associate यार"}, {"id": "23770", "question": "<strong>Q10. Choose the word that means the same as the given word</strong>.</p> <p>Jejune</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Poignant", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Drab", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unchildlike", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cosmopolitan"], "correct_answer": 1, "solution": "B) <strong>Jejune</strong> (adjective) – boring and not interesting उबाऊ"}, {"id": "23771", "question": "<strong>Q11. Given below are four jumbled sentences. Pick the option that gives their correct order</strong>.</p> <p>P. The average adult gets two to four colds a year, while the average child may get six to eight.</p> <p>Q. It is the most frequent infectious disease in humans.</p> <p>R. They occur more commonly during the winter.</p> <p>S. The common cold, also known simply as the cold, is a viral infectious disease of the upper respiratory tract that primarily affects the nose.<span id=\"cke_bm_603C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QSRP", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> SQPR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPSR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQRS"], "correct_answer": 1, "solution": "The common cold, also known simply as the cold, is a viral infectious disease of the upper respiratory tract that primarily affects the nose. It is the most frequent infectious disease in humans. The average adult gets two to four colds a year, while the average child may get six to eight. They occur more commonly during the winter."}, {"id": "23772", "question": "<strong>Q12. Select the most appropriate meaning of the given idiom</strong>.</p> <p>New kid on the block</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nonsense or meaningless speech.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Savings set aside for future use.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Don't hurt anyone that helps you.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Someone new to the group or area."], "correct_answer": 3, "solution": "D) <strong>New kid on the block</strong> (phrase) – Someone new to the group or area. समूह या क्षेत्र में कोई नया व्यक्ति"}, {"id": "23773", "question": "<strong>Q13. In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase</strong>.</p> <p>Cast someone adrift</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To leave someone without any support or purpose", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To change plan suddenly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Call someone repeatedly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To blame someone for one’s mistakes"], "correct_answer": 0, "solution": "A) <strong>Cast someone adrift</strong> (phrase) – To leave someone without any support or purpose किसी को भटका देना"}, {"id": "23774", "question": "<strong>Q14. Fill in the blank with an appropriate option</strong>.</p> <p>It was past the mid-hour of the night, and was quite ______ and dark.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> moonless", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> glimmer", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> flasher", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> riding"], "correct_answer": 0, "solution": "The word \"moonless\" (option A), however, is an adjective that fits perfectly in this context to describe a dark night."}, {"id": "23775", "question": "<strong>Q15. Identify the segment in the sentence which contains a grammatical error. If there is no error, then select the option \"No error\"</strong>.</p> <p>I felt that / I was be groomed / for success in the world.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> I was be groomed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I felt that", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> for success in the world."], "correct_answer": 1, "solution": "B) Replace \"I was groomed/ I was be groomed\" with \"I was be groomed\" because the structure \"was/were + being + past participle\" is used for the past continuous passive voice. The correct verb form would be either \"I was groomed\" (past simple passive) or \"I was being groomed\" (past continuous passive)."}, {"id": "23776", "question": "<strong>Q16. Choose the word that can substitute the given group of words</strong>.</p> <p>A lover of good food</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Esoteric", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Chauvinist", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Gourmand", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ergophile"], "correct_answer": 2, "solution": "No solution available"}, {"id": "23777", "question": "<strong>Q17. Choose the option that is the correct indirect form of the sentence</strong>.</p> <p>I said, ‘I’m not very happy at work.’</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> I told her that I was not very happy at work.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I told her I would not be very happy at work.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I told her that I had not been very happy at work.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I told her I am not very happy at work."], "correct_answer": 0, "solution": "A) I told her that I was not very happy at work."}, {"id": "23778", "question": "<strong>Q18. Fill in the blank with the most suitable word</strong>.</p> <p>The scientists ______ that the chefs relied on a specific motion.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> invented", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> innovated", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> planned", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> found"], "correct_answer": 3, "solution": "\"Found\" in this context means to discover something by chance or observation, which fits the context. The scientists are likely studying or observing the chefs and have discovered that the chefs use a specific motion."}, {"id": "23779", "question": "<strong>Q19. Select the word segment that substitutes (replaces) the bracketed word segment correctly and completes the sentence meaningfully. In case no improvement is needed, select ‘No improvement’</strong>.</p> <p>Nonetheless, (many an old poets, such as Tennyson and Browning, has) kept their romances to the end.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> many old poets, such as Tennyson and Browning, have", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> many old poets, such Tennyson and Browning, has", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> many a old poets, such Tennyson and Browning, has"], "correct_answer": 0, "solution": "The phrase 'many an old poets' is incorrect because the phrase 'many a/an' is followed by a singular noun (e.g., 'many a poet'), not a plural one ('poets'). However, in this context, it's more standard to simply use 'many' with a plural noun, as in 'many poets.'"}, {"id": "23780", "question": "<strong>Q20. Fill in the blank with an appropriate option</strong>.</p> <p>We are the creative force of our life, and through our own decisions rather than our conditions, if we carefully learn to do certain things, we can ______ those goals.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> expel", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> accomplish", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> torment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> reverberate"], "correct_answer": 1, "solution": "When we refer to successfully achieving or completing tasks or goals, we use the verb 'accomplish'."}, {"id": "23781", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage, some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each blank.</p> <p>Cristiano Ronaldo dos Santos Aveiro, born on February 5th, 1985 and commonly known</p> <p>1._________ Cristiano Ronaldo, is a Portuguese footballer who 2.__________ as a forward for Spanish club Real Madrid and serves as captain 3.____________ the Portuguese national team. Ronaldo currently holds the distinction of being the most expensive player in football history after 4.___________ transferred to Real Madrid from Manchester United in a deal worth £80 million (€94m, US$132m). His contract with Real Madrid is believed to have made him the highest-paid 5._________ player in the world.</p> <p><strong>Q21. Select the most appropriate option to fill in the blank No.1.</strong><span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> at", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> for", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> as"], "correct_answer": 3, "solution": "The preposition 'as' is used when you are talking about somebody/something being known or regarded in a particular way. So, \"commonly known as Cristiano Ronaldo\" is the correct usage."}, {"id": "23782", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage, some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each blank.</p> <p>Cristiano Ronaldo dos Santos Aveiro, born on February 5th, 1985 and commonly known</p> <p>1._________ Cristiano Ronaldo, is a Portuguese footballer who 2.__________ as a forward for Spanish club Real Madrid and serves as captain 3.____________ the Portuguese national team. Ronaldo currently holds the distinction of being the most expensive player in football history after 4.___________ transferred to Real Madrid from Manchester United in a deal worth £80 million (€94m, US$132m). His contract with Real Madrid is believed to have made him the highest-paid 5._________ player in the world.</p> <p><strong>Q22. Select the most appropriate option to fill in the blank No. 2</strong><span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> plays", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> played", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> will play", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> has played"], "correct_answer": 0, "solution": "The present simple tense \"plays\" is used here because the text is describing an ongoing situation or fact about Cristiano Ronaldo's role as a footballer for Real Madrid. The rest of the passage uses the present tense, which suggests that the actions described are still true at the time of writing"}, {"id": "23783", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage, some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each blank.</p> <p>Cristiano Ronaldo dos Santos Aveiro, born on February 5th, 1985 and commonly known</p> <p>1._________ Cristiano Ronaldo, is a Portuguese footballer who 2.__________ as a forward for Spanish club Real Madrid and serves as captain 3.____________ the Portuguese national team. Ronaldo currently holds the distinction of being the most expensive player in football history after 4.___________ transferred to Real Madrid from Manchester United in a deal worth £80 million (€94m, US$132m). His contract with Real Madrid is believed to have made him the highest-paid 5._________ player in the world.</p> <p><strong>Q23. Select the most appropriate option to fill in the blank No. 3</strong><span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> with", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> at"], "correct_answer": 2, "solution": "The preposition \"of\" is used because the noun phrase \"the Portuguese national team\" represents a group or organization, and Ronaldo holds a particular role or title within this group, namely that of captain. Therefore, \"of\" is the correct preposition to denote this relationship."}, {"id": "23784", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage, some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each blank.</p> <p>Cristiano Ronaldo dos Santos Aveiro, born on February 5th, 1985 and commonly known</p> <p>1._________ Cristiano Ronaldo, is a Portuguese footballer who 2.__________ as a forward for Spanish club Real Madrid and serves as captain 3.____________ the Portuguese national team. Ronaldo currently holds the distinction of being the most expensive player in football history after 4.___________ transferred to Real Madrid from Manchester United in a deal worth £80 million (€94m, US$132m). His contract with Real Madrid is believed to have made him the highest-paid 5._________ player in the world.</p> <p><strong>Q24. Select the most appropriate option to fill in the blank No. 4</strong><span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> been", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> is", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> having", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> be"], "correct_answer": 2, "solution": "The grammatical reason for this is that the sentence is written in the perfect gerund form. This form is used to emphasize the completion of an earlier action before another takes place. In this context, \"having transferred\" emphasizes that the transfer was completed before other events, such as him becoming the most expensive player, took place."}, {"id": "23785", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage, some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each blank.</p> <p>Cristiano Ronaldo dos Santos Aveiro, born on February 5th, 1985 and commonly known</p> <p>1._________ Cristiano Ronaldo, is a Portuguese footballer who 2.__________ as a forward for Spanish club Real Madrid and serves as captain 3.____________ the Portuguese national team. Ronaldo currently holds the distinction of being the most expensive player in football history after 4.___________ transferred to Real Madrid from Manchester United in a deal worth £80 million (€94m, US$132m). His contract with Real Madrid is believed to have made him the highest-paid 5._________ player in the world.</p> <p><strong>Q25. Select the most appropriate option to fill in the blank No. 5</strong><span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rugby", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> football", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> tennis", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> cricket"], "correct_answer": 1, "solution": "The passage is talking about Cristiano Ronaldo, who is a famous Portuguese footballer. Therefore, it wouldn't make sense to fill in the blank with the names of other sports (rugby, tennis, cricket). Using \"football\" maintains the consistency of the topic throughout the passage."}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
