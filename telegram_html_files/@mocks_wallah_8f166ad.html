@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">10:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "109302", "question": "<strong>Read the given sentence carefully. Change the meaning of the sentence by replacing the underlined word with its ANTONYM from the following options.</strong></p> <p>William Shakespeare is considered to be the most <ins><strong>celebrated</strong> </ins>dramatist in the world of literature", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> laureate", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> inglorious", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> acclaimed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> illustrious"], "correct_answer": 1, "solution": "Antonym: <strong>Inglorious</strong> (adjective) – Not famous or renowned, dishonorable, shameful. अकीर्तिकर/ लज्जाजनक"}, {"id": "109305", "question": "<strong>Select the option that can be used as a one-word substitute for the underlined words.</strong></p> <p>He was promoted to a higher position in the first year due to his <ins><strong>careful nature and hard-working efforts</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> business mindedness", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> extraordinary", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> elegance", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> diligence"], "correct_answer": 3, "solution": "D) <strong>Diligence</strong> (noun) – Careful nature and hard-working efforts परिश्रम"}, {"id": "109310", "question": "<strong>Select the INCORRECTLY spelt word.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Divine", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Devote", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Dive", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Devide"], "correct_answer": 3, "solution": "<strong>D) </strong>The correct spelling of ‘Devide’ is ‘<strong>Divide’</strong> विभाजित करना, बाँटना."}, {"id": "109303", "question": "<strong>Which of the following sentences contains the ANTONYM of the word ‘important’?</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> You always make me do all the trivial stuff.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Namita also makes some very salient points in her newly revised preface.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I have some urgent questions for you.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Choose the right colour to make your bike stand out!"], "correct_answer": 0, "solution": "Antonym: <strong>Trivial</strong> (adjective) – Of little value or importance, insignificant, minor. तुच्छ"}, {"id": "109314", "question": "<strong>Parts of a sentence are given below in jumbled order. Arrange the parts in the correct order to form a meaningful sentence.</strong></p> <p>(A) fell dead in an instant</p> <p>(B) stunned the movement</p> <p>(C) of the busy Bazaar and</p> <p>(D) silenced the cacophony</p> <p>(E) suddenly, a ringing blast</p> <p>(F) out of the bodies, which", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BADFEC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> FACEDB", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CABEDF", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> EDCBFA"], "correct_answer": 3, "solution": "E: \"Suddenly, a ringing blast\" is the starting point, introducing the event."}, {"id": "109308", "question": "<strong>Choose the correctly spelt word</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Fulcrum", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Falkrum", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Phelcram", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Phalkram"], "correct_answer": 0, "solution": "<strong>A) </strong>The correct spelling among the options is 'A. <strong>Fulcrum'</strong>."}, {"id": "109298", "question": "<strong>Select the best express synonym of the highlighted word.</strong></p> <p>The monument’s <strong>long-lasting</strong> significance is a testament to the culture and history of the city.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Furtive", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Foxy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Shady", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Durable"], "correct_answer": 3, "solution": "<strong>D) Long-lasting</strong> (adjective) – Durable, enduring, permanent, sustained, long-term दीर्घकालिक"}, {"id": "109307", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>A story intended to teach moral lessons", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parboil", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Parable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parole", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parasite"], "correct_answer": 1, "solution": "B) <strong>Parable</strong> (noun) – A story intended to teach moral lessons नैतिकता सिखाने के लिए बनाई गई कहानी"}, {"id": "109309", "question": "<strong>Choose the correctly spelt word.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gramar", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gramer", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Grammar", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Grrammer"], "correct_answer": 2, "solution": "<strong>B) </strong>The correct spelling of the word is 'C. <strong>Grammar'</strong>, व्याकरण"}, {"id": "109297", "question": "<strong>Select the most appropriate synonym of the given italicize word.</strong></p> <p>In emergency situations, clear communication is an absolute <strong><em>imperative</em></strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Refuse", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Necessity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Regret", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Present"], "correct_answer": 1, "solution": "<strong>B) Imperative</strong> (noun) – Necessity, requirement, essential, urgent need, obligation अनिवार्यता"}, {"id": "109306", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>An area/place in which dead bodies are buried", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Demise", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Cemetery", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mansion", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Clementi"], "correct_answer": 1, "solution": "B) <strong>Cemetery</strong> (noun) – An area/place in which dead bodies are buried क़ब्रिस्तान"}, {"id": "109304", "question": "<strong>Select the most appropriate ANTONYM of the underlined word in the sentence.</strong></p> <p>She was asked by the elders to wear a skirt <ins><strong>covering</strong> </ins>her knees", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Expecting", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Exposing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Expanding", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Expounding"], "correct_answer": 1, "solution": "Antonym:</strong> <strong>Exposing</strong> (verb) – Making something visible, revealing, uncovering, showing. <strong>उजागर</strong><strong> </strong><strong>करना"}, {"id": "109296", "question": "<strong>Select the best express synonym of the highlighted word.</strong></p> <p>In every discussion, her <strong>voluble</strong> nature ensured that her opinions were heard loud and clear.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fear", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Disgrace", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Talkative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Defamation"], "correct_answer": 2, "solution": "<strong>C) Voluble</strong> (adjective) – Talkative, vocal, outspoken, fluent, articulate वाचाल"}, {"id": "109300", "question": "<strong>Select the best express synonym of the highlighted phrasal verb.</strong></p> <p>The committee decided to <strong>do away with</strong> the old regulations to streamline the process.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Abolish", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Interesting", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Natural", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Vivacious"], "correct_answer": 0, "solution": "<strong>A) Do away with</strong> (phrasal verb) – Abolish, eliminate, remove, discard, get rid of समाप्त करना"}, {"id": "109311", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p><strong>Stones</strong>(A)/should not be <strong>throne</strong>(B)/by those who <strong>live</strong>(C)/in glass <strong>houses.</strong> (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stones", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> should not be throne", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> by those who live", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in glass houses."], "correct_answer": 1, "solution": "'thrown' will be used instead of 'throne' because 'throne' is a Noun and means 'seat' while 'thrown' is Past Participle Form of Verb 'throw' which means 'to throw'."}, {"id": "109301", "question": "<strong>Select the most appropriate idiom to fill in the blank.</strong></p> <p>After a day long trek, we were so tired that we were ready to _________.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> go from rags to riches", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> face the music", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> hit the sack", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> get into deep water"], "correct_answer": 2, "solution": "C) <strong>hit the sack</strong> (idiom) – to go to bed in order to sleep सोने जाना"}, {"id": "109299", "question": "<strong>Select the best express synonym of the highlighted phrase.</strong></p> <p>He tried to <strong>paper over</strong> the mistake, but the discrepancy was too noticeable to ignore.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Impassion", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Severity", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Conceal", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Malevolence"], "correct_answer": 2, "solution": "<strong>C) Paper over</strong> (phrasal verb) – Cover up, conceal, hide, gloss over, disguise छुपाना"}, {"id": "109312", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>Though the book is not yet available on India, (A)/previews published in this country suggest(B)/that it is a complex study of(C)/an extremely complex personality. (D)", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Though the book is not yet available on India,", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> previews published in this country suggest", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> that it is a complex study of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> an extremely complex personality."], "correct_answer": 0, "solution": "'in India' will be used instead of 'on India' because 'in' is used in the meaning of 'may' before the name of any state, country, continent."}, {"id": "109313", "question": "<strong>Parts of a sentence are given below in jumbled order. Arrange the parts in the correct order to form a meaningful sentence.</strong></p> <p>(A) her suburbs, she was enthralled to see</p> <p>(B) one cold evening, when she went</p> <p>(C) autumn still attached to</p> <p>(D) the last golden leaf left from</p> <p>(E) out for a walk on the snowy paths of</p> <p>(F) an otherwise leafless tree", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CAFEDB", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BADECF", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> BEADCF", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CABEDF"], "correct_answer": 2, "solution": "B (\"One cold evening, when she went\") starts the sentence by introducing the time and context."}, {"id": "109315", "question": "<strong>Parts of a sentence are given below in jumbled order. Arrange the parts in the correct order to form a meaningful sentence.</strong></p> <p>A. Lying in bed waiting</p> <p>B. For the postman to bring</p> <p>C. Him news of a legacy</p> <p>D. Luck keeps on", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BDCA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BDAC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ADBC", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> DABC"], "correct_answer": 3, "solution": "D: \"Luck keeps on\" is the starting phrase of the sentence, establishing the subject and verb."}, {"id": "109316", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Boundaries, junctions, transitions and thresholds are important to us in many different ways, serving not only logistic or ornamental functions, _____1______ possessing important psychological, aesthetic and philosophical implications. An _____2_______representation of a boundary is seen in the vedi, altar of the Vedic yajna, constructed in bricks. Called prastara, it was meant to limit the sacrificial fire, demarcate a ______3_______space and contain _____4_____energy and make the ritual of benefit to the yajamana. Shaped like a vihanga, bird, the border around the vedi becomes the prototype for all borders in the Indian tradition, a border that functions not only to demarcate the sacred from the secular but equally carries with it, metaphysical implications. To enclose the finite is an invitation to experience the infinite, for the human eye cannot _____5______ the infinite.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> however", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> but", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> when", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> but also"], "correct_answer": 3, "solution": "No solution available"}, {"id": "109317", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Boundaries, junctions, transitions and thresholds are important to us in many different ways, serving not only logistic or ornamental functions, _____1______ possessing important psychological, aesthetic and philosophical implications. An _____2_______representation of a boundary is seen in the vedi, altar of the Vedic yajna, constructed in bricks. Called prastara, it was meant to limit the sacrificial fire, demarcate a ______3_______space and contain _____4_____energy and make the ritual of benefit to the yajamana. Shaped like a vihanga, bird, the border around the vedi becomes the prototype for all borders in the Indian tradition, a border that functions not only to demarcate the sacred from the secular but equally carries with it, metaphysical implications. To enclose the finite is an invitation to experience the infinite, for the human eye cannot _____5______ the infinite.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Earliest", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Early", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Establish", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Slightest"], "correct_answer": 0, "solution": "No solution available"}, {"id": "109318", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Boundaries, junctions, transitions and thresholds are important to us in many different ways, serving not only logistic or ornamental functions, _____1______ possessing important psychological, aesthetic and philosophical implications. An _____2_______representation of a boundary is seen in the vedi, altar of the Vedic yajna, constructed in bricks. Called prastara, it was meant to limit the sacrificial fire, demarcate a ______3_______space and contain _____4_____energy and make the ritual of benefit to the yajamana. Shaped like a vihanga, bird, the border around the vedi becomes the prototype for all borders in the Indian tradition, a border that functions not only to demarcate the sacred from the secular but equally carries with it, metaphysical implications. To enclose the finite is an invitation to experience the infinite, for the human eye cannot _____5______ the infinite.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Satisfied", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unsafe", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Scared", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sacred"], "correct_answer": 3, "solution": "No solution available"}, {"id": "109319", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Boundaries, junctions, transitions and thresholds are important to us in many different ways, serving not only logistic or ornamental functions, _____1______ possessing important psychological, aesthetic and philosophical implications. An _____2_______representation of a boundary is seen in the vedi, altar of the Vedic yajna, constructed in bricks. Called prastara, it was meant to limit the sacrificial fire, demarcate a ______3_______space and contain _____4_____energy and make the ritual of benefit to the yajamana. Shaped like a vihanga, bird, the border around the vedi becomes the prototype for all borders in the Indian tradition, a border that functions not only to demarcate the sacred from the secular but equally carries with it, metaphysical implications. To enclose the finite is an invitation to experience the infinite, for the human eye cannot _____5______ the infinite.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> its", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> it’s", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> there", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> their"], "correct_answer": 0, "solution": "No solution available"}, {"id": "109320", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> Boundaries, junctions, transitions and thresholds are important to us in many different ways, serving not only logistic or ornamental functions, _____1______ possessing important psychological, aesthetic and philosophical implications. An _____2_______representation of a boundary is seen in the vedi, altar of the Vedic yajna, constructed in bricks. Called prastara, it was meant to limit the sacrificial fire, demarcate a ______3_______space and contain _____4_____energy and make the ritual of benefit to the yajamana. Shaped like a vihanga, bird, the border around the vedi becomes the prototype for all borders in the Indian tradition, a border that functions not only to demarcate the sacred from the secular but equally carries with it, metaphysical implications. To enclose the finite is an invitation to experience the infinite, for the human eye cannot _____5______ the infinite.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fatigue", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Fathom", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Magnify", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Percept"], "correct_answer": 1, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=10*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=10*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
