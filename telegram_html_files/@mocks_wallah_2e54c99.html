@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23047", "question": "<strong>Q. 1 Choose the word that can substitute the given group of words.</strong></p> <p>A speech made without preparation", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Eulogy", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Extempore", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Chronicle"], "correct_answer": 2, "solution": "C) <strong>Extempore</strong> – A speech made without preparation तात्कालिक"}, {"id": "23048", "question": "<strong>Q. 2 Fill in the blank with an appropriate option.</strong></p> <p>Your ear has three main ______: outer, middle and inner.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> parts", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> subjects", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> plugs", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> events"], "correct_answer": 0, "solution": "A) “Part (भाग)” is the most appropriate option to fill in the blank as it refers to <strong>body parts</strong> of the human body."}, {"id": "23049", "question": "<strong>Q. 3 Select the correct indirect form of the given sentence.</strong></p> <p>Lee said to his wife, “I am very happy today.”", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lee told his wife that he was very happy today.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lee told his wife that he has been very happy that day.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lee told his wife he was very happy today.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Lee told his wife that he was very happy that day."], "correct_answer": 3, "solution": "D) Lee told his wife that he was very happy that day."}, {"id": "23050", "question": "<strong>Q. 4 Rearrange the parts of the sentence in correct order.</strong></p> <p><strong>P. </strong>bendable electronics and sensing technologies research<br> <strong>Q.</strong> people using “aerohaptics”, creating feelings of touch with jets of air<br> <strong>R. </strong>my colleagues and I working in the University of Glasgow’s<br> <strong>S. </strong>group have now developed a system of holograms of", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPSR", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> RPSQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SRQP"], "correct_answer": 1, "solution": "My colleagues and I working in the University of Glasgow’s bendable electronics and sensing technologies research group have now developed a system of holograms of people using “aerohaptics”, creating feelings of touch with jets of air"}, {"id": "23051", "question": "<strong>Q. 5 Choose the incorrectly spelt word</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Morning", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Washing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Calling", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Burnig"], "correct_answer": 3, "solution": "D) The correct spelling of ‘Burnig’ is <strong>Burning</strong> which means ‘Scorching, sweltering, red-hot’ जलन"}, {"id": "23052", "question": "<strong>Q.6 Find the part of the given sentence that has an error in it. If there is no error, choose ‘No error’.</strong></p> <p>Its impossible to conduct truly causal research on media consumption and suicide", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Its impossible to conduct", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> media consumption and suicide.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> truly causal research on"], "correct_answer": 0, "solution": "A)<strong> It’s</strong> should be used instead of <strong>Its</strong> because \"Its\" is a possessive pronoun, used when something belongs to or is associated with something that has already been mentioned. \"It's\", on the other hand, is a contraction of \"it is\" or \"it has\". In this sentence, we are not indicating possession, but rather making a statement (it is impossible), so \"It's\" is the correct form to use."}, {"id": "23053", "question": "<strong>Q. 7 Choose the word that can substitute the given group of words.</strong></p> <p>Exaggerated claims, not meant to be taken seriously", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hyperpyrexia", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Hyperbole", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hypergamy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hyperreal"], "correct_answer": 1, "solution": "B)<strong> Hyperbole</strong> – Exaggerated claims, not meant to be taken seriously अतिशयोक्ति"}, {"id": "23054", "question": "Q. 8 Select the correct passive form of the given sentence.</p> <p><strong>The child locked the shutters.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> The shutters were locked by the child.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The shutters are locked by the child.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The shutters would be locked by the child.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The shutters had been locked by the child."], "correct_answer": 0, "solution": "A) The shutters were locked by the child"}, {"id": "23055", "question": "<strong>Q. 9 Find the part of the given sentence that has an error in it. If there is no error, choose ‘No error’.</strong></p> <p>What is the price of this fancy dress pink?", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> fancy dress pink?", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> price of this", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> What is the"], "correct_answer": 0, "solution": "A) The error in the sentence is in the arrangement of the words. The correct sentence should be: \"What is the price of this pink fancy dress?\" The adjective (pink) should come before the noun (fancy dress) it is describing. In English, adjectives usually precede the noun they modify."}, {"id": "23056", "question": "Q. 10 In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase.</p> <p><strong>As hard as nails</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To be stubborn", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To feel no pain", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Physically or mentally tough", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hard working"], "correct_answer": 2, "solution": "C) <strong>As hard as nails</strong> (phrase) – Physically or mentally tough शारीरिक या मानसिक रूप से सख़्त"}, {"id": "23057", "question": "<strong>Q. 11 Choose the sentence with no spelling error</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> These componants can work independently.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> These components can work indepedently.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> These components can work independently.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> These components can wrok independently."], "correct_answer": 2, "solution": "C) These components can work independently"}, {"id": "23058", "question": "<strong>Q. 12 Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct.</strong></p> <p>The number of women working outside homes<ins> <strong>has been steady</strong></ins> increasing", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> has been steadily", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> had been steadier", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> have been steady"], "correct_answer": 0, "solution": "A) ‘has been steadily’ का प्रयोग होगा क्योंकि \"increasing\" एक verb है, और हम verb को modify करने के लिए adverb (adjective ka नहीं) का उपयोग करते हैं। \"steady\" एक adjective है, जबकि \"steadily\" एक adverb है।"}, {"id": "23059", "question": "<strong>Q. 13 Fill in the blank with the most suitable word.</strong></p> <p>The ______ heard that the relationship was stormy and had broken up several times", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> inquiry", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> impute", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> inordinate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> impugn"], "correct_answer": 0, "solution": "Hint: In the provided blank, we need a noun to complete the sentence. Therefore, option (A), which is the only noun among the choices, is the correct fill."}, {"id": "23060", "question": "Q. 14 Select the word that is opposite in meaning (<strong>ANTONYM</strong>) to the word given below.</p> <p><strong>Fret</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Anxious", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Anguish", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Relax", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pine"], "correct_answer": 2, "solution": "Antonym: Relax"}, {"id": "23061", "question": "Q. 15 In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase.</p> <p><strong>The whys and wherefores</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> References", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Circumstances", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Requirements", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Reasons"], "correct_answer": 3, "solution": "D) The whys and wherefores (phrase) – Reason कारण"}, {"id": "23062", "question": "<strong>Q. 16 Choose the word that means the same as the given word.</strong></p> <p><strong>Enigmatic</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Literate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Grumpy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Illiterate", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Mysterious"], "correct_answer": 3, "solution": "D) <strong>Enigmatic</strong> (adjective) – Mysterious, unknowable, inscrutable, puzzling, unfathomable"}, {"id": "23063", "question": "<strong>Q. 17 Select the word that is closest in meaning (SYNONYM) to the word given below</strong>.</p> <p><strong>Decimate</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> mend", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> wreck", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> harbour", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> establish"], "correct_answer": 1, "solution": "B) <strong>Decimate</strong> (verb) – Destroy, devastate, annihilate, Ruin, demolish, wreck नष्ट करना"}, {"id": "23064", "question": "<strong>Q. 18 Fill in the blank with the most suitable word</strong>.</p> <p>The humour of the gods is cruel; or ______ they see more than we do", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> unlikely", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> odds", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> perhaps", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> however"], "correct_answer": 2, "solution": "• 'perhaps' should be used because the sentence implies the possibility that the gods might know more than humans. Here, in \"The humour of the gods is cruel; or ______ they see more than we do\", the word 'perhaps' expresses the possibility that it might be true that the gods know more, which fits better than the other options ('unlikely', 'odds', 'however'). Thus, \"perhaps\" would be the most appropriate choice."}, {"id": "23065", "question": "<strong>Q. 19 Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct.</strong></p> <p>I didn't have <ins><strong>times to watch</strong></ins> the whole movie", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> time to watch", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> timer to watched", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> time to watching", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement"], "correct_answer": 0, "solution": "A) The underlined part of the sentence, \"times to watch\", is grammatically incorrect. The correct form should be \"time to watch\". The noun \"time\" is uncountable in this context, and it should be followed by an infinitive verb form (\"to watch\")."}, {"id": "23066", "question": "<strong>Q. 20 Choose the word that means the same as the given word</strong>.</p> <p>Oblate", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Layperson", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Heathen", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mendicant", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Secular"], "correct_answer": 0, "solution": "A) <strong>Oblate</strong> (noun) – A layperson dedicated to religious life, especially such a layperson who is affiliated with but not a member of a monastic order."}, {"id": "23067", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage some of the words have been deleted. Read the passage</strong> <strong>carefully and select the correct answer for the given blank out of the four alternatives.</strong></p> <p>According to the Integrated Taxonomic Information System (ITIS) there are more than 60 (1)______ of rat, which means they come in all sizes. They are (2)_____ 5 inches (12 centimeters), or longer, according to Encyclopedia Britannica. The largest species is the Bosavi woolly rat, which was (3)_____ in 2009 in the rainforest of Papua New Guinea (and doesn't have a scientific name yet). It is (4)______ the size of a cat — 32.2 inches (82 cm) from nose to tail and (5)______ around 3.3 lbs. (1.5 kilograms), according to CNN.<br> Q. 21 <strong>Select the most appropriate option to fill in blank number 1</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> entities", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sections", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> species", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> objects"], "correct_answer": 2, "solution": "यहां context चूहों के classification की चर्चा कर रहा है। Biology में, Species एक ऐसे organism को define करने का शब्द है जो single और distinct होता है।"}, {"id": "23068", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage some of the words have been deleted. Read the passage</strong> <strong>carefully and select the correct answer for the given blank out of the four alternatives.</strong></p> <p>According to the Integrated Taxonomic Information System (ITIS) there are more than 60 (1)______ of rat, which means they come in all sizes. They are (2)_____ 5 inches (12 centimeters), or longer, according to Encyclopedia Britannica. The largest species is the Bosavi woolly rat, which was (3)_____ in 2009 in the rainforest of Papua New Guinea (and doesn't have a scientific name yet). It is (4)______ the size of a cat — 32.2 inches (82 cm) from nose to tail and (5)______ around 3.3 lbs. (1.5 kilograms), according to CNN.<br> Q. 22 <strong>Select the most appropriate option to fill in blank number 2</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> modestly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> manually", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> typically", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> surgically"], "correct_answer": 2, "solution": "Sentence में चूहों की लंबाई के बारे में generalisation प्रदान किया जा रहा है, इसलिए \"Typically (आमतौर पर)\" शब्द फिट बैठता है क्योंकि यह एक सामान्य या औसत मामले का संकेत देता है।"}, {"id": "23069", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage some of the words have been deleted. Read the passage</strong> <strong>carefully and select the correct answer for the given blank out of the four alternatives.</strong></p> <p>According to the Integrated Taxonomic Information System (ITIS) there are more than 60 (1)______ of rat, which means they come in all sizes. They are (2)_____ 5 inches (12 centimeters), or longer, according to Encyclopedia Britannica. The largest species is the Bosavi woolly rat, which was (3)_____ in 2009 in the rainforest of Papua New Guinea (and doesn't have a scientific name yet). It is (4)______ the size of a cat — 32.2 inches (82 cm) from nose to tail and (5)______ around 3.3 lbs. (1.5 kilograms), according to CNN.<br> <strong>Q. 23 Select the most appropriate option to fill in blank number 3</strong>.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> discovered", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> invented", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> denuded", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> screened"], "correct_answer": 0, "solution": "A) The most appropriate option to fill in blank number 3 would be A. \"discovered\"."}, {"id": "23070", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage some of the words have been deleted. Read the passage</strong> <strong>carefully and select the correct answer for the given blank out of the four alternatives.</strong></p> <p>According to the Integrated Taxonomic Information System (ITIS) there are more than 60 (1)______ of rat, which means they come in all sizes. They are (2)_____ 5 inches (12 centimeters), or longer, according to Encyclopedia Britannica. The largest species is the Bosavi woolly rat, which was (3)_____ in 2009 in the rainforest of Papua New Guinea (and doesn't have a scientific name yet). It is (4)______ the size of a cat — 32.2 inches (82 cm) from nose to tail and (5)______ around 3.3 lbs. (1.5 kilograms), according to CNN.<br> <strong>Q. 24 Select the most appropriate option to fill in blank number 4</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a lot", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> of", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> about", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> some"], "correct_answer": 2, "solution": "C) The most appropriate option to fill in blank number 4 is C. \"about\"."}, {"id": "23071", "question": "<strong>Comprehension</strong>:</p> <p><strong>In the following passage some of the words have been deleted. Read the passage</strong> <strong>carefully and select the correct answer for the given blank out of the four alternatives.</strong></p> <p>According to the Integrated Taxonomic Information System (ITIS) there are more than 60 (1)______ of rat, which means they come in all sizes. They are (2)_____ 5 inches (12 centimeters), or longer, according to Encyclopedia Britannica. The largest species is the Bosavi woolly rat, which was (3)_____ in 2009 in the rainforest of Papua New Guinea (and doesn't have a scientific name yet). It is (4)______ the size of a cat — 32.2 inches (82 cm) from nose to tail and (5)______ around 3.3 lbs. (1.5 kilograms), according to CNN.<br> <strong>Q. 25 Select the most appropriate option to fill in blank number 5</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> evaluates", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> weighs", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> counts", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> measures"], "correct_answer": 1, "solution": "B) The most appropriate word to fill in blank number 5 would be B. \"weighs\"."}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
