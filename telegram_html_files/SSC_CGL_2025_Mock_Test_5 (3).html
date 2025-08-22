@@ -1,0 +1,842 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSC CGL 2025 Mock Test 5 - English Language</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            padding: 15px 20px;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .header a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .test-title {
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .submit-btn, .nav-btn {
+            background: linear-gradient(90deg, #28a745, #218838);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .submit-btn:hover, .nav-btn:hover {
+            background: linear-gradient(90deg, #218838, #1e7e34);
+            transform: scale(1.05);
+        }
+        .nav-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .language-toggle {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .language-toggle button {
+            background: #f8f9fa;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .language-toggle button:hover {
+            background: #007bff;
+            color: white;
+        }
+        .question-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 80%;
+            margin: 0 auto;
+        }
+        .navigator-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        .navigator-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+        .nav-item {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #f8f9fa;
+            min-width: 40px;
+        }
+        .nav-item.answered {
+            background: #28a745;
+            color: white;
+        }
+        .nav-item.current {
+            background: #007bff;
+            color: white;
+        }
+        .nav-item.unanswered {
+            background: #e0e0e0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 100%;
+            background: #28a745;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-height: 80%;
+            overflow-y: auto;
+            font-family: 'Arial', sans-serif;
+        }
+        .popup-content a {
+            color: #007bff;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .popup-content button, .popup-content a.button {
+            background: linear-gradient(90deg, #28a745, #218838);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+        .popup-content button:hover, .popup-content a.button:hover {
+            background: linear-gradient(90deg, #218838, #1e7e34);
+        }
+        .question {
+            margin: 20px 0;
+            display: none;
+        }
+        .question.active {
+            display: block;
+        }
+        .question p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .options {
+            margin-left: 20px;
+        }
+        .options label {
+            font-size: 18px;
+            color: #dc3545;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .correct {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .footer a {
+            color: #007bff;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body onload="showPopup()">
+    <div id="joinPopup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Join Our Telegram Channel</h2>
+            <p>Test shuru karne se pehle, hamare Telegram channel ko join karein aur latest SSC CGL updates paayein!<br>
+            <a href="https://t.me/new_englishpathshala" target="_blank">https://t.me/new_englishpathshala</a></p>
+            <button onclick="closePopup()">Join Kiya, Test Shuru Karo</button>
+        </div>
+    </div>
+
+    <div id="resultPopup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Test Result</h2>
+            <div id="resultSummary"></div>
+            <h3>Correct Answers & Explanations</h3>
+            <div id="correctAnswers"></div>
+            <a href="https://t.me/new_englishpathshala" target="_blank" class="button" onclick="console.log('Close & Join Telegram clicked')">Close & Join Telegram</a>
+        </div>
+    </div>
+
+    <div class="header">
+        <div id="questionCounter">Q1/25</div>
+        <div class="timer" id="timer">15:00</div>
+        <div><a href="https://t.me/new_englishpathshala" target="_blank">Join Our Telegram for SSC CGL Updates</a></div>
+    </div>
+
+    <div class="test-title">SSC CGL 2025 Mock Test 5 - English Language</div>
+    <p style="text-align: center; font-size: 16px; color: #555;">Provided by Vinay</p>
+
+    <div class="section language-toggle">
+        <button>English</button>
+        <button>हिंदी</button>
+    </div>
+
+    <div class="question-panel">
+        <div class="question active" id="question1">
+            <p>1. Choose the word that is most nearly opposite in meaning to "Fortitude".</p>
+            <div class="options">
+                <input type="radio" name="q1" id="q1a" value="a"><label for="q1a">A. Courage</label><br>
+                <input type="radio" name="q1" id="q1b" value="b"><label for="q1b">B. Weakness</label><br>
+                <input type="radio" name="q1" id="q1c" value="c"><label for="q1c">C. Resilience</label><br>
+                <input type="radio" name="q1" id="q1d" value="d"><label for="q1d">D. Determination</label>
+            </div>
+        </div>
+        <div class="question" id="question2">
+            <p>2. In the following sentence, identify the part that contains an error: The company's new policies (A) / was introduced (B) / to enhance productivity (C) / last quarter (D).</p>
+            <div class="options">
+                <input type="radio" name="q2" id="q2a" value="a"><label for="q2a">A. A</label><br>
+                <input type="radio" name="q2" id="q2b" value="b"><label for="q2b">B. B</label><br>
+                <input type="radio" name="q2" id="q2c" value="c"><label for="q2c">C. C</label><br>
+                <input type="radio" name="q2" id="q2d" value="d"><label for="q2d">D. D</label>
+            </div>
+        </div>
+        <div class="question" id="question3">
+            <p>3. Fill in the blank with the most appropriate word: Her ___ in handling the crisis restored public confidence.</p>
+            <div class="options">
+                <input type="radio" name="q3" id="q3a" value="a"><label for="q3a">A. Indecision</label><br>
+                <input type="radio" name="q3" id="q3b" value="b"><label for="q3b">B. Composure</label><br>
+                <input type="radio" name="q3" id="q3c" value="c"><label for="q3c">C. Reluctance</label><br>
+                <input type="radio" name="q3" id="q3d" value="d"><label for="q3d">D. Apathy</label>
+            </div>
+        </div>
+        <div class="question" id="question4">
+            <p>4. Select the correct one-word substitution for "A person who finds fault with others".</p>
+            <div class="options">
+                <input type="radio" name="q4" id="q4a" value="a"><label for="q4a">A. Cynic</label><br>
+                <input type="radio" name="q4" id="q4b" value="b"><label for="q4b">B. Optimist</label><br>
+                <input type="radio" name="q4" id="q4c" value="c"><label for="q4c">C. Altruist</label><br>
+                <input type="radio" name="q4" id="q4d" value="d"><label for="q4d">D. Idealist</label>
+            </div>
+        </div>
+        <div class="question" id="question5">
+            <p>5. Choose the idiom that best fits the meaning of the sentence: The project was ___ due to his reckless decisions.</p>
+            <div class="options">
+                <input type="radio" name="q5" id="q5a" value="a"><label for="q5a">A. In dire straits</label><br>
+                <input type="radio" name="q5" id="q5b" value="b"><label for="q5b">B. A bed of roses</label><br>
+                <input type="radio" name="q5" id="q5c" value="c"><label for="q5c">C. On cloud nine</label><br>
+                <input type="radio" name="q5" id="q5d" value="d"><label for="q5d">D. A piece of cake</label>
+            </div>
+        </div>
+        <div class="question" id="question6">
+            <p>6. In the following sentence, choose the word that correctly replaces the underlined word: New policies were implemented to <u>impede</u> stagnation in public services.</p>
+            <div class="options">
+                <input type="radio" name="q6" id="q6a" value="a"><label for="q6a">A. Prevent</label><br>
+                <input type="radio" name="q6" id="q6b" value="b"><label for="q6b">B. Promote</label><br>
+                <input type="radio" name="q6" id="q6c" value="c"><label for="q6c">C. Exacerbate</label><br>
+                <input type="radio" name="q6" id="q6d" value="d"><label for="q6d">D. Worsen</label>
+            </div>
+        </div>
+        <div class="question" id="question7">
+            <p>7. Fill in the blank with the correct preposition: The initiative was aimed ___ improving conditions ___ public healthcare.</p>
+            <div class="options">
+                <input type="radio" name="q7" id="q7a" value="a"><label for="q7a">A. at, for</label><br>
+                <input type="radio" name="q7" id="q7b" value="b"><label for="q7b">B. for, in</label><br>
+                <input type="radio" name="q7" id="q7c" value="c"><label for="q7c">C. on, with</label><br>
+                <input type="radio" name="q7" id="q7d" value="d"><label for="q7d">D. at, within</label>
+            </div>
+        </div>
+        <div class="question" id="question8">
+            <p>8. Choose the word that is most similar in meaning to "Synergy".</p>
+            <div class="options">
+                <input type="radio" name="q8" id="q8a" value="a"><label for="q8a">A. Conflict</label><br>
+                <input type="radio" name="q8" id="q8b" value="b"><label for="q8b">B. Collaboration</label><br>
+                <input type="radio" name="q8" id="q8c" value="c"><label for="q8c">C. Opposition</label><br>
+                <input type="radio" name="q8" id="q8d" value="d"><label for="q8d">D. Isolation</label>
+            </div>
+        </div>
+        <div class="question" id="question9">
+            <p>9. Identify the correct sentence.</p>
+            <div class="options">
+                <input type="radio" name="q9" id="q9a" value="a"><label for="q9a">A. The jury have delivered their verdict.</label><br>
+                <input type="radio" name="q9" id="q9b" value="b"><label for="q9b">B. Each of the members were present.</label><br>
+                <input type="radio" name="q9" id="q9c" value="c"><label for="q9c">C. The jury has delivered its verdict.</label><br>
+                <input type="radio" name="q9" id="q9d" value="d"><label for="q9d">D. Neither of the options were correct.</label>
+            </div>
+        </div>
+        <div class="question" id="question10">
+            <p>10. Choose the correct indirect form of the sentence: He said, "I am drafting the proposal this week."</p>
+            <div class="options">
+                <input type="radio" name="q10" id="q10a" value="a"><label for="q10a">A. He said that he was drafting the proposal this week.</label><br>
+                <input type="radio" name="q10" id="q10b" value="b"><label for="q10b">B. He said that he is drafting the proposal this week.</label><br>
+                <input type="radio" name="q10" id="q10c" value="c"><label for="q10c">C. He says that he was drafting the proposal this week.</label><br>
+                <input type="radio" name="q10" id="q10d" value="d"><label for="q10d">D. He said that he will draft the proposal this week.</label>
+            </div>
+        </div>
+        <div class="question" id="question11">
+            <p>11. Fill in the blank with the most appropriate word: His ___ approach failed to unite the team.</p>
+            <div class="options">
+                <input type="radio" name="q11" id="q11a" value="a"><label for="q11a">A. Cohesive</label><br>
+                <input type="radio" name="q11" id="q11b" value="b"><label for="q11b">B. Divisive</label><br>
+                <input type="radio" name="q11" id="q11c" value="c"><label for="q11c">C. Collaborative</label><br>
+                <input type="radio" name="q11" id="q11d" value="d"><label for="q11d">D. Inclusive</label>
+            </div>
+        </div>
+        <div class="question" id="question12">
+            <p>12. Arrange the following sentences to form a coherent paragraph: (P) This has increased access to information. (Q) However, it has also created a digital divide. (R) Digital platforms have transformed global communication. (S) Many lack connectivity in rural areas. (T) Infrastructure development is crucial to bridge this gap.</p>
+            <div class="options">
+                <input type="radio" name="q12" id="q12a" value="a"><label for="q12a">A. R, P, Q, S, T</label><br>
+                <input type="radio" name="q12" id="q12b" value="b"><label for="q12b">B. P, R, Q, S, T</label><br>
+                <input type="radio" name="q12" id="q12c" value="c"><label for="q12c">C. Q, S, T, P, R</label><br>
+                <input type="radio" name="q12" id="q12d" value="d"><label for="q12d">D. S, T, Q, P, R</label>
+            </div>
+        </div>
+        <div class="question" id="question13">
+            <p>13. Choose the word that is most nearly opposite in meaning to "Lethargy".</p>
+            <div class="options">
+                <input type="radio" name="q13" id="q13a" value="a"><label for="q13a">A. Sluggishness</label><br>
+                <input type="radio" name="q13" id="q13b" value="b"><label for="q13b">B. Energy</label><br>
+                <input type="radio" name="q13" id="q13c" value="c"><label for="q13c">C. Apathy</label><br>
+                <input type="radio" name="q13" id="q13d" value="d"><label for="q13d">D. Inactivity</label>
+            </div>
+        </div>
+        <div class="question" id="question14">
+            <p>14. Select the word that best completes the analogy: Wide : Narrow :: Bright : ?</p>
+            <div class="options">
+                <input type="radio" name="q14" id="q14a" value="a"><label for="q14a">A. Radiant</label><br>
+                <input type="radio" name="q14" id="q14b" value="b"><label for="q14b">B. Dim</label><br>
+                <input type="radio" name="q14" id="q14c" value="c"><label for="q14c">C. Vivid</label><br>
+                <input type="radio" name="q14" id="q14d" value="d"><label for="q14d">D. Luminous</label>
+            </div>
+        </div>
+        <div class="question" id="question15">
+            <p>15. Choose the correct active voice form of the sentence: The report was being prepared by the analysts for several weeks.</p>
+            <div class="options">
+                <input type="radio" name="q15" id="q15a" value="a"><label for="q15a">A. The analysts prepared the report for several weeks, ensuring all data was verified.</label><br>
+                <input type="radio" name="q15" id="q15b" value="b"><label for="q15b">B. The analysts were preparing the report for several weeks, incorporating detailed insights.</label><br>
+                <input type="radio" name="q15" id="q15c" value="c"><label for="q15c">C. The analysts have prepared the report for several weeks, finalizing it recently.</label><br>
+                <input type="radio" name="q15" id="q15d" value="d"><label for="q15d">D. The analysts had prepared the report for several weeks, concluding earlier than planned.</label>
+            </div>
+        </div>
+        <div class="question" id="question16">
+            <p>16. Fill in the blank with the most appropriate phrase: His failure to act was ___ in the face of urgent demands.</p>
+            <div class="options">
+                <input type="radio" name="q16" id="q16a" value="a"><label for="q16a">A. A storm in a teacup</label><br>
+                <input type="radio" name="q16" id="q16b" value="b"><label for="q16b">B. A kick in the teeth</label><br>
+                <input type="radio" name="q16" id="q16c" value="c"><label for="q16c">C. A feather in his cap</label><br>
+                <input type="radio" name="q16" id="q16d" value="d"><label for="q16d">D. A drop in the ocean</label>
+            </div>
+        </div>
+        <div class="question" id="question17">
+            <p>17. Choose the word that is most nearly opposite in meaning to "Candid".</p>
+            <div class="options">
+                <input type="radio" name="q17" id="q17a" value="a"><label for="q17a">A. Honest</label><br>
+                <input type="radio" name="q17" id="q17b" value="b"><label for="q17b">B. Deceptive</label><br>
+                <input type="radio" name="q17" id="q17c" value="c"><label for="q17c">C. Sincere</label><br>
+                <input type="radio" name="q17" id="q17d" value="d"><label for="q17d">D. Frank</label>
+            </div>
+        </div>
+        <div class="question" id="question18">
+            <p>18. Identify the error in the sentence: The director, along with her team, were (A) / finalizing the strategy (B) / for the new campaign (C) / last month (D).</p>
+            <div class="options">
+                <input type="radio" name="q18" id="q18a" value="a"><label for="q18a">A. A</label><br>
+                <input type="radio" name="q18" id="q18b" value="b"><label for="q18b">B. B</label><br>
+                <input type="radio" name="q18" id="q18c" value="c"><label for="q18c">C. C</label><br>
+                <input type="radio" name="q18" id="q18d" value="d"><label for="q18d">D. D</label>
+            </div>
+        </div>
+        <div class="question" id="question19">
+            <p>19. Select the correct one-word substitution for "A person who studies ancient cultures".</p>
+            <div class="options">
+                <input type="radio" name="q19" id="q19a" value="a"><label for="q19a">A. Archaeologist</label><br>
+                <input type="radio" name="q19" id="q19b" value="b"><label for="q19b">B. Anthropologist</label><br>
+                <input type="radio" name="q19" id="q19c" value="c"><label for="q19c">C. Historian</label><br>
+                <input type="radio" name="q19" id="q19d" value="d"><label for="q19d">D. Geologist</label>
+            </div>
+        </div>
+        <div class="question" id="question20">
+            <p>20. Choose the correct passive voice form of the sentence: They are organizing a workshop next month.</p>
+            <div class="options">
+                <input type="radio" name="q20" id="q20a" value="a"><label for="q20a">A. A workshop is organized next month, featuring expert speakers.</label><br>
+                <input type="radio" name="q20" id="q20b" value="b"><label for="q20b">B. A workshop was organized next month, focusing on skill development.</label><br>
+                <input type="radio" name="q20" id="q20c" value="c"><label for="q20c">C. A workshop will be organized next month, including practical sessions.</label><br>
+                <input type="radio" name="q20" id="q20d" value="d"><label for="q20d">D. A workshop has been organized next month, targeting professionals.</label>
+            </div>
+        </div>
+        <div class="question" id="question21">
+            <p>21. Fill in the blank (21) in the following passage with the most appropriate word:<br>
+            The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.</p>
+            <div class="options">
+                <input type="radio" name="q21" id="q21a" value="a"><label for="q21a">A. curtailed</label><br>
+                <input type="radio" name="q21" id="q21b" value="b"><label for="q21b">B. generated</label><br>
+                <input type="radio" name="q21" id="q21c" value="c"><label for="q21c">C. restricted</label><br>
+                <input type="radio" name="q21" id="q21d" value="d"><label for="q21d">D. diminished</label>
+            </div>
+        </div>
+        <div class="question" id="question22">
+            <p>22. Fill in the blank (22) in the following passage with the most appropriate word:<br>
+            The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.</p>
+            <div class="options">
+                <input type="radio" name="q22" id="q22a" value="a"><label for="q22a">A. resolved</label><br>
+                <input type="radio" name="q22" id="q22b" value="b"><label for="q22b">B. posed</label><br>
+                <input type="radio" name="q22" id="q22c" value="c"><label for="q22c">C. mitigated</label><br>
+                <input type="radio" name="q22" id="q22d" value="d"><label for="q22d">D. alleviated</label>
+            </div>
+        </div>
+        <div class="question" id="question23">
+            <p>23. Fill in the blank (23) in the following passage with the most appropriate word:<br>
+            The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.</p>
+            <div class="options">
+                <input type="radio" name="q23" id="q23a" value="a"><label for="q23a">A. overcome</label><br>
+                <input type="radio" name="q23" id="q23b" value="b"><label for="q23b">B. face</label><br>
+                <input type="radio" name="q23" id="q23c" value="c"><label for="q23c">C. eliminate</label><br>
+                <input type="radio" name="q23" id="q23d" value="d"><label for="q23d">D. acquire</label>
+            </div>
+        </div>
+        <div class="question" id="question24">
+            <p>24. Fill in the blank (24) in the following passage with the most appropriate word:<br>
+            The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.</p>
+            <div class="options">
+                <input type="radio" name="q24" id="q24a" value="a"><label for="q24a">A. ignore</label><br>
+                <input type="radio" name="q24" id="q24b" value="b"><label for="q24b">B. enforce</label><br>
+                <input type="radio" name="q24" id="q24c" value="c"><label for="q24c">C. abandon</label><br>
+                <input type="radio" name="q24" id="q24d" value="d"><label for="q24d">D. neglect</label>
+            </div>
+        </div>
+        <div class="question" id="question25">
+            <p>25. Fill in the blank (25) in the following passage with the most appropriate word:<br>
+            The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.</p>
+            <div class="options">
+                <input type="radio" name="q25" id="q25a" value="a"><label for="q25a">A. strengthen</label><br>
+                <input type="radio" name="q25" id="q25b" value="b"><label for="q25b">B. erode</label><br>
+                <input type="radio" name="q25" id="q25c" value="c"><label for="q25c">C. enhance</label><br>
+                <input type="radio" name="q25" id="q25d" value="d"><label for="q25d">D. improve</label>
+            </div>
+        </div>
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="prevQuestion()" disabled>Prev</button>
+            <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div class="navigator-panel">
+        <h3>Question Navigator</h3>
+        <div class="progress-bar">
+            <div class="progress" id="progress" style="width: 0%"></div>
+        </div>
+        <div class="navigator-grid" id="navigator">
+            <!-- Dynamically generated -->
+        </div>
+    </div>
+
+    <div class="section">
+        <button class="submit-btn" onclick="submitTest()">Submit Test</button>
+    </div>
+
+    <div class="footer">
+        <p>Boost your SSC CGL prep with our Telegram channel: <a href="https://t.me/new_englishpathshala" target="_blank">https://t.me/new_englishpathshala</a><br>Provided by Vinay</p>
+    </div>
+
+    <script>
+        const correctAnswers = {
+            q1: 'b', // Weakness
+            q2: 'b', // B
+            q3: 'b', // Composure
+            q4: 'a', // Cynic
+            q5: 'a', // In dire straits
+            q6: 'a', // Prevent
+            q7: 'd', // at, within
+            q8: 'b', // Collaboration
+            q9: 'c', // The jury has delivered its verdict
+            q10: 'a', // He said that he was drafting the proposal this week
+            q11: 'b', // Divisive
+            q12: 'a', // R, P, Q, S, T
+            q13: 'b', // Energy
+            q14: 'b', // Dim
+            q15: 'b', // The analysts were preparing the report for several weeks
+            q16: 'b', // A kick in the teeth
+            q17: 'b', // Deceptive
+            q18: 'a', // A
+            q19: 'b', // Anthropologist
+            q20: 'c', // A workshop will be organized next month
+            q21: 'b', // generated
+            q22: 'b', // posed
+            q23: 'b', // face
+            q24: 'b', // enforce
+            q25: 'b'  // erode
+        };
+
+        const questionsText = {
+            q1: `Choose the word that is most nearly opposite in meaning to "Fortitude".`,
+            q2: `In the following sentence, identify the part that contains an error: The company's new policies (A) / was introduced (B) / to enhance productivity (C) / last quarter (D).`,
+            q3: `Fill in the blank with the most appropriate word: Her ___ in handling the crisis restored public confidence.`,
+            q4: `Select the correct one-word substitution for "A person who finds fault with others".`,
+            q5: `Choose the idiom that best fits the meaning of the sentence: The project was ___ due to his reckless decisions.`,
+            q6: `In the following sentence, choose the word that correctly replaces the underlined word: New policies were implemented to <u>impede</u> stagnation in public services.`,
+            q7: `Fill in the blank with the correct preposition: The initiative was aimed ___ improving conditions ___ public healthcare.`,
+            q8: `Choose the word that is most similar in meaning to "Synergy".`,
+            q9: `Identify the correct sentence.`,
+            q10: `Choose the correct indirect form of the sentence: He said, "I am drafting the proposal this week."`,
+            q11: `Fill in the blank with the most appropriate word: His ___ approach failed to unite the team.`,
+            q12: `Arrange the following sentences to form a coherent paragraph: (P) This has increased access to information. (Q) However, it has also created a digital divide. (R) Digital platforms have transformed global communication. (S) Many lack connectivity in rural areas. (T) Infrastructure development is crucial to bridge this gap.`,
+            q13: `Choose the word that is most nearly opposite in meaning to "Lethargy".`,
+            q14: `Select the word that best completes the analogy: Wide : Narrow :: Bright : ?`,
+            q15: `Choose the correct active voice form of the sentence: The report was being prepared by the analysts for several weeks.`,
+            q16: `Fill in the blank with the most appropriate phrase: His failure to act was ___ in the face of urgent demands.`,
+            q17: `Choose the word that is most nearly opposite in meaning to "Candid".`,
+            q18: `Identify the error in the sentence: The director, along with her team, were (A) / finalizing the strategy (B) / for the new campaign (C) / last month (D).`,
+            q19: `Select the correct one-word substitution for "A person who studies ancient cultures".`,
+            q20: `Choose the correct passive voice form of the sentence: They are organizing a workshop next month.`,
+            q21: `Fill in the blank (21) in the following passage with the most appropriate word: The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.`,
+            q22: `Fill in the blank (22) in the following passage with the most appropriate word: The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.`,
+            q23: `Fill in the blank (23) in the following passage with the most appropriate word: The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.`,
+            q24: `Fill in the blank (24) in the following passage with the most appropriate word: The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.`,
+            q25: `Fill in the blank (25) in the following passage with the most appropriate word: The digital economy ___ (21) opportunities for innovation, reshaping global markets. However, it has also ___ (22) challenges, particularly in data privacy and security. Many ___ (23) vulnerabilities due to inadequate safeguards. Governments must ___ (24) robust regulations to protect users. Without such measures, public trust ___ (25) in digital systems.`
+        };
+
+        const optionsText = {
+            q1: { a: "Courage", b: "Weakness", c: "Resilience", d: "Determination" },
+            q2: { a: "A", b: "B", c: "C", d: "D" },
+            q3: { a: "Indecision", b: "Composure", c: "Reluctance", d: "Apathy" },
+            q4: { a: "Cynic", b: "Optimist", c: "Altruist", d: "Idealist" },
+            q5: { a: "In dire straits", b: "A bed of roses", c: "On cloud nine", d: "A piece of cake" },
+            q6: { a: "Prevent", b: "Promote", c: "Exacerbate", d: "Worsen" },
+            q7: { a: "at, for", b: "for, in", c: "on, with", d: "at, within" },
+            q8: { a: "Conflict", b: "Collaboration", c: "Opposition", d: "Isolation" },
+            q9: { a: "The jury have delivered their verdict.", b: "Each of the members were present.", c: "The jury has delivered its verdict.", d: "Neither of the options were correct." },
+            q10: { a: "He said that he was drafting the proposal this week.", b: "He said that he is drafting the proposal this week.", c: "He says that he was drafting the proposal this week.", d: "He said that he will draft the proposal this week." },
+            q11: { a: "Cohesive", b: "Divisive", c: "Collaborative", d: "Inclusive" },
+            q12: { a: "R, P, Q, S, T", b: "P, R, Q, S, T", c: "Q, S, T, P, R", d: "S, T, Q, P, R" },
+            q13: { a: "Sluggishness", b: "Energy", c: "Apathy", d: "Inactivity" },
+            q14: { a: "Radiant", b: "Dim", c: "Vivid", d: "Luminous" },
+            q15: { a: "The analysts prepared the report for several weeks, ensuring all data was verified.", b: "The analysts were preparing the report for several weeks, incorporating detailed insights.", c: "The analysts have prepared the report for several weeks, finalizing it recently.", d: "The analysts had prepared the report for several weeks, concluding earlier than planned." },
+            q16: { a: "A storm in a teacup", b: "A kick in the teeth", c: "A feather in his cap", d: "A drop in the ocean" },
+            q17: { a: "Honest", b: "Deceptive", c: "Sincere", d: "Frank" },
+            q18: { a: "A", b: "B", c: "C", d: "D" },
+            q19: { a: "Archaeologist", b: "Anthropologist", c: "Historian", d: "Geologist" },
+            q20: { a: "A workshop is organized next month, featuring expert speakers.", b: "A workshop was organized next month, focusing on skill development.", c: "A workshop will be organized next month, including practical sessions.", d: "A workshop has been organized next month, targeting professionals." },
+            q21: { a: "curtailed", b: "generated", c: "restricted", d: "diminished" },
+            q22: { a: "resolved", b: "posed", c: "mitigated", d: "alleviated" },
+            q23: { a: "overcome", b: "face", c: "eliminate", d: "acquire" },
+            q24: { a: "ignore", b: "enforce", c: "abandon", d: "neglect" },
+            q25: { a: "strengthen", b: "erode", c: "enhance", d: "improve" }
+        };
+
+        const explanations = {
+            q1: `Fortitude ka matlab hai "himmat ya strength". Iska opposite Weakness hai, jo "kamzori" hota hai. Courage, Resilience, aur Determination fortitude ke synonyms hain.`,
+            q2: `"Was introduced" galat hai kyunki "policies" plural hai, isliye "were introduced" hona chahiye. Baaki parts (A, C, D) sahi hain.`,
+            q3: `Composure ka matlab hai "shaanti ya self-control", jo crisis handle karne ke liye public confidence restore karne ke context mein fit hai. Indecision, Reluctance, aur Apathy negative ya unfit hain.`,
+            q4: `Cynic woh hai jo doosron ki khamiyaan dhoondta hai. Optimist, Altruist, aur Idealist positive ya alag contexts ke liye hain.`,
+            q5: `Yeh idiom matlab hai "kathin paristhiti mein", jo reckless decisions ke project ko mushkil mein daalne ke context mein fit hai. Baaki options positive ya alag situations ke liye hain.`,
+            q6: `Impede ka matlab hai "rokna", lekin yaha question mein galti se use hua; correct word "prevent" hoga jo stagnation rokne ke context mein fit hai. Promote positive hai, lekin opposite sense mein, aur Exacerbate, Worsen negative hain.`,
+            q7: `"Aimed at" aur "within public healthcare" correct prepositions hain. Baaki options grammatically ya contextually galat hain.`,
+            q8: `Synergy ka matlab hai "sahyog ya teamwork". Collaboration iska synonym hai. Conflict, Opposition, aur Isolation opposite ya unfit hain.`,
+            q9: `"Jury" singular collective noun hai, isliye "has" aur "its" correct hain. A, B, aur D mein verb agreement galat hai.`,
+            q10: `Indirect speech mein "am drafting" ko "was drafting" mein badalte hain kyunki reporting verb past mein hai. Baaki options mein tense galat hai.`,
+            q11: `Divisive ka matlab hai "vibhajan karne wala", jo team ko unite na karne ke context mein fit hai. Cohesive, Collaborative, aur Inclusive positive hain, jo unfit hain.`,
+            q12: `R (digital platforms transformed communication) pehle aata hai, fir P (increased access), Q (digital divide), S (lack of connectivity), T (infrastructure development) logical sequence banata hai. Baaki options coherent paragraph nahi banate.`,
+            q13: `Lethargy ka matlab hai "susti". Iska opposite Energy hai, jo "urja" hota hai. Sluggishness, Apathy, aur Inactivity lethargy ke synonyms ya similar hain.`,
+            q14: `Wide ka opposite Narrow hai, isi tarah Bright ka opposite Dim hai. Radiant, Vivid, aur Luminous bright ke synonyms hain.`,
+            q15: `Passive "was being prepared" ka active form "were preparing" hota hai, kyunki action ongoing thi. Baaki options mein tense galat hai.`,
+            q16: `Yeh phrase matlab hai "nirashajanak ya harmful action", jo urgent demands ke context mein inaction ke liye fit hai. Baaki options alag meanings dete hain.`,
+            q17: `Candid ka matlab hai "sachcha". Iska opposite Deceptive hai, jo "dhokha dene wala" hota hai. Honest, Sincere, aur Frank candid ke synonyms hain.`,
+            q18: `"The director, along with her team" singular subject hai, isliye "was" hoga, "were" nahi. Baaki parts (B, C, D) sahi hain.`,
+            q19: `Anthropologist ancient cultures ka study karta hai. Archaeologist artifacts, Historian history, aur Geologist rocks se related hai.`,
+            q20: `Active "are organizing" ka passive form "will be organized" hota hai kyunki action future mein hai. Baaki options mein tense galat hai.`,
+            q21: `Digital economy ne opportunities "generated" (paida kiya) hai, jo passage ke positive tone se match karta hai. Curtailed, restricted, aur diminished negative ya unfit hain.`,
+            q22: `Digital economy ne challenges "posed" (present kiya) hai, jo context mein fit hai. Resolved, mitigated, aur alleviated positive ya unfit hain.`,
+            q23: `Organizations vulnerabilities "face" (sahna padta hai) karte hain, jo passage ke context mein fit hai. Overcome, eliminate, aur acquire alag meanings dete hain.`,
+            q24: `Governments ko robust regulations "enforce" (laagu) karna hai, jo context mein fit hai. Ignore, abandon, aur neglect negative hain.`,
+            q25: `Public trust "erode" (kamzor hona) hota hai jab measures nahi liye jate, jo passage ke warning tone se match karta hai. Strengthen, enhance, aur improve positive hain, jo unfit hain.`
+        };
+
+        let currentQuestion = 1;
+        const totalQuestions = 25;
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+
+        function showPopup() {
+            console.log("Attempting to show join popup");
+            const popup = document.getElementById('joinPopup');
+            if (popup) {
+                popup.style.display = 'flex';
+                console.log("Join popup displayed successfully");
+            } else {
+                console.error("Error: Join Popup element not found!");
+            }
+        }
+
+        function closePopup() {
+            console.log("Closing join popup");
+            const popup = document.getElementById('joinPopup');
+            if (popup) {
+                popup.style.display = 'none';
+                startTimer();
+                updateNavigator();
+            } else {
+                console.error("Error: Join Popup element not found!");
+            }
+        }
+
+        function startTimer() {
+            console.log("Starting timer with 15 minutes");
+            const timerElement = document.getElementById('timer');
+            if (!timerElement) {
+                console.error("Error: Timer element not found!");
+                return;
+            }
+            const timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    console.log("Time's up! Auto-submitting test");
+                    submitTest();
+                } else {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        function updateNavigator() {
+            console.log("Updating question navigator");
+            const navigator = document.getElementById('navigator');
+            if (!navigator) {
+                console.error("Error: Navigator element not found!");
+                return;
+            }
+            navigator.innerHTML = '';
+            for (let i = 1; i <= totalQuestions; i++) {
+                const navItem = document.createElement('div');
+                navItem.className = `nav-item ${i === currentQuestion ? 'current' : ''}`;
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (selected) {
+                    navItem.classList.add('answered');
+                } else if (i !== currentQuestion) {
+                    navItem.classList.add('unanswered');
+                }
+                navItem.textContent = i;
+                navItem.onclick = () => showQuestion(i);
+                navigator.appendChild(navItem);
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            console.log("Updating progress bar");
+            const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+            const progress = (answered / totalQuestions) * 100;
+            const progressElement = document.getElementById('progress');
+            if (progressElement) {
+                progressElement.style.width = `${progress}%`;
+            } else {
+                console.error("Error: Progress element not found!");
+            }
+        }
+
+        function showQuestion(index) {
+            console.log(`Showing question ${index}`);
+            document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+            const question = document.getElementById(`question${index}`);
+            if (question) {
+                question.classList.add('active');
+                const questionCounter = document.getElementById('questionCounter');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                if (questionCounter && prevBtn && nextBtn) {
+                    questionCounter.textContent = `Q${index}/25`;
+                    prevBtn.disabled = index === 1;
+                    nextBtn.disabled = index === totalQuestions;
+                    currentQuestion = index;
+                    updateNavigator();
+                } else {
+                    console.error("Error: Navigation elements not found!");
+                }
+            } else {
+                console.error(`Error: Question ${index} not found!`);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            }
+        }
+
+        function submitTest() {
+            console.log("Submit button clicked or time's up!");
+            let score = 0;
+            let correctCount = 0;
+            let incorrectCount = 0;
+            let unattemptedCount = 0;
+            let resultDetails = '';
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                const questionKey = `q${i}`;
+                console.log(`Checking question ${i}: `, selected ? selected.value : "Not answered");
+                if (selected) {
+                    if (selected.value === correctAnswers[questionKey]) {
+                        correctCount++;
+                        score += 2;
+                        resultDetails += `<p class="correct">${i}. ${questionsText[questionKey]}<br>Correct Answer: ${optionsText[questionKey][correctAnswers[questionKey]]}<br>Explanation: ${explanations[questionKey]}</p>`;
+                    } else {
+                        incorrectCount++;
+                        score -= 0.5;
+                        resultDetails += `<p class="incorrect">${i}. ${questionsText[questionKey]}<br>Your Answer: ${optionsText[questionKey][selected.value]}<br>Correct Answer: ${optionsText[questionKey][correctAnswers[questionKey]]}<br>Explanation: ${explanations[questionKey]}</p>`;
+                    }
+                } else {
+                    unattemptedCount++;
+                    resultDetails += `<p>${i}. ${questionsText[questionKey]}<br>Unattempted. Correct Answer: ${optionsText[questionKey][correctAnswers[questionKey]]}<br>Explanation: ${explanations[questionKey]}</p>`;
+                }
+            }
+
+            console.log(`Score: ${score}, Correct: ${correctCount}, Incorrect: ${incorrectCount}, Unattempted: ${unattemptedCount}`);
+            const resultPopup = document.getElementById('resultPopup');
+            const resultSummary = document.getElementById('resultSummary');
+            const correctAnswersDiv = document.getElementById('correctAnswers');
+            if (resultPopup && resultSummary && correctAnswersDiv) {
+                resultSummary.innerHTML = `Score: ${score.toFixed(2)}/50.0<br>Correct: ${correctCount}<br>Incorrect: ${incorrectCount}<br>Unattempted: ${unattemptedCount}`;
+                correctAnswersDiv.innerHTML = resultDetails;
+                resultPopup.style.display = 'flex';
+                console.log("Result popup displayed successfully");
+            } else {
+                console.error("Error: Result Popup or its elements not found!");
+                alert("Error displaying results. Please check the console for details.");
+            }
+        }
+
+        window.onload = function() {
+            console.log("Window loaded, triggering showPopup and initial question");
+            showPopup();
+            showQuestion(currentQuestion);
+            document.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.addEventListener('change', updateNavigator);
+            });
+        };
+    </script>
+</body>
+</html>
