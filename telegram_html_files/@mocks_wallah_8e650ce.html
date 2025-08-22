@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "103138", "question": "<strong>Select the best express synonym of the highlighted word</strong></p> <p>The article was noticeably <strong>biased</strong>, presenting only one side of the controversial issue.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unrepresentative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Overburdened", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bureaucracy", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Prejudiced"], "correct_answer": 3, "solution": "<strong>D) Biased</strong> (adjective) – Prejudiced, partial, one-sided, slanted, skewed पक्षपातपूर्ण"}, {"id": "103143", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Hit the books", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To have a very long list", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To feel sorry about a mistake", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Become very confused", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To study very hard"], "correct_answer": 3, "solution": "<strong>D) Hit the books</strong> (idiom) – To study very hard पढ़ाई में बहुत मेहनत करना"}, {"id": "103150", "question": "<strong>The following sentence has been divided into parts. One of them may contain an error. Select the part that contains the error from the given options. If you don’t find any error, mark ‘No error’ as your answer</strong>.</p> <p>All the horses, except one, always / behaved in a rough manner when / Robert come to clean the stable.​​​​​", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> behaved in a rough manner when", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Robert come to clean the stable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> All the horses, except one, always"], "correct_answer": 1, "solution": "<strong>'come'</strong> के बदले 'came' का प्रयोग होगा क्योंकि इस sentence में verb 'behaved' Past Tense में है अत: इसी Tense में बाकी का भी Verb होना चाहिए; जैसे— All the horses, except one, always behaved in a rough manner when Robert came to clean the stable"}, {"id": "103147", "question": "Select the correct spelling for the <strong>INCORRECTLY </strong>spelt word in the given sentence.</p> <p>Education plays a crucal role in breaking the cycle of poverty and child labour.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> poverty", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> crucal", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> braking", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> education"], "correct_answer": 1, "solution": "<strong>B)</strong> 'crucal' के बदले <strong>'crucial'</strong>का प्रयोग होगा, क्योंकि 'crucial' सही spelling है। 'Crucial' का अर्थ होता है महत्वपूर्ण या निर्णायक।"}, {"id": "103144", "question": "Select the option that can be used as a <strong>one-word substitute</strong> for the underlined phrase in the following sentence.</p> <p>She was known for her <ins><strong>ability to communicate effectively and express herself clearly in writing and speaking</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> incoherence", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rambling", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> articulation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> mumbling"], "correct_answer": 2, "solution": "C) Articulation</strong> (noun) – The clear and precise pronunciation of words or the ability to express oneself clearly in speech or writing<strong>. </strong><strong>स्पष्ट उच्चारण या विचारों को स्पष्ट रूप में प्रकट करने की क्षमता"}, {"id": "103141", "question": "Select the most appropriate <strong>ANTONYM</strong> of the given word.</p> <p>Dwarf", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Measurable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Medium", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Tiny", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Giant"], "correct_answer": 3, "solution": "Antonym: <strong>Giant</strong> (noun/adjective) – Very large, huge, immense, colossal. A giant refers to something significantly larger than normal or average size. विशाल"}, {"id": "103142", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>To put someone's back up", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To flatter someone", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To irritate someone", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To help someone", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To deceive someone"], "correct_answer": 1, "solution": "<strong>B) To put someone's back up</strong> (idiom) – To irritate someone किसी को चिढ़ाना"}, {"id": "103148", "question": "<strong>Parts of the following sentence have been underlined and given as options. Select the option that contains an error.</strong></p> <p>I <strong><ins>had</ins> <ins>gone</ins></strong><ins> </ins>to Siliguri <ins><strong>before </strong></ins>I <ins><strong>go</strong> </ins>to Raiganj.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> go", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> before", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> had", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> gone"], "correct_answer": 0, "solution": "A) <strong>'go'</strong>के बदले 'went' का प्रयोग होगा क्योंकि 'before' Clause के पहले Main Clause में Verb 'had gone' Past Perfect Tense में है अत: 'before' Clause के बाद जो Clause है उसमें Verb Simple Past Tense में होगा; जैसे— I had gone to Siliguri before I went to Raiganj."}, {"id": "103140", "question": "Select the most appropriate <strong>ANTONYM</strong> of the given word.</p> <p>Sceptic", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Doubter", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Believer", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Disbeliever", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Receiver"], "correct_answer": 1, "solution": "ANTONYM: <strong>Believer</strong> (noun) – A person who has faith, especially religious faith, opposite of sceptic. विश्वासी"}, {"id": "103145", "question": "Select the option that can be used as a <strong>one-word substitute</strong> for the given group of words.</p> <p>A person who enjoys doing dangerous things, in a way that other people may think is stupid", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cavalier", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lunatic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gallant", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Daredevil"], "correct_answer": 3, "solution": "D) <strong>Daredevil</strong> (noun) - A person who enjoys taking risks or engaging in dangerous activities, often disregarding personal safety. साहसीव्यक्ति"}, {"id": "103146", "question": "Select the word that is <strong>INCORRECTLY </strong>spelt in the given sentence.</p> <p>Traditional people are used to using a calender for their routine activities in rural households.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Traditional", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Households", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Calender", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Activities"], "correct_answer": 2, "solution": "<strong>C)</strong> 'Calender' के बदले <strong>'Calendar'</strong>का प्रयोग होगा क्योंकि 'Calender' गलत spelling है। सही spelling'Calendar' होती है।"}, {"id": "103149", "question": "<strong>Parts of the following sentence have been underlined and given as options. Select the option that contains an error.</strong></p> <p>The Dutta company <ins><strong>has not being</strong> </ins>making new school bags <ins><strong>since</strong> </ins>the lockdown <ins><strong>commenced</strong></ins>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> since", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> has not", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> being", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Commenced"], "correct_answer": 2, "solution": "C) ‘<strong>has not being'</strong>के बदले 'has not been' का प्रयोग होगा क्योंकि helping verb'has' के बाद main verb का past participleआएगा; जैसे— He has been studying since morning."}, {"id": "103154", "question": "<strong>Improve the bold part in each of the following sentences, if needed. </strong></p> <p>Students will have to <strong>take the test</strong> again tomorrow.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> apply the test", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> avoid the test", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> retain the test", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No improvement"], "correct_answer": 3, "solution": "D) No improvement"}, {"id": "103157", "question": "<strong>Identify the option that arranges the given parts in the correct order to form a meaningful and coherent paragraph.</strong></p> <p>A. In Shakespeare’s hands, English drama</p> <p>B. that first shone forth in his early history plays</p> <p>C. William Shakespeare is considered as the greatest dramatist and poet of English language.</p> <p>D. achieved a matchless brilliance", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> c,a,d,b", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> d,b,a,c", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a,b,c,d", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> b,c,a,d"], "correct_answer": 0, "solution": "<strong>c-a:</strong> Sentence C introduces William Shakespeare as the greatest dramatist. Sentence A mentions what happened \"In Shakespeare’s hands\", which is a direct continuation. Essentially, it's expanding on the idea of Shakespeare's influence."}, {"id": "103151", "question": "<strong>Select the appropriate preposition from the given options to fill in the blank.</strong></p> <p>Her refusal to answer was tantamount __________ an admission of guilt</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> On", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> At", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> For"], "correct_answer": 2, "solution": "C) Be tantamount</strong> (to) (adjective) – Be equivalent to <strong>के बराबर होना"}, {"id": "103152", "question": "<strong>Select the option that expresses the given sentence in passive voice.</strong></p> <p>The postman had delayed the letter.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The letter was delayed by the postman.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> The letter had been delayed by the postman.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The postman had been delayed by the letter.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The letter had delayed the postman"], "correct_answer": 1, "solution": "<strong>B) </strong>The letter had been delayed by the postman."}, {"id": "103153", "question": "<strong>Improve the bold part in each of the following sentences, if needed. </strong></p> <p>Keep quiet, we <strong>listen</strong> to the radio.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> are listening", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> listened", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> have listened", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement"], "correct_answer": 0, "solution": "A) 'are listening' will be used instead of 'listen' because Present Continuous Tense is used for the present work."}, {"id": "103139", "question": "<strong>Select the best express synonym of the highlighted word</strong></p> <p>There is a significant <strong>disparity</strong> in wealth between the urban elite and the rural poor, highlighting the urgent need for balanced economic policies.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Inconclusive", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Roving", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Difference", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Deteriorate"], "correct_answer": 2, "solution": "<strong>C) Disparity</strong> (noun) – Difference, inequality, imbalance, divergence असमानता"}, {"id": "103155", "question": "<strong>Improve the bold part in each of the following sentences, if needed. </strong></p> <p>He found a <strong>wooden broken chair</strong> in the room.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> wooden and broken chair", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> broken wooden chair", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> broken and wooden chair", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement"], "correct_answer": 1, "solution": "B) 'broken wooden chair' shall be used in place of 'wooden broken chair' because Adjective of Material is used before its own Noun and other Adjectives before Adjective of Material; As-"}, {"id": "103156", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p>A. He later tried to franchise his restaurant.</p> <p>B. Colonel Harland Sanders' real-life story of being disappointed numerous times in his life and still making his ambition come true late in life is truly motivating.</p> <p>C. He began selling chicken at the age of 40, but his dream of opening a restaurant was repeatedly denied owing to conflicts and wars.</p> <p>D. He is a seventh-grade dropout who tried many things in life but found them bitter.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BCDA", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> BDCA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BDAC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BACD"], "correct_answer": 1, "solution": "<strong>B-D: </strong>Sentence B introduces \"Colonel Harland Sanders\" and talks about his story of facing disappointments and still achieving his ambition. Sentence D provides details about his background, making it a logical continuation of B."}, {"id": "103158", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Gopal was waiting for his mausi’s family to visit them. They will be coming the next day for their holidays. He was thinking about all the fun and nice food that he would have with his cousins. Just then his mother ____1_____, “Gopal, before you sleep, remember to _____2_____two small bowls (katoris) of chana (gram).” She was going to his Bua’s house and would return only in the morning. As he was soaking the chana, Gopal thought, “How will two small bowls of this be enough for eight persons?” So he soaked another two bowls of chana. When his mother returned the next morning, she saw that the chana were _____3______ from the vessel. “How much did you soak?” asked his mother. “How did that happen!” wondered Gopal. “You soaked too much! Anyway it is good, now I will cook half of them, and leave the other half to sprout. I can send _______4______ to your aunt. The doctor has told her to eat sprouts”, mother said. She ______5_____ half of the soaked chana in a wet cloth, and hung them up to sprout.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Call up", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Call out", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Called out", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Called for"], "correct_answer": 2, "solution": "No solution available"}, {"id": "103159", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Gopal was waiting for his mausi’s family to visit them. They will be coming the next day for their holidays. He was thinking about all the fun and nice food that he would have with his cousins. Just then his mother ____1_____, “Gopal, before you sleep, remember to _____2_____two small bowls (katoris) of chana (gram).” She was going to his Bua’s house and would return only in the morning. As he was soaking the chana, Gopal thought, “How will two small bowls of this be enough for eight persons?” So he soaked another two bowls of chana. When his mother returned the next morning, she saw that the chana were _____3______ from the vessel. “How much did you soak?” asked his mother. “How did that happen!” wondered Gopal. “You soaked too much! Anyway it is good, now I will cook half of them, and leave the other half to sprout. I can send _______4______ to your aunt. The doctor has told her to eat sprouts”, mother said. She ______5_____ half of the soaked chana in a wet cloth, and hung them up to sprout.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Soak", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Seek", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Seak", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sock"], "correct_answer": 0, "solution": "No solution available"}, {"id": "103160", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Gopal was waiting for his mausi’s family to visit them. They will be coming the next day for their holidays. He was thinking about all the fun and nice food that he would have with his cousins. Just then his mother ____1_____, “Gopal, before you sleep, remember to _____2_____two small bowls (katoris) of chana (gram).” She was going to his Bua’s house and would return only in the morning. As he was soaking the chana, Gopal thought, “How will two small bowls of this be enough for eight persons?” So he soaked another two bowls of chana. When his mother returned the next morning, she saw that the chana were _____3______ from the vessel. “How much did you soak?” asked his mother. “How did that happen!” wondered Gopal. “You soaked too much! Anyway it is good, now I will cook half of them, and leave the other half to sprout. I can send _______4______ to your aunt. The doctor has told her to eat sprouts”, mother said. She ______5_____ half of the soaked chana in a wet cloth, and hung them up to sprout.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Growing", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Overflowing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Running", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Overflow"], "correct_answer": 1, "solution": "No solution available"}, {"id": "103161", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Gopal was waiting for his mausi’s family to visit them. They will be coming the next day for their holidays. He was thinking about all the fun and nice food that he would have with his cousins. Just then his mother ____1_____, “Gopal, before you sleep, remember to _____2_____two small bowls (katoris) of chana (gram).” She was going to his Bua’s house and would return only in the morning. As he was soaking the chana, Gopal thought, “How will two small bowls of this be enough for eight persons?” So he soaked another two bowls of chana. When his mother returned the next morning, she saw that the chana were _____3______ from the vessel. “How much did you soak?” asked his mother. “How did that happen!” wondered Gopal. “You soaked too much! Anyway it is good, now I will cook half of them, and leave the other half to sprout. I can send _______4______ to your aunt. The doctor has told her to eat sprouts”, mother said. She ______5_____ half of the soaked chana in a wet cloth, and hung them up to sprout.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> This", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> It", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> That", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> These"], "correct_answer": 3, "solution": "No solution available"}, {"id": "103162", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Gopal was waiting for his mausi’s family to visit them. They will be coming the next day for their holidays. He was thinking about all the fun and nice food that he would have with his cousins. Just then his mother ____1_____, “Gopal, before you sleep, remember to _____2_____two small bowls (katoris) of chana (gram).” She was going to his Bua’s house and would return only in the morning. As he was soaking the chana, Gopal thought, “How will two small bowls of this be enough for eight persons?” So he soaked another two bowls of chana. When his mother returned the next morning, she saw that the chana were _____3______ from the vessel. “How much did you soak?” asked his mother. “How did that happen!” wondered Gopal. “You soaked too much! Anyway it is good, now I will cook half of them, and leave the other half to sprout. I can send _______4______ to your aunt. The doctor has told her to eat sprouts”, mother said. She ______5_____ half of the soaked chana in a wet cloth, and hung them up to sprout.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Try", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Tried", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Tied", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fried"], "correct_answer": 2, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
