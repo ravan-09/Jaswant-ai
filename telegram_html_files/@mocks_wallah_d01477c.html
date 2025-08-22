@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">20:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "144459", "question": "<strong>Select the most appropriate Antonym of the given word.</strong></p> <p>The <ins><strong>fractured</strong> </ins>bone took months to heal properly.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Divided", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> United", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Inconsistent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Split"], "correct_answer": 1, "solution": "<strong>Antonym: United</strong> (adjective) – Joined together, integrated, whole. (एकजुट)"}, {"id": "144462", "question": "<strong>Select the option that can be used as a one-word substitute to fill in the blanks for the given group of highlighted words.</strong></p> <p>_______________ is a narrow passage of water connecting two seas or two other large areas of water", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Peninsula", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Embankment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gorge", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Strait"], "correct_answer": 3, "solution": "<strong>Peninsula</strong> (noun) – A piece of land almost surrounded by water or projecting out into a body of water. प्रायद्वीप"}, {"id": "144467", "question": "<strong>Select the most appropriate meaning of the underlined word in the context of the following sentence.</strong></p> <p>We should go to the Himalayas this <ins><strong>spring</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To jump", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A water body", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> A season", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Coiled metal"], "correct_answer": 2, "solution": "The word 'spring' here refers to 'a season' (C. A season) because the sentence mentions the Himalayas and 'this spring,' indicating a time of the year, specifically the spring season"}, {"id": "144460", "question": "<strong>Select the most appropriate Antonym of the given word.</strong></p> <p>Proper <ins><strong>alignment</strong> </ins>between departments ensures smooth workflow and better productivity.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Coordination", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Disagreement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Harmony", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Adjustment"], "correct_answer": 1, "solution": "<strong>Antonym: Disagreement</strong> (noun) – Conflict, discord, opposition (मतभेद)"}, {"id": "144471", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong><br> <strong>A) </strong> According to estimates, 12 to 16 million tonnes of foodgrains are lost every year in the country, enough to feed one-third of India’s poor.<br> <strong>B) </strong> Despite losses spanning decades, only limited attempts have been made to invest in scientifically-sound storage systems.<br> <strong>C)</strong> The sight of grain stocks rotting in the open is not only acutely distressing, but also absurd for what it represents in this time and age — a callous, uncaring, unscientific approach to perhaps the most vital component of the region’s economy.<br> <strong>D) </strong>Media reports of overflowing grain markets forcing farmers to unload their wheat stock at a cremation ground in a Rohtak village sum up the bizarre scenario.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CABD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CDBA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> DABC", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> CDAB"], "correct_answer": 3, "solution": "<strong>C:</strong> This sentence sets the scene and introduces the problem: grains are rotting, and the issue is attributed to an uncaring and unscientific approach."}, {"id": "144465", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The sharpshooter _________ dead a man-eating tiger after it allegedly killed nine people in the last few days.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> killed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> threw", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> shot", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> fixed"], "correct_answer": 2, "solution": "<strong>Shot'</strong> will be used because it means to fire a bullet from a gun to hit a target, which aligns perfectly with the context where a sharpshooter is involved in taking down a man-eating tiger. The sentence explicitly mentions the sharpshooter and an action to deal with the tiger, making 'shot' the most suitable option. Whereas: 'Killed' means to cause death but does not specify how the action was performed, and the sentence requires the use of an action involving a sharpshooter, which is specifically related to shooting. 'Threw' means to propel something with force through the air, which is irrelevant in the context of using a gun. 'Fixed' means to repair or fasten, which has no connection to the context of shooting or dealing with a tiger."}, {"id": "144455", "question": "<strong>Select the most appropriate synonym of the given word.</strong></p> <p>Clean water is <ins><strong>indispensable</strong> </ins>for survival, making its conservation a global priority.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Essential", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Optional", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Replaceable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unnecessary"], "correct_answer": 0, "solution": "<strong>Synonym: Essential</strong> (adjective) – Crucial, vital, necessary. आवश्यक"}, {"id": "144464", "question": "<strong>Select the INCORRECTLY spelt word</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Accentuation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Phytoplankton", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Supperannuation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Suppressant"], "correct_answer": 2, "solution": "C) The correct spelling of ‘<strong>Supperannuation’</strong> is ‘<strong>Superannuation’</strong> which means “the payment given upon retirement from a fund or pension plan.” अवकाश प्राप्ति पर निधि का भुगतान."}, {"id": "144466", "question": "<strong>Select the most appropriate option to complete the given sentence in the present perfect continuous tense.</strong></p> <p>The company ___________________ working towards achievements in curbing slackness and fostering development", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> have been", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> are being", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> has been", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> is being"], "correct_answer": 2, "solution": "Has been\" will be used because it is used to form the present perfect continuous tense, combining \"has/have been\" with the -ing form of the verb. In this sentence, the subject \"The company\" is singular, making \"has been\" correct. Have been\" is used with plural subjects, but the subject here is singular, so it is incorrect. \"Are being\" denotes present continuous tense in the passive voice, but the sentence is in active voice.n\"Is being\" is also used for singular subjects in passive voice, which doesn't fit this context"}, {"id": "144454", "question": "<strong>Select the most appropriate synonym of the given word.</strong></p> <p>The company announced a major <ins><strong>overhaul</strong> </ins>of its policies to improve employee satisfaction.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Revamp", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hatred", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Aggression", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Enmity"], "correct_answer": 0, "solution": "<strong>Synonym: Revamp</strong> (noun) – Restructuring, renewal, makeover. नवीनीकरण"}, {"id": "144463", "question": "<strong>Select the INCORRECTLY spelt word.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Separate", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Concieve", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Accessible", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Convenience"], "correct_answer": 1, "solution": "B) The correct spelling of ‘<strong>Concieve’</strong> is ‘<strong>Conceive’</strong> which means “to form or devise (a plan or idea) in the mind” कल्पना करना."}, {"id": "144461", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>The new movie became <ins><strong>something that is striking or has great popular appeal</strong></ins>, attracting huge crowds to the theaters within its first week of release.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mirage", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Obsession", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Showstopper", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Relic"], "correct_answer": 2, "solution": "C) <strong>Showstopper</strong> (noun) – something that is striking or has great popular appeal."}, {"id": "144453", "question": "<strong>Select the most appropriate synonym of the given word.</strong></p> <p>Standing at the hilltop, we admired the breathtaking <ins><strong>vista</strong> </ins>of the valley below.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Opportunity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Obstacle", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Problematic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Blur"], "correct_answer": 0, "solution": "<strong>Synonym: Opportunity</strong> (noun) – Chance, prospect. अवसर"}, {"id": "144457", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Through thick and thin", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To pass through thick and thin air", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To possess both thick and thin clothes", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To travel through thick and thin clouds", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To be supportive in both good and bad times"], "correct_answer": 3, "solution": "D) <strong>Through thick and thin</strong> (idiom) – To be supportive in both good and bad times अच्छे और बुरे समय में सहायक रहना"}, {"id": "144468", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence.</strong></p> <p>A raven, which you know is black as coal, was envious of the swan, because her <strong><ins>feathers are as white as</ins> </strong>the purest snow", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> feathers is as white as", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> feathers was a white as", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> feathers were as white as", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> feathers is a white as"], "correct_answer": 2, "solution": "• <strong>'feathers were as white as'</strong> will be used instead of 'feathers are as white as' because the main sentence uses the verb 'was' in Past Tense, so the dependent clause related to it should also use the verb in Past Tense; Like— A raven, which you know is black as coal, was envious of the swan, because her feathers were as white as the purest snow."}, {"id": "144458", "question": "<strong>Select the most appropriate idiom that can substitute the underlined segment in the given sentence.</strong></p> <p>Mary appeared for the test. She was <ins><strong>waiting anxiously</strong></ins> for the test result.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a piece of cake", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> jumping through hoops", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> hitting the nail on the head", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> on pins and needles"], "correct_answer": 3, "solution": "D) <strong>On pins and needles</strong> – Waiting anxiously किसी परिणाम या घटना का बेसब्री और बेचैनी से इंतजार करना।"}, {"id": "144456", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Hanging by a thread.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To avoid danger or trouble", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To be perilously close to failing, dying, or resulting in a bad outcome", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To do something very risky", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Crude and lacking sophistication"], "correct_answer": 1, "solution": "B) <strong>Hanging by a thread</strong> (idiom) – To be perilously close to failing, dying, or resulting in a bad outcome. किसी चीज़ का विफलता, मृत्यु, या किसी बुरे परिणाम के बेहद करीब होना।"}, {"id": "144469", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>Parts of northern France were also (A) / put in drought alert, with (B) / water supplies to businesses, (C) / farmers and ordinary residents restricted. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parts of northern France were also", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> put in drought alert, with", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> water supplies to businesses", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> farmers and ordinary residents restricted."], "correct_answer": 1, "solution": "<strong>'put on' </strong>will be used instead of 'put in' because the preposition 'on' is used with 'alert'; Like— The city was put on high alert due to the storm warning."}, {"id": "144470", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>Despite of the burst of interest in caps and (A) / bucket hats recently, the concept of (B) / a more decorative designer hat hasn’t (C) / looked this likely to take off in years. (D)", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Despite of the burst of interest in caps and", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> bucket hats recently, the concept of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a more decorative designer hat hasn’t", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> looked this likely to take off in years"], "correct_answer": 0, "solution": "'<strong>Despite</strong>' will be used instead of 'Despite of' because 'Despite' is a preposition and 'of' is not used with it; Like— Despite the rain, we went out."}, {"id": "144472", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong><br> <strong>A) </strong> Colombo could have done without getting caught in strategic rivalry.<br> <strong>B) </strong> From the outset, it made little sense for the Chinese to send a spy ship to Sri Lanka when the country was reeling under its worst-ever economic crises.<br> <strong>C)</strong> It was chicanery on Beijing’s part to have sought permission from a dying regime for a ‘research ship’ — which spies on a country’s coastal defences on the side — to dock at Hambantota.<br> <strong>D)</strong> The Presidential Palace in Colombo was about to be stormed and President Gotabaya Rakapaksa was literally packing his bags.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> BACD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BADC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CDBA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> DCBA"], "correct_answer": 0, "solution": "<strong>B:</strong> This sentence sets the scene and context for the rest of the paragraph. It introduces the topic - the ill-timed dispatch of a Chinese spy ship to Sri Lanka during a time of crisis."}, {"id": "144473", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>The _____1_____death by suicide of at least seven students, six of them girls, in different parts of Telangana after the declaration of intermediate (equivalent of Classes XI and XII) results is another ____2_____reminder that despite several progressive interventions in recent years, much work needs to be done to _____3_____ the anxieties of the country’s youth. The Telangana State Board of Intermediate Education had arranged for counsellors for students in junior colleges to _____4_____ exam-related stress. State government representatives had also asked students to not be ____5_____by adverse results and make use of the supplementary examinations. However, the loss of young lives speaks of serious systemic shortcomings that cannot be mitigated by reaching out to students just before the examinations</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Abjured", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Denied", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Prolonged", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Alleged"], "correct_answer": 3, "solution": "No solution available"}, {"id": "144474", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>The _____1_____death by suicide of at least seven students, six of them girls, in different parts of Telangana after the declaration of intermediate (equivalent of Classes XI and XII) results is another ____2_____reminder that despite several progressive interventions in recent years, much work needs to be done to _____3_____ the anxieties of the country’s youth. The Telangana State Board of Intermediate Education had arranged for counsellors for students in junior colleges to _____4_____ exam-related stress. State government representatives had also asked students to not be ____5_____by adverse results and make use of the supplementary examinations. However, the loss of young lives speaks of serious systemic shortcomings that cannot be mitigated by reaching out to students just before the examinations</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Proclaim", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Claim", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Grim", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Generous"], "correct_answer": 2, "solution": "No solution available"}, {"id": "144475", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>The _____1_____death by suicide of at least seven students, six of them girls, in different parts of Telangana after the declaration of intermediate (equivalent of Classes XI and XII) results is another ____2_____reminder that despite several progressive interventions in recent years, much work needs to be done to _____3_____ the anxieties of the country’s youth. The Telangana State Board of Intermediate Education had arranged for counsellors for students in junior colleges to _____4_____ exam-related stress. State government representatives had also asked students to not be ____5_____by adverse results and make use of the supplementary examinations. However, the loss of young lives speaks of serious systemic shortcomings that cannot be mitigated by reaching out to students just before the examinations</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Alleviate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Initiate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Associate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Depreciate"], "correct_answer": 0, "solution": "No solution available"}, {"id": "144476", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>The _____1_____death by suicide of at least seven students, six of them girls, in different parts of Telangana after the declaration of intermediate (equivalent of Classes XI and XII) results is another ____2_____reminder that despite several progressive interventions in recent years, much work needs to be done to _____3_____ the anxieties of the country’s youth. The Telangana State Board of Intermediate Education had arranged for counsellors for students in junior colleges to _____4_____ exam-related stress. State government representatives had also asked students to not be ____5_____by adverse results and make use of the supplementary examinations. However, the loss of young lives speaks of serious systemic shortcomings that cannot be mitigated by reaching out to students just before the examinations</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> deal with", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> pace with", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> firm up", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> carry out"], "correct_answer": 0, "solution": "No solution available"}, {"id": "144477", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>The _____1_____death by suicide of at least seven students, six of them girls, in different parts of Telangana after the declaration of intermediate (equivalent of Classes XI and XII) results is another ____2_____reminder that despite several progressive interventions in recent years, much work needs to be done to _____3_____ the anxieties of the country’s youth. The Telangana State Board of Intermediate Education had arranged for counsellors for students in junior colleges to _____4_____ exam-related stress. State government representatives had also asked students to not be ____5_____by adverse results and make use of the supplementary examinations. However, the loss of young lives speaks of serious systemic shortcomings that cannot be mitigated by reaching out to students just before the examinations</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Dejected", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unprotected", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Attached", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Approach"], "correct_answer": 0, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=20*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=20*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
