@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/30</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+            <div class="lang">
+                <button class="lang-btn active" id="engBtn">English</button>
+                <button class="lang-btn" id="hinBtn">हिंदी</button>
+            </div>
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 30</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah" target="_blank" rel="noopener">VISHAL😁RAVAN</a> <a href="https://youtube.com/@Vlogsbyvishalravan" target="_blank" rel="noopener" style="font-size:12px;opacity:.85;margin-left:6px;">(YouTube backup)</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/60</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">7 : 70 :: ? : 154 :: 13 : 208 </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 10</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 11</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 9</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 13</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Nirmala UI'\">st</span><span style=\"font-family:'Nirmala UI'\"> number + 3)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image001.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\">1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Nirmala UI'\">st</span><span style=\"font-family:'Nirmala UI'\"> number = 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Nirmala UI'\">nd</span><span style=\"font-family:'Nirmala UI'\"> number</span></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image002.png\" width=\"117\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image003.png\" width=\"144\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image004.png\" width=\"122\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-left:36pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image005.png\" width=\"78\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 11</span></p><p></p>",
+    "question_index": 0
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">14 : 96 :: ? : 125</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 17 : 189</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 12</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\">14</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\">10</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\">15</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image006.png\" width=\"256\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image007.png\" width=\"124\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image008.png\" width=\"133\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image009.png\" width=\"133\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 15</span></p><p></p>",
+    "question_index": 1
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">7 : 322 :: ? : 1298</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 8 : 488</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 12</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 11</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 10</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 9</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image010.png\" width=\"339\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image011.png\" width=\"133\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image012.png\" width=\"133\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image013.png\" width=\"137\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 11</span></p><p></p>",
+    "question_index": 2
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">98 : 14 :: ? : 16</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 162 : 18</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 128</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 144</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 112</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 96</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: (2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Nirmala UI'\">nd</span><span style=\"font-family:'Nirmala UI'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image014.png\" width=\"191\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Nirmala UI'\">14</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image015.png\" width=\"76\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">16</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image016.png\" width=\"85\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">18</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image017.png\" width=\"58\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> 162</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 128</span></p><p></p>",
+    "question_index": 3
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">17 : 49 :: ? : 64</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 14 : 40</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 19</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 21</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 22</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 34</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: 1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Nirmala UI'\">st</span><span style=\"font-family:'Nirmala UI'\"> number </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image018.png\" width=\"163\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Nirmala UI'\">17</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image019.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">14</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image020.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">?</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image021.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 22</span></p><p></p>",
+    "question_index": 4
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">7 : 188 :: ? : 392</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 11 : 476</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 20</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 16</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 8</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 10</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image022.png\" width=\"266\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image023.png\" width=\"133\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image024.png\" width=\"142\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image025.png\" width=\"131\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image026.png\" width=\"134\" height=\"31\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 10</span></p><p></p>",
+    "question_index": 5
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">22 : 676 :: ? : 961</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 19 : 529</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 29</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 31</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 27</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 25</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image027.png\" width=\"238\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image028.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image029.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image030.png\" width=\"103\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image031.png\" width=\"65\" height=\"23\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 31 – 4 =&gt; 27</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 27</span></p><p></p>",
+    "question_index": 6
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">57 : 285 :: ? : 165</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 71 : 355</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 35</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 33</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 36</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 31</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image032.png\" width=\"218\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image033.png\" width=\"93\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image034.png\" width=\"93\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image035.png\" width=\"82\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 33</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 33</span></p><p></p>",
+    "question_index": 7
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">13 : 144 :: ? : 289</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 22 : 441</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 15</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 17</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 12</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 18</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image036.png\" width=\"238\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image037.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image038.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image039.png\" width=\"103\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image040.png\" width=\"93\" height=\"23\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 17 + 1 =&gt; 18</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 18</span></p><p></p>",
+    "question_index": 8
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">32 : 68 :: ? : 90</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 58 : 120</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 48</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 45</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 43</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 42</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image041.png\" width=\"245\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image042.png\" width=\"112\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image043.png\" width=\"121\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image044.png\" width=\"101\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-left:36pt;margin-bottom:0pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image045.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-left:36pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image046.png\" width=\"74\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 43</span></p><p></p>",
+    "question_index": 9
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">123 : 242 :: ? : 314 :: 167 : 330</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 163</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 147</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 159</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 157</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image047.png\" width=\"259\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image048.png\" width=\"143\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image049.png\" width=\"143\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image050.png\" width=\"123\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image051.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 159</span></p><p></p>",
+    "question_index": 10
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">2455 : 491 :: ? : 1047</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 3445 : 689</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 5465</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 4865</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 5235</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 5375</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image052.png\" width=\"218\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image053.png\" width=\"111\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">3445</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image054.png\" width=\"76\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">5235</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image055.png\" width=\"85\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 5235</span></p><p></p>",
+    "question_index": 11
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">16 : 51 :: ? : 66 :: 19 : 60</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 16</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 26</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 21</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 23</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image056.png\" width=\"259\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image057.png\" width=\"126\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image058.png\" width=\"126\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image059.png\" width=\"115\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 21</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 21</span></p><p></p>",
+    "question_index": 12
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">32 : 544 :: ? : 364</span><span style=\"font-family:'Nirmala UI'\">  </span><span style=\"font-family:'Nirmala UI'\">:: 44 : 1012</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 24</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 26</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 22</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 36</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image060.png\" width=\"318\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image061.png\" width=\"202\" height=\"32\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\">544</span></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image062.png\" width=\"202\" height=\"32\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\">1012</span></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image063.png\" width=\"127\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; Putting, ? = 26, </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; 26</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image064.png\" width=\"58\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> 364</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 26</span></p><p></p>",
+    "question_index": 13
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">128 : 8 :: ? : 12 :: 242 : 11</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 144</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 192</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 288</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 320</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image065.png\" width=\"238\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image066.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image067.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image068.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 288</span></p><p></p>",
+    "question_index": 14
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">16 : 290 :: ? : 962 :: 28 : 842</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 18</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 23</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 27</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 30</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image069.png\" width=\"267\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image070.png\" width=\"142\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image071.png\" width=\"142\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image072.png\" width=\"131\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image073.png\" width=\"106\" height=\"23\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 30</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 30</span></p><p></p>",
+    "question_index": 15
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">8 : 1331 :: ? : 3375 :: 5 : 512</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 12</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 15</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 22</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 27</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image074.png\" width=\"238\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image075.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image076.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image077.png\" width=\"112\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? + 3 = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image078.png\" width=\"207\" height=\"23\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 12</span></p><p></p>",
+    "question_index": 16
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">7 : 336 :: ? : 1320 :: 13 : 2184</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 7</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 9</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 11</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 13</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image079.png\" width=\"312\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image080.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image081.png\" width=\"132\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image082.png\" width=\"110\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Putting from options, ? = 11</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image083.png\" width=\"132\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 11</span></p><p></p>",
+    "question_index": 17
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">6 : 222 :: ? : 520 :: 10 : 1010</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 5</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 8</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 10</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 12</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image084.png\" width=\"312\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image085.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image086.png\" width=\"132\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image087.png\" width=\"101\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 8</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 8</span></p><p></p>",
+    "question_index": 18
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 : 168 :: ? : 294 :: 26 : 364 </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 18</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 19</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 21</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 23</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image088.png\" width=\"226\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image089.png\" width=\"102\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image090.png\" width=\"102\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image091.png\" width=\"91\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 21</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">The correct answer is: 21</span></p><p></p>",
+    "question_index": 19
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">47 : 142 :: ? : 178 :: 66 : 199</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 41</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 69</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 59</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 71</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image092.png\" width=\"245\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image093.png\" width=\"121\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image094.png\" width=\"121\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image095.png\" width=\"110\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 59</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 59</span></p><p></p>",
+    "question_index": 20
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 : 153 :: ? : 234 :: 13 : 178</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 14</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 17</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 13</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 15</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image096.png\" width=\"239\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image097.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image098.png\" width=\"114\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image099.png\" width=\"208\" height=\"23\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 15</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 15</span></p><p></p>",
+    "question_index": 21
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 : 1730 :: ? : 2746 :: 7 : 345</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 9</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 14</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 19</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 24</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image100.png\" width=\"239\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image101.png\" width=\"123\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image102.png\" width=\"105\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image103.png\" width=\"112\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 14</span></p><p></p>",
+    "question_index": 22
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">25 : 37 :: ? : 197 :: 121 : 145</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 169</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 100</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 196</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 81</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image104.png\" width=\"278\" height=\"26\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image105.png\" width=\"145\" height=\"27\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image106.png\" width=\"161\" height=\"26\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image107.png\" width=\"142\" height=\"26\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">(</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image108.png\" width=\"18\" height=\"22\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> + 1) = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image109.png\" width=\"38\" height=\"22\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> =&gt; ? = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image110.png\" width=\"40\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> =&gt; 169</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 169</span></p><p></p>",
+    "question_index": 23
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 : 130 :: ? : 110 :: 8 : 90</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 8</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 13</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 10</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 9</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">The logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image111.png\" width=\"263\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image112.png\" width=\"142\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image113.png\" width=\"124\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image114.png\" width=\"131\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">=&gt; ? = 10</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 10</span></p><p></p>",
+    "question_index": 24
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">123 : 18 :: ? : 27 :: 326 : 33</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 156</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 116</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 162</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 136</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image115.png\" width=\"367\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image116.png\" width=\"144\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image117.png\" width=\"144\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image118.png\" width=\"144\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 162 </span></p><p></p>",
+    "question_index": 25
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">56 : 308 :: ? : 231 :: 78 : 429</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 52</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 38</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 42</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 48</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image119.png\" width=\"209\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image120.png\" width=\"72\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> 308</span></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image121.png\" width=\"102\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image122.png\" width=\"65\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Nirmala UI'\"> 231</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 21</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image123.png\" width=\"78\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 42</span></p><p></p>",
+    "question_index": 26
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">36 : 18 :: ? : 30 :: 25 : 10</span><span style=\"font-family:'Nirmala UI'\">  </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 81</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 56</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 49</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 64</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image124.png\" width=\"386\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Nirmala UI'\">3</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image125.png\" width=\"66\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><span style=\"font-family:'Nirmala UI'\">2</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image126.png\" width=\"66\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">From option (b),</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">5</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image127.png\" width=\"66\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 56</span></p><p></p>",
+    "question_index": 27
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<style type=\"text/css\">img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}\r\n</style>\r\n<p><span style=\"font-family:'Nirmala UI'\">उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span></p>\r\n\r\n<p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">366 : 6 :: ? : 5 :: 248 : 3</span><span style=\"font-family:'Nirmala UI'\"> </span></p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<p><span style=\"font-family:'Nirmala UI'\">367</span></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<p><span style=\"font-family:'Nirmala UI'\">426</span></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<p><span style=\"font-family:'Nirmala UI'\">328</span></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<p><span style=\"font-family:'Nirmala UI'\">459</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Nirmala UI';src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf ') format('truetype'); } </style><style type=\"text/css\">@font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');}\r\n</style>\r\n<p style=\"margin-bottom:11px\">Logic: First two digits of 1<sup>st</sup> number / last digit of 1<sup>st</sup> number = 2<sup>nd</sup> number</p>\r\n\r\n<ul>\r\n\t<li style=\"margin-left:8px\">36/6 = 6</li>\r\n\t<li style=\"margin-bottom:11px; margin-left:8px\">24 / 8 = 3</li>\r\n</ul>\r\n\r\n<p style=\"margin-bottom:11px\">From option (d),</p>\r\n\r\n<p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\">45/9 = 5</p>\r\n\r\n<p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 459</span></p>",
+    "question_index": 28
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Nirmala UI'\"> उस विकल्प का चयन कीजिए जो चौथे पद से उसी प्रकार संबंधित है जिस प्रकार पहला पद दूसरे पद से संबंधित है और पांचवां पद छठे पद से संबंधित है।</span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">16 : 134 :: ? : 182 :: 19 : 158</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 19</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 17</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 24</span>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> 22</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><span style=\"font-family:'Nirmala UI'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Logic: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image132.png\" width=\"245\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image133.png\" width=\"208\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li><li><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image134.png\" width=\"208\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749369314742_image135.png\" width=\"228\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">? = 22</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">Therefore, the correct answer is: 22</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\"> </span></p><p></p>",
+    "question_index": 29
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 30 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('engBtn').onclick = () => this.setLang(true);
+                document.getElementById('hinBtn').onclick = () => this.setLang(false);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.50;
+                        console.log(`Q${i + 1}: INCORRECT (-0.50 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/60`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
