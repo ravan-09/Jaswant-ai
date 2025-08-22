@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mocks Wallah - Extracted Images</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            min-height: 50px;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        
+        .join-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .join-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Enhanced Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 0;
+            }
+            .header-content {
+                padding: 0 15px;
+                gap: 10px;
+            }
+            .header h1 {
+                font-size: 1.6rem;
+                min-width: 0;
+            }
+            .join-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+                border-radius: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 10px 0;
+            }
+            .header-content {
+                padding: 0 12px;
+                gap: 8px;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+                font-weight: 600;
+            }
+            .join-btn {
+                padding: 8px 15px;
+                font-size: 13px;
+                border-radius: 18px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            .join-btn {
+                padding: 7px 12px;
+                font-size: 12px;
+            }
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0;
+            position: relative;
+        }
+        
+        .image-container {
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        td {
+            padding: 0;
+            vertical-align: top;
+            border: none;
+            position: relative;
+        }
+        
+        img {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-width: 100%;
+            border: none;
+            transition: transform 0.2s ease;
+        }
+        
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .annotation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .annotation-canvas.active {
+            pointer-events: all;
+            cursor: crosshair;
+        }
+        
+        /* Annotation Controls */
+        .annotation-controls {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            padding: 15px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .annotation-controls.hidden {
+            transform: translateY(-50%) translateX(-120%);
+            opacity: 0;
+        }
+        
+        .toggle-tools-btn {
+            position: fixed;
+            bottom: 80px;  /* Positioned above PDF button */
+            right: 30px;   /* Aligned with PDF button */
+            background: white;
+            border: 2px solid blue;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1001;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+        
+        .toggle-tools-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .annotation-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 45px;
+            height: 45px;
+        }
+        
+        .annotation-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .annotation-btn.active {
+            background: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.3);
+        }
+        
+        .color-picker {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .thickness-slider {
+            width: 45px;
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+        
+        .thickness-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .thickness-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .pdf-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        /* Mobile annotation controls */
+        @media (max-width: 768px) {
+            .annotation-controls {
+                left: 10px;
+                padding: 10px;
+                gap: 8px;
+            }
+            
+            .annotation-btn {
+                min-width: 40px;
+                height: 40px;
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            .color-picker {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .thickness-slider {
+                width: 40px;
+            }
+            
+            .image-container {
+                padding: 15px;
+            }
+            
+            .pdf-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+            
+            .toggle-tools-btn {
+                bottom: 70px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .header {
+                position: static;
+                box-shadow: none;
+            }
+            
+            .pdf-btn, .annotation-controls, .toggle-tools-btn {
+                display: none;
+            }
+            
+            table {
+                page-break-inside: avoid;
+                box-shadow: none;
+            }
+            
+            img {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            
+            .annotation-canvas {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Mocks Wallah</h1>
+            <a href="https://t.me/mocks_wallah" class="join-btn" target="_blank" rel="noopener">VISHAL😁RAVAN</a> <a href="https://youtube.com/@Vlogsbyvishalravan" target="_blank" rel="noopener" style="font-size:12px;opacity:.85;margin-left:6px;">(YouTube backup)</a>
+        </div>
+    </header>
+    
+    <!-- Annotation Controls -->
+    <div class="annotation-controls" id="annotationControls">
+        <button class="annotation-btn" id="drawBtn" title="Draw (D)">✏️</button>
+        <button class="annotation-btn" id="eraseBtn" title="Erase (E)">🧽</button>
+        <input type="color" class="color-picker" id="colorPicker" value="#ff0000" title="Color">
+        <input type="range" class="thickness-slider" id="thicknessSlider" min="1" max="20" value="3" title="Thickness">
+        <button class="annotation-btn" id="clearBtn" title="Clear All (C)">🗑️</button>
+    </div>
+    
+    <main class="main-content">
+        <div class="image-container">
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5693800.png" alt="Image 1" loading="lazy" onload="setupCanvas(this, 0)">
+                        <canvas class="annotation-canvas" id="canvas_0"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1270403.png" alt="Image 2" loading="lazy" onload="setupCanvas(this, 1)">
+                        <canvas class="annotation-canvas" id="canvas_1"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1794604.png" alt="Image 3" loading="lazy" onload="setupCanvas(this, 2)">
+                        <canvas class="annotation-canvas" id="canvas_2"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7403118.png" alt="Image 4" loading="lazy" onload="setupCanvas(this, 3)">
+                        <canvas class="annotation-canvas" id="canvas_3"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8513812.png" alt="Image 5" loading="lazy" onload="setupCanvas(this, 4)">
+                        <canvas class="annotation-canvas" id="canvas_4"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9897292.png" alt="Image 6" loading="lazy" onload="setupCanvas(this, 5)">
+                        <canvas class="annotation-canvas" id="canvas_5"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2120215.png" alt="Image 7" loading="lazy" onload="setupCanvas(this, 6)">
+                        <canvas class="annotation-canvas" id="canvas_6"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4615319.png" alt="Image 8" loading="lazy" onload="setupCanvas(this, 7)">
+                        <canvas class="annotation-canvas" id="canvas_7"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4139246.png" alt="Image 9" loading="lazy" onload="setupCanvas(this, 8)">
+                        <canvas class="annotation-canvas" id="canvas_8"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8182090.png" alt="Image 10" loading="lazy" onload="setupCanvas(this, 9)">
+                        <canvas class="annotation-canvas" id="canvas_9"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2608864.png" alt="Image 11" loading="lazy" onload="setupCanvas(this, 10)">
+                        <canvas class="annotation-canvas" id="canvas_10"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4897572.png" alt="Image 12" loading="lazy" onload="setupCanvas(this, 11)">
+                        <canvas class="annotation-canvas" id="canvas_11"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5271744.png" alt="Image 13" loading="lazy" onload="setupCanvas(this, 12)">
+                        <canvas class="annotation-canvas" id="canvas_12"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7935203.png" alt="Image 14" loading="lazy" onload="setupCanvas(this, 13)">
+                        <canvas class="annotation-canvas" id="canvas_13"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5484470.png" alt="Image 15" loading="lazy" onload="setupCanvas(this, 14)">
+                        <canvas class="annotation-canvas" id="canvas_14"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2803338.png" alt="Image 16" loading="lazy" onload="setupCanvas(this, 15)">
+                        <canvas class="annotation-canvas" id="canvas_15"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1340219.png" alt="Image 17" loading="lazy" onload="setupCanvas(this, 16)">
+                        <canvas class="annotation-canvas" id="canvas_16"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6194371.png" alt="Image 18" loading="lazy" onload="setupCanvas(this, 17)">
+                        <canvas class="annotation-canvas" id="canvas_17"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1740344.png" alt="Image 19" loading="lazy" onload="setupCanvas(this, 18)">
+                        <canvas class="annotation-canvas" id="canvas_18"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3661656.png" alt="Image 20" loading="lazy" onload="setupCanvas(this, 19)">
+                        <canvas class="annotation-canvas" id="canvas_19"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9844798.png" alt="Image 21" loading="lazy" onload="setupCanvas(this, 20)">
+                        <canvas class="annotation-canvas" id="canvas_20"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9865417.png" alt="Image 22" loading="lazy" onload="setupCanvas(this, 21)">
+                        <canvas class="annotation-canvas" id="canvas_21"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4545328.png" alt="Image 23" loading="lazy" onload="setupCanvas(this, 22)">
+                        <canvas class="annotation-canvas" id="canvas_22"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2795944.png" alt="Image 24" loading="lazy" onload="setupCanvas(this, 23)">
+                        <canvas class="annotation-canvas" id="canvas_23"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4566853.png" alt="Image 25" loading="lazy" onload="setupCanvas(this, 24)">
+                        <canvas class="annotation-canvas" id="canvas_24"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7212084.png" alt="Image 26" loading="lazy" onload="setupCanvas(this, 25)">
+                        <canvas class="annotation-canvas" id="canvas_25"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7129148.png" alt="Image 27" loading="lazy" onload="setupCanvas(this, 26)">
+                        <canvas class="annotation-canvas" id="canvas_26"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4221311.png" alt="Image 28" loading="lazy" onload="setupCanvas(this, 27)">
+                        <canvas class="annotation-canvas" id="canvas_27"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4595758.png" alt="Image 29" loading="lazy" onload="setupCanvas(this, 28)">
+                        <canvas class="annotation-canvas" id="canvas_28"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6331358.png" alt="Image 30" loading="lazy" onload="setupCanvas(this, 29)">
+                        <canvas class="annotation-canvas" id="canvas_29"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3835759.png" alt="Image 31" loading="lazy" onload="setupCanvas(this, 30)">
+                        <canvas class="annotation-canvas" id="canvas_30"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6452389.png" alt="Image 32" loading="lazy" onload="setupCanvas(this, 31)">
+                        <canvas class="annotation-canvas" id="canvas_31"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5776987.png" alt="Image 33" loading="lazy" onload="setupCanvas(this, 32)">
+                        <canvas class="annotation-canvas" id="canvas_32"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4492218.png" alt="Image 34" loading="lazy" onload="setupCanvas(this, 33)">
+                        <canvas class="annotation-canvas" id="canvas_33"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5421776.png" alt="Image 35" loading="lazy" onload="setupCanvas(this, 34)">
+                        <canvas class="annotation-canvas" id="canvas_34"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5380114.png" alt="Image 36" loading="lazy" onload="setupCanvas(this, 35)">
+                        <canvas class="annotation-canvas" id="canvas_35"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8306175.png" alt="Image 37" loading="lazy" onload="setupCanvas(this, 36)">
+                        <canvas class="annotation-canvas" id="canvas_36"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6640921.png" alt="Image 38" loading="lazy" onload="setupCanvas(this, 37)">
+                        <canvas class="annotation-canvas" id="canvas_37"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4154305.png" alt="Image 39" loading="lazy" onload="setupCanvas(this, 38)">
+                        <canvas class="annotation-canvas" id="canvas_38"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1875056.png" alt="Image 40" loading="lazy" onload="setupCanvas(this, 39)">
+                        <canvas class="annotation-canvas" id="canvas_39"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5320926.png" alt="Image 41" loading="lazy" onload="setupCanvas(this, 40)">
+                        <canvas class="annotation-canvas" id="canvas_40"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5970687.png" alt="Image 42" loading="lazy" onload="setupCanvas(this, 41)">
+                        <canvas class="annotation-canvas" id="canvas_41"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7966046.png" alt="Image 43" loading="lazy" onload="setupCanvas(this, 42)">
+                        <canvas class="annotation-canvas" id="canvas_42"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8407843.png" alt="Image 44" loading="lazy" onload="setupCanvas(this, 43)">
+                        <canvas class="annotation-canvas" id="canvas_43"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1164514.png" alt="Image 45" loading="lazy" onload="setupCanvas(this, 44)">
+                        <canvas class="annotation-canvas" id="canvas_44"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4772722.png" alt="Image 46" loading="lazy" onload="setupCanvas(this, 45)">
+                        <canvas class="annotation-canvas" id="canvas_45"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2426470.png" alt="Image 47" loading="lazy" onload="setupCanvas(this, 46)">
+                        <canvas class="annotation-canvas" id="canvas_46"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9762929.png" alt="Image 48" loading="lazy" onload="setupCanvas(this, 47)">
+                        <canvas class="annotation-canvas" id="canvas_47"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4019613.png" alt="Image 49" loading="lazy" onload="setupCanvas(this, 48)">
+                        <canvas class="annotation-canvas" id="canvas_48"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1253345.png" alt="Image 50" loading="lazy" onload="setupCanvas(this, 49)">
+                        <canvas class="annotation-canvas" id="canvas_49"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6393191.png" alt="Image 51" loading="lazy" onload="setupCanvas(this, 50)">
+                        <canvas class="annotation-canvas" id="canvas_50"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4270507.png" alt="Image 52" loading="lazy" onload="setupCanvas(this, 51)">
+                        <canvas class="annotation-canvas" id="canvas_51"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1927509.png" alt="Image 53" loading="lazy" onload="setupCanvas(this, 52)">
+                        <canvas class="annotation-canvas" id="canvas_52"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9560993.png" alt="Image 54" loading="lazy" onload="setupCanvas(this, 53)">
+                        <canvas class="annotation-canvas" id="canvas_53"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6007086.png" alt="Image 55" loading="lazy" onload="setupCanvas(this, 54)">
+                        <canvas class="annotation-canvas" id="canvas_54"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1584009.png" alt="Image 56" loading="lazy" onload="setupCanvas(this, 55)">
+                        <canvas class="annotation-canvas" id="canvas_55"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3312170.png" alt="Image 57" loading="lazy" onload="setupCanvas(this, 56)">
+                        <canvas class="annotation-canvas" id="canvas_56"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9304395.png" alt="Image 58" loading="lazy" onload="setupCanvas(this, 57)">
+                        <canvas class="annotation-canvas" id="canvas_57"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6024430.png" alt="Image 59" loading="lazy" onload="setupCanvas(this, 58)">
+                        <canvas class="annotation-canvas" id="canvas_58"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7921197.png" alt="Image 60" loading="lazy" onload="setupCanvas(this, 59)">
+                        <canvas class="annotation-canvas" id="canvas_59"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3751878.png" alt="Image 61" loading="lazy" onload="setupCanvas(this, 60)">
+                        <canvas class="annotation-canvas" id="canvas_60"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1227808.png" alt="Image 62" loading="lazy" onload="setupCanvas(this, 61)">
+                        <canvas class="annotation-canvas" id="canvas_61"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9103854.png" alt="Image 63" loading="lazy" onload="setupCanvas(this, 62)">
+                        <canvas class="annotation-canvas" id="canvas_62"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2716918.png" alt="Image 64" loading="lazy" onload="setupCanvas(this, 63)">
+                        <canvas class="annotation-canvas" id="canvas_63"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9150701.png" alt="Image 65" loading="lazy" onload="setupCanvas(this, 64)">
+                        <canvas class="annotation-canvas" id="canvas_64"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5632719.png" alt="Image 66" loading="lazy" onload="setupCanvas(this, 65)">
+                        <canvas class="annotation-canvas" id="canvas_65"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7632597.png" alt="Image 67" loading="lazy" onload="setupCanvas(this, 66)">
+                        <canvas class="annotation-canvas" id="canvas_66"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7619837.png" alt="Image 68" loading="lazy" onload="setupCanvas(this, 67)">
+                        <canvas class="annotation-canvas" id="canvas_67"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3093021.png" alt="Image 69" loading="lazy" onload="setupCanvas(this, 68)">
+                        <canvas class="annotation-canvas" id="canvas_68"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9248885.png" alt="Image 70" loading="lazy" onload="setupCanvas(this, 69)">
+                        <canvas class="annotation-canvas" id="canvas_69"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7645904.png" alt="Image 71" loading="lazy" onload="setupCanvas(this, 70)">
+                        <canvas class="annotation-canvas" id="canvas_70"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9806868.png" alt="Image 72" loading="lazy" onload="setupCanvas(this, 71)">
+                        <canvas class="annotation-canvas" id="canvas_71"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5701310.png" alt="Image 73" loading="lazy" onload="setupCanvas(this, 72)">
+                        <canvas class="annotation-canvas" id="canvas_72"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2855215.png" alt="Image 74" loading="lazy" onload="setupCanvas(this, 73)">
+                        <canvas class="annotation-canvas" id="canvas_73"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1186144.png" alt="Image 75" loading="lazy" onload="setupCanvas(this, 74)">
+                        <canvas class="annotation-canvas" id="canvas_74"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9138765.png" alt="Image 76" loading="lazy" onload="setupCanvas(this, 75)">
+                        <canvas class="annotation-canvas" id="canvas_75"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5336266.png" alt="Image 77" loading="lazy" onload="setupCanvas(this, 76)">
+                        <canvas class="annotation-canvas" id="canvas_76"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9368043.png" alt="Image 78" loading="lazy" onload="setupCanvas(this, 77)">
+                        <canvas class="annotation-canvas" id="canvas_77"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8344633.png" alt="Image 79" loading="lazy" onload="setupCanvas(this, 78)">
+                        <canvas class="annotation-canvas" id="canvas_78"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8375382.png" alt="Image 80" loading="lazy" onload="setupCanvas(this, 79)">
+                        <canvas class="annotation-canvas" id="canvas_79"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7023462.png" alt="Image 81" loading="lazy" onload="setupCanvas(this, 80)">
+                        <canvas class="annotation-canvas" id="canvas_80"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2374599.png" alt="Image 82" loading="lazy" onload="setupCanvas(this, 81)">
+                        <canvas class="annotation-canvas" id="canvas_81"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4503306.png" alt="Image 83" loading="lazy" onload="setupCanvas(this, 82)">
+                        <canvas class="annotation-canvas" id="canvas_82"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4097662.png" alt="Image 84" loading="lazy" onload="setupCanvas(this, 83)">
+                        <canvas class="annotation-canvas" id="canvas_83"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5534122.png" alt="Image 85" loading="lazy" onload="setupCanvas(this, 84)">
+                        <canvas class="annotation-canvas" id="canvas_84"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8806211.png" alt="Image 86" loading="lazy" onload="setupCanvas(this, 85)">
+                        <canvas class="annotation-canvas" id="canvas_85"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9788352.png" alt="Image 87" loading="lazy" onload="setupCanvas(this, 86)">
+                        <canvas class="annotation-canvas" id="canvas_86"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8433630.png" alt="Image 88" loading="lazy" onload="setupCanvas(this, 87)">
+                        <canvas class="annotation-canvas" id="canvas_87"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3033810.png" alt="Image 89" loading="lazy" onload="setupCanvas(this, 88)">
+                        <canvas class="annotation-canvas" id="canvas_88"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1075805.png" alt="Image 90" loading="lazy" onload="setupCanvas(this, 89)">
+                        <canvas class="annotation-canvas" id="canvas_89"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5845961.png" alt="Image 91" loading="lazy" onload="setupCanvas(this, 90)">
+                        <canvas class="annotation-canvas" id="canvas_90"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1160120.png" alt="Image 92" loading="lazy" onload="setupCanvas(this, 91)">
+                        <canvas class="annotation-canvas" id="canvas_91"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6972758.png" alt="Image 93" loading="lazy" onload="setupCanvas(this, 92)">
+                        <canvas class="annotation-canvas" id="canvas_92"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4795756.png" alt="Image 94" loading="lazy" onload="setupCanvas(this, 93)">
+                        <canvas class="annotation-canvas" id="canvas_93"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1032740.png" alt="Image 95" loading="lazy" onload="setupCanvas(this, 94)">
+                        <canvas class="annotation-canvas" id="canvas_94"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2238508.png" alt="Image 96" loading="lazy" onload="setupCanvas(this, 95)">
+                        <canvas class="annotation-canvas" id="canvas_95"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8514378.png" alt="Image 97" loading="lazy" onload="setupCanvas(this, 96)">
+                        <canvas class="annotation-canvas" id="canvas_96"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7355149.png" alt="Image 98" loading="lazy" onload="setupCanvas(this, 97)">
+                        <canvas class="annotation-canvas" id="canvas_97"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6200749.png" alt="Image 99" loading="lazy" onload="setupCanvas(this, 98)">
+                        <canvas class="annotation-canvas" id="canvas_98"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5226872.png" alt="Image 100" loading="lazy" onload="setupCanvas(this, 99)">
+                        <canvas class="annotation-canvas" id="canvas_99"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7948677.png" alt="Image 101" loading="lazy" onload="setupCanvas(this, 100)">
+                        <canvas class="annotation-canvas" id="canvas_100"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7275428.png" alt="Image 102" loading="lazy" onload="setupCanvas(this, 101)">
+                        <canvas class="annotation-canvas" id="canvas_101"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4660819.png" alt="Image 103" loading="lazy" onload="setupCanvas(this, 102)">
+                        <canvas class="annotation-canvas" id="canvas_102"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3963917.png" alt="Image 104" loading="lazy" onload="setupCanvas(this, 103)">
+                        <canvas class="annotation-canvas" id="canvas_103"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5299361.png" alt="Image 105" loading="lazy" onload="setupCanvas(this, 104)">
+                        <canvas class="annotation-canvas" id="canvas_104"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5769546.png" alt="Image 106" loading="lazy" onload="setupCanvas(this, 105)">
+                        <canvas class="annotation-canvas" id="canvas_105"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9073138.png" alt="Image 107" loading="lazy" onload="setupCanvas(this, 106)">
+                        <canvas class="annotation-canvas" id="canvas_106"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6279129.png" alt="Image 108" loading="lazy" onload="setupCanvas(this, 107)">
+                        <canvas class="annotation-canvas" id="canvas_107"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2792054.png" alt="Image 109" loading="lazy" onload="setupCanvas(this, 108)">
+                        <canvas class="annotation-canvas" id="canvas_108"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8940043.png" alt="Image 110" loading="lazy" onload="setupCanvas(this, 109)">
+                        <canvas class="annotation-canvas" id="canvas_109"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8386035.png" alt="Image 111" loading="lazy" onload="setupCanvas(this, 110)">
+                        <canvas class="annotation-canvas" id="canvas_110"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9492086.png" alt="Image 112" loading="lazy" onload="setupCanvas(this, 111)">
+                        <canvas class="annotation-canvas" id="canvas_111"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2745533.png" alt="Image 113" loading="lazy" onload="setupCanvas(this, 112)">
+                        <canvas class="annotation-canvas" id="canvas_112"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4603526.png" alt="Image 114" loading="lazy" onload="setupCanvas(this, 113)">
+                        <canvas class="annotation-canvas" id="canvas_113"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5310154.png" alt="Image 115" loading="lazy" onload="setupCanvas(this, 114)">
+                        <canvas class="annotation-canvas" id="canvas_114"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8130670.png" alt="Image 116" loading="lazy" onload="setupCanvas(this, 115)">
+                        <canvas class="annotation-canvas" id="canvas_115"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9851354.png" alt="Image 117" loading="lazy" onload="setupCanvas(this, 116)">
+                        <canvas class="annotation-canvas" id="canvas_116"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5084936.png" alt="Image 118" loading="lazy" onload="setupCanvas(this, 117)">
+                        <canvas class="annotation-canvas" id="canvas_117"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6944952.png" alt="Image 119" loading="lazy" onload="setupCanvas(this, 118)">
+                        <canvas class="annotation-canvas" id="canvas_118"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8590913.png" alt="Image 120" loading="lazy" onload="setupCanvas(this, 119)">
+                        <canvas class="annotation-canvas" id="canvas_119"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2951380.png" alt="Image 121" loading="lazy" onload="setupCanvas(this, 120)">
+                        <canvas class="annotation-canvas" id="canvas_120"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5209450.png" alt="Image 122" loading="lazy" onload="setupCanvas(this, 121)">
+                        <canvas class="annotation-canvas" id="canvas_121"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1056061.png" alt="Image 123" loading="lazy" onload="setupCanvas(this, 122)">
+                        <canvas class="annotation-canvas" id="canvas_122"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8660893.png" alt="Image 124" loading="lazy" onload="setupCanvas(this, 123)">
+                        <canvas class="annotation-canvas" id="canvas_123"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7970822.png" alt="Image 125" loading="lazy" onload="setupCanvas(this, 124)">
+                        <canvas class="annotation-canvas" id="canvas_124"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8668027.png" alt="Image 126" loading="lazy" onload="setupCanvas(this, 125)">
+                        <canvas class="annotation-canvas" id="canvas_125"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7458794.png" alt="Image 127" loading="lazy" onload="setupCanvas(this, 126)">
+                        <canvas class="annotation-canvas" id="canvas_126"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6078882.png" alt="Image 128" loading="lazy" onload="setupCanvas(this, 127)">
+                        <canvas class="annotation-canvas" id="canvas_127"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9611493.png" alt="Image 129" loading="lazy" onload="setupCanvas(this, 128)">
+                        <canvas class="annotation-canvas" id="canvas_128"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6356793.png" alt="Image 130" loading="lazy" onload="setupCanvas(this, 129)">
+                        <canvas class="annotation-canvas" id="canvas_129"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7905900.png" alt="Image 131" loading="lazy" onload="setupCanvas(this, 130)">
+                        <canvas class="annotation-canvas" id="canvas_130"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6861226.png" alt="Image 132" loading="lazy" onload="setupCanvas(this, 131)">
+                        <canvas class="annotation-canvas" id="canvas_131"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3543939.png" alt="Image 133" loading="lazy" onload="setupCanvas(this, 132)">
+                        <canvas class="annotation-canvas" id="canvas_132"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6752978.png" alt="Image 134" loading="lazy" onload="setupCanvas(this, 133)">
+                        <canvas class="annotation-canvas" id="canvas_133"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5057054.png" alt="Image 135" loading="lazy" onload="setupCanvas(this, 134)">
+                        <canvas class="annotation-canvas" id="canvas_134"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4870914.png" alt="Image 136" loading="lazy" onload="setupCanvas(this, 135)">
+                        <canvas class="annotation-canvas" id="canvas_135"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3040511.png" alt="Image 137" loading="lazy" onload="setupCanvas(this, 136)">
+                        <canvas class="annotation-canvas" id="canvas_136"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7788204.png" alt="Image 138" loading="lazy" onload="setupCanvas(this, 137)">
+                        <canvas class="annotation-canvas" id="canvas_137"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4722251.png" alt="Image 139" loading="lazy" onload="setupCanvas(this, 138)">
+                        <canvas class="annotation-canvas" id="canvas_138"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8278839.png" alt="Image 140" loading="lazy" onload="setupCanvas(this, 139)">
+                        <canvas class="annotation-canvas" id="canvas_139"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9927810.png" alt="Image 141" loading="lazy" onload="setupCanvas(this, 140)">
+                        <canvas class="annotation-canvas" id="canvas_140"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2531314.png" alt="Image 142" loading="lazy" onload="setupCanvas(this, 141)">
+                        <canvas class="annotation-canvas" id="canvas_141"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7285561.png" alt="Image 143" loading="lazy" onload="setupCanvas(this, 142)">
+                        <canvas class="annotation-canvas" id="canvas_142"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4623986.png" alt="Image 144" loading="lazy" onload="setupCanvas(this, 143)">
+                        <canvas class="annotation-canvas" id="canvas_143"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2072418.png" alt="Image 145" loading="lazy" onload="setupCanvas(this, 144)">
+                        <canvas class="annotation-canvas" id="canvas_144"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5574648.png" alt="Image 146" loading="lazy" onload="setupCanvas(this, 145)">
+                        <canvas class="annotation-canvas" id="canvas_145"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2252946.png" alt="Image 147" loading="lazy" onload="setupCanvas(this, 146)">
+                        <canvas class="annotation-canvas" id="canvas_146"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3656182.png" alt="Image 148" loading="lazy" onload="setupCanvas(this, 147)">
+                        <canvas class="annotation-canvas" id="canvas_147"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5480556.png" alt="Image 149" loading="lazy" onload="setupCanvas(this, 148)">
+                        <canvas class="annotation-canvas" id="canvas_148"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8084543.png" alt="Image 150" loading="lazy" onload="setupCanvas(this, 149)">
+                        <canvas class="annotation-canvas" id="canvas_149"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8759918.png" alt="Image 151" loading="lazy" onload="setupCanvas(this, 150)">
+                        <canvas class="annotation-canvas" id="canvas_150"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2374485.png" alt="Image 152" loading="lazy" onload="setupCanvas(this, 151)">
+                        <canvas class="annotation-canvas" id="canvas_151"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5723837.png" alt="Image 153" loading="lazy" onload="setupCanvas(this, 152)">
+                        <canvas class="annotation-canvas" id="canvas_152"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3704236.png" alt="Image 154" loading="lazy" onload="setupCanvas(this, 153)">
+                        <canvas class="annotation-canvas" id="canvas_153"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7296185.png" alt="Image 155" loading="lazy" onload="setupCanvas(this, 154)">
+                        <canvas class="annotation-canvas" id="canvas_154"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7691618.png" alt="Image 156" loading="lazy" onload="setupCanvas(this, 155)">
+                        <canvas class="annotation-canvas" id="canvas_155"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4427990.png" alt="Image 157" loading="lazy" onload="setupCanvas(this, 156)">
+                        <canvas class="annotation-canvas" id="canvas_156"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8979487.png" alt="Image 158" loading="lazy" onload="setupCanvas(this, 157)">
+                        <canvas class="annotation-canvas" id="canvas_157"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4417277.png" alt="Image 159" loading="lazy" onload="setupCanvas(this, 158)">
+                        <canvas class="annotation-canvas" id="canvas_158"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8511948.png" alt="Image 160" loading="lazy" onload="setupCanvas(this, 159)">
+                        <canvas class="annotation-canvas" id="canvas_159"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2844990.png" alt="Image 161" loading="lazy" onload="setupCanvas(this, 160)">
+                        <canvas class="annotation-canvas" id="canvas_160"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8249154.png" alt="Image 162" loading="lazy" onload="setupCanvas(this, 161)">
+                        <canvas class="annotation-canvas" id="canvas_161"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6855315.png" alt="Image 163" loading="lazy" onload="setupCanvas(this, 162)">
+                        <canvas class="annotation-canvas" id="canvas_162"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5247069.png" alt="Image 164" loading="lazy" onload="setupCanvas(this, 163)">
+                        <canvas class="annotation-canvas" id="canvas_163"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9362476.png" alt="Image 165" loading="lazy" onload="setupCanvas(this, 164)">
+                        <canvas class="annotation-canvas" id="canvas_164"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1860443.png" alt="Image 166" loading="lazy" onload="setupCanvas(this, 165)">
+                        <canvas class="annotation-canvas" id="canvas_165"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8761811.png" alt="Image 167" loading="lazy" onload="setupCanvas(this, 166)">
+                        <canvas class="annotation-canvas" id="canvas_166"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3632794.png" alt="Image 168" loading="lazy" onload="setupCanvas(this, 167)">
+                        <canvas class="annotation-canvas" id="canvas_167"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4705050.png" alt="Image 169" loading="lazy" onload="setupCanvas(this, 168)">
+                        <canvas class="annotation-canvas" id="canvas_168"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6918513.png" alt="Image 170" loading="lazy" onload="setupCanvas(this, 169)">
+                        <canvas class="annotation-canvas" id="canvas_169"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6047512.png" alt="Image 171" loading="lazy" onload="setupCanvas(this, 170)">
+                        <canvas class="annotation-canvas" id="canvas_170"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3887417.png" alt="Image 172" loading="lazy" onload="setupCanvas(this, 171)">
+                        <canvas class="annotation-canvas" id="canvas_171"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-6933708.png" alt="Image 173" loading="lazy" onload="setupCanvas(this, 172)">
+                        <canvas class="annotation-canvas" id="canvas_172"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-3044083.png" alt="Image 174" loading="lazy" onload="setupCanvas(this, 173)">
+                        <canvas class="annotation-canvas" id="canvas_173"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4775853.png" alt="Image 175" loading="lazy" onload="setupCanvas(this, 174)">
+                        <canvas class="annotation-canvas" id="canvas_174"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8975172.png" alt="Image 176" loading="lazy" onload="setupCanvas(this, 175)">
+                        <canvas class="annotation-canvas" id="canvas_175"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8282763.png" alt="Image 177" loading="lazy" onload="setupCanvas(this, 176)">
+                        <canvas class="annotation-canvas" id="canvas_176"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4300685.png" alt="Image 178" loading="lazy" onload="setupCanvas(this, 177)">
+                        <canvas class="annotation-canvas" id="canvas_177"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2325135.png" alt="Image 179" loading="lazy" onload="setupCanvas(this, 178)">
+                        <canvas class="annotation-canvas" id="canvas_178"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1158023.png" alt="Image 180" loading="lazy" onload="setupCanvas(this, 179)">
+                        <canvas class="annotation-canvas" id="canvas_179"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1319229.png" alt="Image 181" loading="lazy" onload="setupCanvas(this, 180)">
+                        <canvas class="annotation-canvas" id="canvas_180"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9467382.png" alt="Image 182" loading="lazy" onload="setupCanvas(this, 181)">
+                        <canvas class="annotation-canvas" id="canvas_181"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5367367.png" alt="Image 183" loading="lazy" onload="setupCanvas(this, 182)">
+                        <canvas class="annotation-canvas" id="canvas_182"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-7877072.png" alt="Image 184" loading="lazy" onload="setupCanvas(this, 183)">
+                        <canvas class="annotation-canvas" id="canvas_183"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-8259347.png" alt="Image 185" loading="lazy" onload="setupCanvas(this, 184)">
+                        <canvas class="annotation-canvas" id="canvas_184"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9040193.png" alt="Image 186" loading="lazy" onload="setupCanvas(this, 185)">
+                        <canvas class="annotation-canvas" id="canvas_185"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5980719.png" alt="Image 187" loading="lazy" onload="setupCanvas(this, 186)">
+                        <canvas class="annotation-canvas" id="canvas_186"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-1089534.png" alt="Image 188" loading="lazy" onload="setupCanvas(this, 187)">
+                        <canvas class="annotation-canvas" id="canvas_187"></canvas>
+                    </div>
+                </td></tr>
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-5717363.png" alt="Image 189" loading="lazy" onload="setupCanvas(this, 188)">
+                        <canvas class="annotation-canvas" id="canvas_188"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-4784700.png" alt="Image 190" loading="lazy" onload="setupCanvas(this, 189)">
+                        <canvas class="annotation-canvas" id="canvas_189"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-2806076.png" alt="Image 191" loading="lazy" onload="setupCanvas(this, 190)">
+                        <canvas class="annotation-canvas" id="canvas_190"></canvas>
+                    </div>
+                </td><td>
+                    <div class="image-wrapper">
+                        <img src="https://images.oliveboard.in/ntpc20/ntpc2043-9790091.png" alt="Image 192" loading="lazy" onload="setupCanvas(this, 191)">
+                        <canvas class="annotation-canvas" id="canvas_191"></canvas>
+                    </div>
+                </td></tr>
+            </table>
+            <table cellspacing="0" cellpadding="0">
+                <tr><td>
+                    <div class="image-wrapper">
+                        <img src="sq4.png" alt="Image 193" loading="lazy" onload="setupCanvas(this, 192)">
+                        <canvas class="annotation-canvas" id="canvas_192"></canvas>
+                    </div>
+                </td><td></td><td></td><td></td></tr>
+            </table>
+        </div>
+    </main>
+    
+    <!-- Tools Toggle Button - Positioned above PDF button -->
+    <button class="toggle-tools-btn" id="toggleToolsBtn">🛠️</button>
+    
+    <!-- Print to PDF Button -->
+    <button class="pdf-btn" onclick="printToPDF()">
+        📄
+    </button>
+    
+    <script>
+        let isDrawing = false;
+        let isErasing = false;
+        let currentColor = '#ff0000';
+        let currentThickness = 3;
+        let activeCanvas = null;
+        let canvases = {};
+        let lastX = 0;
+        let lastY = 0;
+        
+        // Initialize annotation system
+        document.addEventListener('DOMContentLoaded', function() {
+            const drawBtn = document.getElementById('drawBtn');
+            const eraseBtn = document.getElementById('eraseBtn');
+            const colorPicker = document.getElementById('colorPicker');
+            const thicknessSlider = document.getElementById('thicknessSlider');
+            const clearBtn = document.getElementById('clearBtn');
+            const toggleToolsBtn = document.getElementById('toggleToolsBtn');
+            const annotationControls = document.getElementById('annotationControls');
+            
+            // Button event listeners
+            drawBtn.addEventListener('click', () => toggleDrawMode(true));
+            eraseBtn.addEventListener('click', () => toggleDrawMode(false));
+            colorPicker.addEventListener('change', (e) => currentColor = e.target.value);
+            thicknessSlider.addEventListener('input', (e) => currentThickness = parseInt(e.target.value));
+            clearBtn.addEventListener('click', clearAllAnnotations);
+            toggleToolsBtn.addEventListener('click', toggleToolsPanel);
+            
+            // Set initial state
+            toggleDrawMode(true);
+        });
+        
+        function setupCanvas(img, index) {
+            const canvas = document.getElementById(`canvas_${index}`);
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to match image
+            canvas.width = img.offsetWidth;
+            canvas.height = img.offsetHeight;
+            
+            // Make canvas transparent
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            canvases[index] = { canvas, ctx, paths: [] };
+            
+            // Add event listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function toggleDrawMode(drawing) {
+            isDrawing = drawing;
+            isErasing = !drawing;
+            
+            const drawBtn = document.getElementById('drawBtn');
+            const eraseBtn = document.getElementById('eraseBtn');
+            
+            if (drawing) {
+                drawBtn.classList.add('active');
+                eraseBtn.classList.remove('active');
+            } else {
+                eraseBtn.classList.add('active');
+                drawBtn.classList.remove('active');
+            }
+            
+            // Update canvas states
+            Object.values(canvases).forEach(({ canvas }) => {
+                canvas.classList.toggle('active', drawing || isErasing);
+            });
+        }
+        
+        function startDrawing(e) {
+            if (!isDrawing && !isErasing) return;
+            
+            activeCanvas = e.target;
+            const rect = activeCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            
+            lastX = x;
+            lastY = y;
+            
+            const ctx = activeCanvas.getContext('2d');
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            
+            if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)'; // Needs to be opaque for erasing
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = currentColor;
+            }
+            
+            ctx.lineWidth = currentThickness;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+        
+        function draw(e) {
+            if (!activeCanvas || (!isDrawing && !isErasing)) return;
+            
+            const rect = activeCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            
+            const ctx = activeCanvas.getContext('2d');
+            
+            // Draw a line from the last position to the current position
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            // Update last position
+            lastX = x;
+            lastY = y;
+        }
+        
+        function stopDrawing() {
+            activeCanvas = null;
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                            e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            e.target.dispatchEvent(mouseEvent);
+        }
+        
+        function clearAllAnnotations() {
+            Object.values(canvases).forEach(({ canvas, ctx }) => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+        
+        function printToPDF() {
+            window.print();
+        }
+        
+        function toggleToolsPanel() {
+            const annotationControls = document.getElementById('annotationControls');
+            const toggleBtn = document.getElementById('toggleToolsBtn');
+            
+            annotationControls.classList.toggle('hidden');
+            
+            if (annotationControls.classList.contains('hidden')) {
+                toggleBtn.textContent = '🛠️';
+            } else {
+                toggleBtn.textContent = '❌';
+            }
+        }
+        
+        // Disable right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printToPDF();
+            }
+            if (e.key === 'd' || e.key === 'D') {
+                toggleDrawMode(true);
+            }
+            if (e.key === 'e' || e.key === 'E') {
+                toggleDrawMode(false);
+            }
+            if (e.key === 'c' || e.key === 'C') {
+                clearAllAnnotations();
+            }
+            if (e.key === 'h' || e.key === 'H') {
+                toggleToolsPanel();
+            }
+        });
+        
+        // Resize handler
+        window.addEventListener('resize', function() {
+            Object.entries(canvases).forEach(([index, { canvas }]) => {
+                const img = canvas.previousElementSibling;
+                if (img) {
+                    const originalWidth = canvas.width;
+                    const originalHeight = canvas.height;
+                    
+                    canvas.width = img.offsetWidth;
+                    canvas.height = img.offsetHeight;
+                    
+                    // Redraw annotations at new scale
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(canvas.width / originalWidth, canvas.height / originalHeight);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
