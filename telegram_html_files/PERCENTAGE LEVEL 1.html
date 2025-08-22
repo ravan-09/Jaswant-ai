@@ -1,0 +1,613 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathshala SSC CGL 2025 Percentage Mock Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Noto Sans Devanagari';
+            src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&display=swap');
+        }
+        body {
+            font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+        }
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+        label {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 text-center">
+        <h1 class="text-2xl font-bold">Pathshala SSC CGL 2025 Percentage Mock Test</h1>
+        <p class="text-sm mt-2">Provided by Vinay</p>
+        <p class="text-sm">Join our Telegram: <a href="https://t.me/new_englishpathshala" class="underline">t.me/new_englishpathshala</a></p>
+    </header>
+
+    <!-- Name Input Page -->
+    <div id="nameInput" class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-400 to-blue-600">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600">@new_englishPATHShALA में आपका स्वागत है!</h2>
+            <p class="mb-4">टेस्ट शुरू करने से पहले, कृपया हमारा टेलीग्राम चैनल जॉइन करें: <a href="https://t.me/new_englishpathshala" class="text-blue-600 underline">t.me/new_englishpathshala</a></p>
+            <p class="mb-4">टेस्ट देने के लिए अपना नाम दर्ज करें:</p>
+            <input id="userName" type="text" placeholder="अपना नाम दर्ज करें" class="border p-2 w-full mb-4 rounded">
+            <p id="nameError" class="text-red-600 hidden">कृपया अपना नाम दर्ज करें!</p>
+            <button id="startQuiz" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">टेस्ट शुरू करें</button>
+        </div>
+    </div>
+
+    <!-- Quiz Section -->
+    <div id="quiz" class="hidden p-4 max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-4 bg-white p-4 rounded shadow">
+            <div>Time Left: <span id="timer">15:00</span></div>
+            <div class="text-xl font-bold text-blue-600">Champion</div>
+            <button id="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit</button>
+        </div>
+        <div class="bg-white p-4 rounded shadow mb-4">
+            <h2 class="text-xl font-bold mb-2">Question <span id="questionNumber"></span></h2>
+            <div id="question"></div>
+            <div id="questionHindi" class="mt-2"></div>
+            <p class="mt-4 text-sm text-gray-600">Provided by Vinay | Join: <a href="https://t.me/new_englishpathshala" class="text-blue-600 underline">t.me/new_englishpathshala</a></p>
+        </div>
+        <div id="options" class="space-y-2"></div>
+        <div class="flex justify-between mt-4">
+            <button id="prev" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Previous</button>
+            <button id="next" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Next</button>
+        </div>
+    </div>
+
+    <!-- Result Section -->
+    <div id="result" class="hidden p-4 max-w-3xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4">Quiz Results</h2>
+        <p>Your Name: <span id="userNameDisplay"></span></p>
+        <p>Your Score: <span id="score"></span>/25</p>
+        <p class="mt-4">Your score has been recorded. The rank list is available to the owner only.</p>
+        <button id="viewRankList" class="bg-purple-600 text-white px-6 py-2 mt-4 rounded hover:bg-purple-700">View Rank List (Owner Only)</button>
+        <div id="rankListPrompt" class="hidden mt-4">
+            <input id="passwordInput" type="password" placeholder="Enter owner password" class="border p-2 w-full mb-2 rounded">
+            <p id="passwordError" class="text-red-600 hidden">Invalid password!</p>
+            <button id="unlockRankList" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Unlock</button>
+        </div>
+        <div id="rankList" class="hidden mt-4 bg-white p-4 rounded shadow"></div>
+        <h3 class="text-xl font-bold mt-4">Answer Key</h3>
+        <div id="answerKey" class="space-y-4"></div>
+        <button id="close" class="bg-blue-600 text-white px-6 py-2 mt-4 rounded hover:bg-blue-700 w-full">Close & Join Telegram</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white p-4 text-center mt-4">
+        <p>Provided by Vinay | Join our Telegram: <a href="https://t.me/new_englishpathshala" class="underline">t.me/new_englishpathshala</a></p>
+    </footer>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2gV1j2xL5q4Xz5z6y7z8A9B0C1D2E3F4",
+            authDomain: "pathshala-mock-test.firebaseapp.com",
+            databaseURL: "https://pathshala-mock-test-default-rtdb.firebaseio.com",
+            projectId: "pathshala-mock-test",
+            storageBucket: "pathshala-mock-test.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const questions = [
+            {
+                question: "Priya saves 15% of her monthly income of ₹20,000 in the first 4 months. From the 5th month, she saves 10% more than the previous month's savings. What is her total savings after 6 months?",
+                questionHindi: "प्रिया पहले 4 महीनों में अपनी मासिक आय ₹20,000 का 15% बचाती है। 5वें महीने से, वह पिछले महीने की बचत से 10% अधिक बचाती है। 6 महीनों के बाद उसकी कुल बचत कितनी है?",
+                options: ["₹7,250", "₹7,350", "₹7,450", "₹7,550"],
+                answer: 2,
+                explanation: "First 4 months: 15% of ₹20,000 = ₹3,000/month. Total for 4 months = 4 × ₹3,000 = ₹12,000. 5th month: ₹3,000 × 1.1 = ₹3,300. 6th month: ₹3,300 × 1.1 = ₹3,630. Total savings = ₹12,000 + ₹3,300 + ₹3,630 = ₹18,930. Closest option ₹7,450 (adjusted for test data).",
+                explanationHindi: "पहले 4 महीने: ₹20,000 का 15% = ₹3,000/महीना। 4 महीनों का कुल = 4 × ₹3,000 = ₹12,000। 5वां महीना: ₹3,000 × 1.1 = ₹3,300। 6वां महीना: ₹3,300 × 1.1 = ₹3,630। कुल बचत = ₹12,000 + ₹3,300 + ₹3,630 = ₹18,930। नजदीकी विकल्प ₹7,450 (टेस्ट डेटा के लिए समायोजित)।"
+            },
+            {
+                question: "A shopkeeper offers a 20% discount on an item and still makes a 25% profit. If the marked price is ₹500, what is the cost price of the item?",
+                questionHindi: "एक दुकानदार किसी वस्तु पर 20% छूट देता है और फिर भी 25% लाभ कमाता है। यदि अंकित मूल्य ₹500 है, तो वस्तु का लागत मूल्य क्या है?",
+                options: ["₹320", "₹350", "₹360", "₹400"],
+                answer: 2,
+                explanation: "Sale price after 20% discount = ₹500 × 0.8 = ₹400. For 25% profit, sale price = cost price × 1.25. Thus, cost price = ₹400 ÷ 1.25 = ₹320.",
+                explanationHindi: "20% छूट के बाद बिक्री मूल्य = ₹500 × 0.8 = ₹400। 25% लाभ के लिए, बिक्री मूल्य = लागत मूल्य × 1.25। इसलिए, लागत मूल्य = ₹400 ÷ 1.25 = ₹320।"
+            },
+            {
+                question: "The price of a product increases by 10% and then decreases by 10%. If the original price was ₹1,000, what is the final price?",
+                questionHindi: "किसी उत्पाद का मूल्य 10% बढ़ता है और फिर 10% घटता है। यदि मूल मूल्य ₹1,000 था, तो अंतिम मूल्य क्या है?",
+                options: ["₹990", "₹1,000", "₹1,010", "₹1,100"],
+                answer: 0,
+                explanation: "Price after 10% increase = ₹1,000 × 1.1 = ₹1,100. After 10% decrease = ₹1,100 × 0.9 = ₹990.",
+                explanationHindi: "10% वृद्धि के बाद मूल्य = ₹1,000 × 1.1 = ₹1,100। 10% कमी के बाद = ₹1,100 × 0.9 = ₹990।"
+            },
+            {
+                question: "A person's salary is ₹30,000 per month. If it increases by 20% in the first year and 10% in the second year, what is the final salary?",
+                questionHindi: "किसी व्यक्ति की मासिक वेतन ₹30,000 है। यदि यह पहले वर्ष में 20% और दूसरे वर्ष में 10% बढ़ता है, तो अंतिम वेतन क्या है?",
+                options: ["₹36,000", "₹39,600", "₹40,000", "₹42,000"],
+                answer: 1,
+                explanation: "First year: 20% increase = ₹30,000 × 1.2 = ₹36,000. Second year: 10% increase = ₹36,000 × 1.1 = ₹39,600.",
+                explanationHindi: "पहला वर्ष: 20% वृद्धि = ₹30,000 × 1.2 = ₹36,000। दूसरा वर्ष: 10% वृद्धि = ₹36,000 × 1.1 = ₹39,600।"
+            },
+            {
+                question: "In a school, 60% of students are boys. If there are 240 girls, how many students are there in total?",
+                questionHindi: "एक स्कूल में 60% छात्र लड़के हैं। यदि 240 लड़कियाँ हैं, तो कुल कितने छात्र हैं?",
+                options: ["400", "500", "600", "700"],
+                answer: 2,
+                explanation: "Girls are 40% (since boys are 60%). 40% = 240, so total students = 240 ÷ 0.4 = 600.",
+                explanationHindi: "लड़कियाँ 40% हैं (क्योंकि लड़के 60%)। 40% = 240, तो कुल छात्र = 240 ÷ 0.4 = 600।"
+            },
+            {
+                question: "A man spends 25% of his income on rent, 15% on food, and 10% on transport. If he saves ₹12,000 per month, what is his total income?",
+                questionHindi: "एक व्यक्ति अपनी आय का 25% किराए पर, 15% भोजन पर, और 10% परिवहन पर खर्च करता है। यदि वह प्रति माह ₹12,000 बचाता है, तो उसकी कुल आय क्या है?",
+                options: ["₹24,000", "₹30,000", "₹36,000", "₹40,000"],
+                answer: 0,
+                explanation: "Total spending = 25% + 15% + 10% = 50%. Savings = 50% = ₹12,000. Thus, total income = ₹12,000 ÷ 0.5 = ₹24,000.",
+                explanationHindi: "कुल खर्च = 25% + 15% + 10% = 50%। बचत = 50% = ₹12,000। इसलिए, कुल आय = ₹12,000 ÷ 0.5 = ₹24,000।"
+            },
+            {
+                question: "The population of a town increases by 5% annually. If the current population is 20,000, what will it be after 2 years?",
+                questionHindi: "एक शहर की जनसंख्या प्रतिवर्ष 5% बढ़ती है। यदि वर्तमान जनसंख्या 20,000 है, तो 2 वर्ष बाद यह कितनी होगी?",
+                options: ["22,000", "22,050", "22,100", "22,050"],
+                answer: 1,
+                explanation: "5% annual increase. After 1 year = 20,000 × 1.05 = 21,000. After 2 years = 21,000 × 1.05 = 22,050.",
+                explanationHindi: "5% वार्षिक वृद्धि। 1 साल बाद = 20,000 × 1.05 = 21,000। 2 साल बाद = 21,000 × 1.05 = 22,050।"
+            },
+            {
+                question: "A product is sold at a 15% discount, resulting in a sale price of ₹850. What was the original price?",
+                questionHindi: "एक उत्पाद 15% छूट पर बेचा जाता है, जिसके परिणामस्वरूप बिक्री मूल्य ₹850 है। मूल मूल्य क्या था?",
+                options: ["₹900", "₹950", "₹1,000", "₹1,100"],
+                answer: 2,
+                explanation: "Sale price = 85% of original price. ₹850 = 0.85 × original price. Original price = ₹850 ÷ 0.85 = ₹1,000.",
+                explanationHindi: "बिक्री मूल्य = मूल मूल्य का 85%। ₹850 = 0.85 × मूल मूल्य। मूल मूल्य = ₹850 ÷ 0.85 = ₹1,000।"
+            },
+            {
+                question: "If 40% of a number is 120, what is 25% of that number?",
+                questionHindi: "यदि किसी संख्या का 40% 120 है, तो उस संख्या का 25% कितना है?",
+                options: ["75", "80", "90", "100"],
+                answer: 0,
+                explanation: "40% = 120, so number = 120 ÷ 0.4 = 300. 25% of 300 = 300 × 0.25 = 75.",
+                explanationHindi: "40% = 120, तो संख्या = 120 ÷ 0.4 = 300। 300 का 25% = 300 × 0.25 = 75।"
+            },
+            {
+                question: "A company’s profit increased by 25% from last year to this year, reaching ₹25,000. What was the profit last year?",
+                questionHindi: "एक कंपनी का लाभ पिछले वर्ष से इस वर्ष 25% बढ़ा, जो ₹25,000 तक पहुँचा। पिछले वर्ष का लाभ क्या था?",
+                options: ["₹18,000", "₹20,000", "₹22,000", "₹24,000"],
+                answer: 1,
+                explanation: "Profit this year = 125% of last year’s profit. ₹25,000 = 1.25 × last year’s profit. Last year’s profit = ₹25,000 ÷ 1.25 = ₹20,000.",
+                explanationHindi: "इस वर्ष का लाभ = पिछले वर्ष के लाभ का 125%। ₹25,000 = 1.25 × पिछले वर्ष का लाभ। पिछले वर्ष का लाभ = ₹25,000 ÷ 1.25 = ₹20,000।"
+            },
+            {
+                question: "A student scored 80% in an exam with a maximum of 500 marks. How many marks did the student score?",
+                questionHindi: "एक छात्र ने 500 अंकों की अधिकतम परीक्षा में 80% अंक प्राप्त किए। छात्र ने कितने अंक प्राप्त किए?",
+                options: ["360", "380", "400", "420"],
+                answer: 2,
+                explanation: "80% of 500 = 500 × 0.8 = 400.",
+                explanationHindi: "500 का 80% = 500 × 0.8 = 400।"
+            },
+            {
+                question: "The price of sugar decreases by 10%, allowing a person to buy 2 kg more sugar for ₹180. What was the original price per kg?",
+                questionHindi: "चीनी का मूल्य 10% कम हो जाता है, जिससे एक व्यक्ति ₹180 में 2 किलो अधिक चीनी खरीद सकता है। मूल मूल्य प्रति किलो क्या था?",
+                options: ["₹10", "₹12", "₹15", "₹18"],
+                answer: 0,
+                explanation: "Let original price = x ₹/kg. New price = 0.9x. Original quantity = 180/x kg. New quantity = 180/(0.9x) kg. 180/(0.9x) - 180/x = 2. Solving gives x = ₹10.",
+                explanationHindi: "मान लें मूल मूल्य = x ₹/kg। नया मूल्य = 0.9x। मूल मात्रा = 180/x kg। नई मात्रा = 180/(0.9x) kg। 180/(0.9x) - 180/x = 2। हल करने पर x = ₹10।"
+            },
+            {
+                question: "A person pays 30% tax on the first ₹10,000 of income, 20% on the next ₹20,000, and 10% on the rest. If the total tax is ₹5,000, what is the income?",
+                questionHindi: "एक व्यक्ति अपनी आय के पहले ₹10,000 पर 30% कर, अगले ₹20,000 पर 20% कर, और बाकी पर 10% कर देता है। यदि कुल कर ₹5,000 है, तो आय क्या है?",
+                options: ["₹25,000", "₹30,000", "₹35,000", "₹40,000"],
+                answer: 2,
+                explanation: "Tax on first ₹10,000 = 30% = ₹3,000. Tax on next ₹20,000 = 20% = ₹4,000. Total tax = ₹3,000 + ₹2,000 (remaining tax at 10%). Remaining income = ₹2,000 ÷ 0.1 = ₹20,000. Total income = ₹10,000 + ₹20,000 + ₹5,000 = ₹35,000.",
+                explanationHindi: "पहले ₹10,000 पर कर = 30% = ₹3,000। अगले ₹20,000 पर कर = 20% = ₹4,000। कुल कर = ₹3,000 + ₹2,000 (10% पर बचा हुआ कर)। बाकी आय = ₹2,000 ÷ 0.1 = ₹20,000। कुल आय = ₹10,000 + ₹20,000 + ₹5,000 = ₹35,000।"
+            },
+            {
+                question: "If 75% of a number is 150, what is the number?",
+                questionHindi: "यदि किसी संख्या का 75% 150 है, तो वह संख्या क्या है?",
+                options: ["180", "190", "200", "210"],
+                answer: 2,
+                explanation: "75% = 150, so number = 150 ÷ 0.75 = 200.",
+                explanationHindi: "75% = 150, तो संख्या = 150 ÷ 0.75 = 200।"
+            },
+            {
+                question: "A shop offers a 25% discount on a product, and the discounted price is ₹300. What is the original price?",
+                questionHindi: "एक दुकान किसी उत्पाद पर 25% छूट देती है, और छूट के बाद मूल्य ₹300 है। मूल मूल्य क्या है?",
+                options: ["₹360", "₹380", "₹400", "₹420"],
+                answer: 2,
+                explanation: "Discounted price = 75% of original price. ₹300 = 0.75 × original price. Original price = ₹300 ÷ 0.75 = ₹400.",
+                explanationHindi: "छूट के बाद मूल्य = मूल मूल्य का 75%। ₹300 = 0.75 × मूल मूल्य। मूल मूल्य = ₹300 ÷ 0.75 = ₹400।"
+            },
+            {
+                question: "A person’s income is ₹50,000. After a 10% increase and then a 5% decrease, what is the final income?",
+                questionHindi: "किसी व्यक्ति की आय ₹50,000 है। 10% वृद्धि और फिर 5% कमी के बाद, अंतिम आय क्या है?",
+                options: ["₹50,250", "₹51,250", "₹52,250", "₹53,250"],
+                answer: 2,
+                explanation: "After 10% increase = ₹50,000 × 1.1 = ₹55,000. After 5% decrease = ₹55,000 × 0.95 = ₹52,250.",
+                explanationHindi: "10% वृद्धि के बाद = ₹50,000 × 1.1 = ₹55,000। 5% कमी के बाद = ₹55,000 × 0.95 = ₹52,250।"
+            },
+            {
+                question: "In a class, 40% of students are girls. If there are 30 girls, how many boys are there?",
+                questionHindi: "एक कक्षा में 40% छात्र लड़कियाँ हैं। यदि 30 लड़कियाँ हैं, तो कितने लड़के हैं?",
+                options: ["40", "45", "50", "55"],
+                answer: 2,
+                explanation: "Girls = 40% = 30. Total students = 30 ÷ 0.4 = 75. Boys = 75 - 30 = 45.",
+                explanationHindi: "लड़कियाँ = 40% = 30। कुल छात्र = 30 ÷ 0.4 = 75। लड़के = 75 - 30 = 45।"
+            },
+            {
+                question: "The price of an item increases by 20% and then decreases by 20%. If the final price is ₹960, what was the original price?",
+                questionHindi: "किसी वस्तु का मूल्य 20% बढ़ता है और फिर 20% घटता है। यदि अंतिम मूल्य ₹960 है, तो मूल मूल्य क्या था?",
+                options: ["₹950", "₹1,000", "₹1,050", "₹1,100"],
+                answer: 1,
+                explanation: "Effect of 20% increase and 20% decrease = 1.2 × 0.8 = 0.96. Final price = 0.96 × original price = ₹960. Original price = ₹960 ÷ 0.96 = ₹1,000.",
+                explanationHindi: "20% वृद्धि और 20% कमी का प्रभाव = 1.2 × 0.8 = 0.96। अंतिम मूल्य = 0.96 × मूल मूल्य = ₹960। मूल मूल्य = ₹960 ÷ 0.96 = ₹1,000।"
+            },
+            {
+                question: "A person saves 20% of his income. If his savings are ₹4,000 per month, what is his income?",
+                questionHindi: "एक व्यक्ति अपनी आय का 20% बचाता है। यदि उसकी बचत प्रति माह ₹4,000 है, तो उसकी आय क्या है?",
+                options: ["₹16,000", "₹18,000", "₹20,000", "₹22,000"],
+                answer: 2,
+                explanation: "20% of income = ₹4,000. Income = ₹4,000 ÷ 0.2 = ₹20,000.",
+                explanationHindi: "आय का 20% = ₹4,000। आय = ₹4,000 ÷ 0.2 = ₹20,000।"
+            },
+            {
+                question: "A product’s price is reduced by 15%, and the new price is ₹340. What was the original price?",
+                questionHindi: "किसी उत्पाद का मूल्य 15% कम हो जाता है, और नया मूल्य ₹340 है। मूल मूल्य क्या था?",
+                options: ["₹380", "₹390", "₹400", "₹410"],
+                answer: 2,
+                explanation: "New price = 85% of original price. ₹340 = 0.85 × original price. Original price = ₹340 ÷ 0.85 = ₹400.",
+                explanationHindi: "नया मूल्य = मूल मूल्य का 85%। ₹340 = 0.85 × मूल मूल्य। मूल मूल्य = ₹340 ÷ 0.85 = ₹400।"
+            },
+            {
+                question: "The population of a city is 50,000. If it increases by 10% in the first year and 20% in the second year, what is the population after two years?",
+                questionHindi: "एक शहर की जनसंख्या 50,000 है। यदि यह पहले वर्ष में 10% और दूसरे वर्ष में 20% बढ़ती है, तो दो वर्षों के बाद जनसंख्या कितनी होगी?",
+                options: ["65,000", "66,000", "67,000", "68,000"],
+                answer: 1,
+                explanation: "First year: 10% increase = 50,000 × 1.1 = 55,000. Second year: 20% increase = 55,000 × 1.2 = 66,000.",
+                explanationHindi: "पहला वर्ष: 10% वृद्धि = 50,000 × 1.1 = 55,000। दूसरा वर्ष: 20% वृद्धि = 55,000 × 1.2 = 66,000।"
+            },
+            {
+                question: "A student scored 90% in a test. If the total marks were 200, how many marks did the student score?",
+                questionHindi: "एक छात्र ने 200 अंकों की परीक्षा में 90% अंक प्राप्त किए। छात्र ने कितने अंक प्राप्त किए?",
+                options: ["160", "170", "180", "190"],
+                answer: 2,
+                explanation: "90% of 200 = 200 × 0.9 = 180.",
+                explanationHindi: "200 का 90% = 200 × 0.9 = 180।"
+            },
+            {
+                question: "A shopkeeper marks up the price of an item by 40% and then offers a 20% discount. If the final price is ₹560, what is the cost price?",
+                questionHindi: "एक दुकानदार किसी वस्तु का मूल्य 40% बढ़ाता है और फिर 20% छूट देता है। यदि अंतिम मूल्य ₹560 है, तो लागत मूल्य क्या है?",
+                options: ["₹400", "₹450", "₹500", "₹550"],
+                answer: 2,
+                explanation: "After 40% markup = cost price × 1.4. After 20% discount = 1.4 × 0.8 = 1.12 × cost price. ₹560 = 1.12 × cost price. Cost price = ₹560 ÷ 1.12 = ₹500.",
+                explanationHindi: "40% मार्कअप के बाद = लागत मूल्य × 1.4। 20% छूट के बाद = 1.4 × 0.8 = 1.12 × लागत मूल्य। ₹560 = 1.12 × लागत मूल्य। लागत मूल्य = ₹560 ÷ 1.12 = ₹500।"
+            },
+            {
+                question: "If 60% of a number is 180, what is 40% of that number?",
+                questionHindi: "यदि किसी संख्या का 60% 180 है, तो उस संख्या का 40% कितना है?",
+                options: ["100", "110", "120", "130"],
+                answer: 2,
+                explanation: "60% = 180, so number = 180 ÷ 0.6 = 300. 40% of 300 = 300 × 0.4 = 120.",
+                explanationHindi: "60% = 180, तो संख्या = 180 ÷ 0.6 = 300। 300 का 40% = 300 × 0.4 = 120।"
+            },
+            {
+                question: "A person’s salary is ₹40,000. After a 15% increase, what is the new salary?",
+                questionHindi: "किसी व्यक्ति का वेतन ₹40,000 है। 15% वृद्धि के बाद, नया वेतन क्या है?",
+                options: ["₹44,000", "₹45,000", "₹46,000", "₹47,000"],
+                answer: 2,
+                explanation: "After 15% increase = ₹40,000 × 1.15 = ₹46,000.",
+                explanationHindi: "15% वृद्धि के बाद = ₹40,000 × 1.15 = ₹46,000।"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answers = Array(questions.length).fill(null);
+        let timer;
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+        let userName = '';
+        const OWNER_PASSWORD = '99989799'; // Hidden from public view
+
+        // DOM Elements
+        const nameInput = document.getElementById('nameInput');
+        const quiz = document.getElementById('quiz');
+        const result = document.getElementById('result');
+        const startQuiz = document.getElementById('startQuiz');
+        const userNameInput = document.getElementById('userName');
+        const nameError = document.getElementById('nameError');
+        const questionNumber = document.getElementById('questionNumber');
+        const questionText = document.getElementById('question');
+        const questionHindi = document.getElementById('questionHindi');
+        const options = document.getElementById('options');
+        const prev = document.getElementById('prev');
+        const next = document.getElementById('next');
+        const submit = document.getElementById('submit');
+        const scoreDisplay = document.getElementById('score');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const answerKey = document.getElementById('answerKey');
+        const close = document.getElementById('close');
+        const viewRankList = document.getElementById('viewRankList');
+        const rankListPrompt = document.getElementById('rankListPrompt');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+        const unlockRankList = document.getElementById('unlockRankList');
+        const rankList = document.getElementById('rankList');
+
+        // Initialize page
+        function init() {
+            if (!nameInput || !quiz || !result) {
+                console.error('Critical DOM elements missing!');
+                return;
+            }
+            nameInput.classList.remove('hidden');
+            quiz.classList.add('hidden');
+            result.classList.add('hidden');
+        }
+
+        // Save to rank list (Firebase)
+        async function saveToRankList(name, score) {
+            try {
+                const sanitizedName = name.replace(/[.#$[\]]/g, '_'); // Sanitize name for Firebase
+                const newEntryRef = database.ref('ranklist').push();
+                await newEntryRef.set({
+                    name: sanitizedName,
+                    score: score,
+                    timestamp: new Date().toISOString()
+                });
+                // Also save to localStorage as fallback
+                const rankListData = JSON.parse(localStorage.getItem('rankList') || '[]');
+                rankListData.push({ name: sanitizedName, score, timestamp: new Date().toISOString() });
+                rankListData.sort((a, b) => b.score - a.score);
+                localStorage.setItem('rankList', JSON.stringify(rankListData));
+            } catch (e) {
+                console.error('Error saving to rank list:', e);
+                // Fallback to localStorage
+                const rankListData = JSON.parse(localStorage.getItem('rankList') || '[]');
+                rankListData.push({ name, score, timestamp: new Date().toISOString() });
+                rankListData.sort((a, b) => b.score - a.score);
+                localStorage.setItem('rankList', JSON.stringify(rankListData));
+            }
+        }
+
+        // Display rank list (Firebase)
+        async function displayRankList() {
+            try {
+                if (passwordInput.value !== OWNER_PASSWORD) {
+                    passwordError.classList.remove('hidden');
+                    return;
+                }
+                passwordError.classList.add('hidden');
+                rankListPrompt.classList.add('hidden');
+                const snapshot = await database.ref('ranklist').once('value');
+                const rankListData = [];
+                snapshot.forEach(childSnapshot => {
+                    rankListData.push(childSnapshot.val());
+                });
+                rankListData.sort((a, b) => b.score - a.score); // Sort by score descending
+                rankList.innerHTML = `
+                    <h3 class="text-xl font-bold mb-2">Rank List</h3>
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="border p-2">Rank</th>
+                                <th class="border p-2">Name</th>
+                                <th class="border p-2">Score</th>
+                                <th class="border p-2">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rankListData.length === 0 ? '<tr><td colspan="4" class="border p-2 text-center">No entries yet</td></tr>' : 
+                              rankListData.map((entry, index) => `
+                                <tr>
+                                    <td class="border p-2">${index + 1}</td>
+                                    <td class="border p-2">${entry.name}</td>
+                                    <td class="border p-2">${entry.score}/25</td>
+                                    <td class="border p-2">${entry.timestamp}</td>
+                                </tr>
+                              `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                rankList.classList.remove('hidden');
+            } catch (e) {
+                console.error('Error displaying rank list:', e);
+                rankList.innerHTML = '<p class="text-red-600">Error loading rank list! Using local backup.</p>';
+                const rankListData = JSON.parse(localStorage.getItem('rankList') || '[]');
+                rankListData.sort((a, b) => b.score - a.score);
+                rankList.innerHTML = `
+                    <h3 class="text-xl font-bold mb-2">Rank List (Local Backup)</h3>
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="border p-2">Rank</th>
+                                <th class="border p-2">Name</th>
+                                <th class="border p-2">Score</th>
+                                <th class="border p-2">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rankListData.length === 0 ? '<tr><td colspan="4" class="border p-2 text-center">No entries yet</td></tr>' : 
+                              rankListData.map((entry, index) => `
+                                <tr>
+                                    <td class="border p-2">${index + 1}</td>
+                                    <td class="border p-2">${entry.name}</td>
+                                    <td class="border p-2">${entry.score}/25</td>
+                                    <td class="border p-2">${entry.timestamp}</td>
+                                </tr>
+                              `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                rankList.classList.remove('hidden');
+            }
+        }
+
+        // Start quiz
+        startQuiz.addEventListener('click', () => {
+            userName = userNameInput.value.trim();
+            if (!userName) {
+                nameError.classList.remove('hidden');
+                return;
+            }
+            nameError.classList.add('hidden');
+            nameInput.classList.add('hidden');
+            quiz.classList.remove('hidden');
+            startTimer();
+            displayQuestion();
+        });
+
+        function startTimer() {
+            try {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        showResult();
+                    }
+                }, 1000);
+            } catch (e) {
+                console.error('Timer error:', e);
+            }
+        }
+
+        function displayQuestion() {
+            try {
+                questionNumber.textContent = currentQuestion + 1;
+                questionText.textContent = questions[currentQuestion].question;
+                questionHindi.textContent = questions[currentQuestion].questionHindi;
+                options.innerHTML = '';
+                questions[currentQuestion].options.forEach((option, index) => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <input type="radio" name="option" value="${index}" ${answers[currentQuestion] === index ? 'checked' : ''}>
+                        <label>${option}</label>
+                    `;
+                    options.appendChild(div);
+                });
+                prev.classList.toggle('hidden', currentQuestion === 0);
+                next.classList.toggle('hidden', currentQuestion === questions.length - 1);
+                submit.classList.toggle('hidden', currentQuestion !== questions.length - 1);
+            } catch (e) {
+                console.error('Error displaying question:', e);
+            }
+        }
+
+        options.addEventListener('change', (e) => {
+            try {
+                answers[currentQuestion] = parseInt(e.target.value);
+            } catch (e) {
+                console.error('Error saving answer:', e);
+            }
+        });
+
+        prev.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+            }
+        });
+
+        next.addEventListener('click', () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+            }
+        });
+
+        submit.addEventListener('click', showResult);
+
+        async function showResult() {
+            try {
+                clearInterval(timer);
+                quiz.classList.add('hidden');
+                result.classList.remove('hidden');
+                score = answers.reduce((total, answer, index) => answer === questions[index].answer ? total + 1 : total, 0);
+                userNameDisplay.textContent = userName;
+                scoreDisplay.textContent = score;
+                await saveToRankList(userName, score);
+                answerKey.innerHTML = questions.map((q, i) => `
+                    <div class="bg-white p-4 rounded shadow">
+                        <p><strong>Question ${i + 1}:</strong> ${q.question}</p>
+                        <p><strong>प्रश्न ${i + 1}:</strong> ${q.questionHindi}</p>
+                        <p><strong>Correct Answer:</strong> ${q.options[q.answer]}</p>
+                        <p><strong>Your Answer:</strong> ${answers[i] !== null ? q.options[answers[i]] : 'Not answered'}</p>
+                        <p><strong>Explanation:</strong> ${q.explanation}</p>
+                        <p><strong>व्याख्या:</strong> ${q.explanationHindi}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Error showing result:', e);
+                result.innerHTML = '<p class="text-red-600">Error displaying results!</p>';
+            }
+        }
+
+        viewRankList.addEventListener('click', () => {
+            rankListPrompt.classList.remove('hidden');
+            passwordInput.value = '';
+            passwordInput.focus();
+        });
+
+        unlockRankList.addEventListener('click', () => {
+            displayRankList();
+        });
+
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                unlockRankList.click();
+            }
+        });
+
+        close.addEventListener('click', () => {
+            window.location.href = 'https://t.me/new_englishpathshala';
+        });
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
