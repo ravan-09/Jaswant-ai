@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/25</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+            <div class="lang">
+                <button class="lang-btn active" id="engBtn">English</button>
+                <button class="lang-btn" id="hinBtn">हिंदी</button>
+            </div>
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 25</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah">Mocks Wallah</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/50</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appx-content-v2.classx.co.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appx-content-v2.classx.co.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p>999 &times; 999 &ndash; 1 <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">मान</span> <span style=\"font-family:'Mangal'\">ज्ञात</span> <span style=\"font-family:'Mangal'\">कीजिए।</span></p>\r\n\r\n<p>&nbsp;</p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>99801</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>998000</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>98900</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>99899</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appx-content-v2.classx.co.in/paperimages/1745482732_1745482732494878_thump.png\" style=\"height:254px; width:423px\" /></p>",
+    "question_index": 0
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">सुधीर</span>     <span style=\"font-family:'Mangal'\">ने</span> <span style=\"font-family:'Mangal'\">अपनी</span>     <span style=\"font-family:'Mangal'\">वस्तुओं</span>     <span style=\"font-family:'Mangal'\">को</span>     <span style=\"font-family:'Mangal'\">उत्पादन</span>     <span style=\"font-family:'Mangal'\">लागत</span>     <span style=\"font-family:'Mangal'\">से</span> <span style=\"font-family:'Mangal'\">केवल</span>     </span>15% <span><span style=\"font-family:'Mangal'\">अधिक</span>     <span style=\"font-family:'Mangal'\">पर</span> <span style=\"font-family:'Mangal'\">बेचने</span>     <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">दावा</span>     <span style=\"font-family:'Mangal'\">किया</span></span>,     <span><span style=\"font-family:'Mangal'\">लेकिन</span>     <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">ऐसे</span>     <span style=\"font-family:'Mangal'\">बाट</span> <span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">उपयोग</span>     <span style=\"font-family:'Mangal'\">किया</span></span>,     <span><span style=\"font-family:'Mangal'\">जिसपर</span>     </span>1000 g <span><span style=\"font-family:'Mangal'\">लिखा</span>     <span style=\"font-family:'Mangal'\">हुआ</span>     <span style=\"font-family:'Mangal'\">था</span></span>,     <span><span style=\"font-family:'Mangal'\">हालाँकि</span>     <span style=\"font-family:'Mangal'\">वास्तव</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">इसका</span>     <span style=\"font-family:'Mangal'\">वजन</span>     </span>920 g <span><span style=\"font-family:'Mangal'\">था।</span>     <span style=\"font-family:'Mangal'\">सुधीर</span>     <span style=\"font-family:'Mangal'\">द्वारा</span>     <span style=\"font-family:'Mangal'\">अर्जित</span>     <span style=\"font-family:'Mangal'\">किया</span>     <span style=\"font-family:'Mangal'\">गया</span>     <span style=\"font-family:'Mangal'\">वास्तविक</span>     <span style=\"font-family:'Mangal'\">लाभ</span>     <span style=\"font-family:'Mangal'\">प्रतिशत</span>     <span style=\"font-family:'Mangal'\">कितना</span>     <span style=\"font-family:'Mangal'\">था</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     22.6%</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     12.5%</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     25%</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     12.25%</p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_6b55e904ddca0db2.jpg\" width=\"295\" height=\"211\" > </p>",
+    "question_index": 1
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">यदि</span>     </span>p = 33 <span><span style=\"font-family:'Mangal'\">है</span>     <span style=\"font-family:'Mangal'\">तो</span> </span>p(p²     +3p + 3) <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">मान</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">कीजिए।</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     39304</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     39305</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     39303</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     39306</p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_4518978269e46bc0.jpg\" width=\"396\" height=\"284\" > </p>",
+    "question_index": 2
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">गाँव</span>     <span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">जनसंख्या</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">प्रति</span>     <span style=\"font-family:'Mangal'\">वर्ष</span>     </span>10% <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">दर</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">लगातार</span>     <span style=\"font-family:'Mangal'\">वृद्धि</span>     <span style=\"font-family:'Mangal'\">हो</span> <span style=\"font-family:'Mangal'\">रही</span>     <span style=\"font-family:'Mangal'\">है।</span>     <span style=\"font-family:'Mangal'\">यदि</span>     <span style=\"font-family:'Mangal'\">इसकी</span>     <span style=\"font-family:'Mangal'\">वर्तमान</span>     <span style=\"font-family:'Mangal'\">जनसंख्या</span>     </span>68,002 <span><span style=\"font-family:'Mangal'\">है</span></span>,     <span><span style=\"font-family:'Mangal'\">तो</span>     <span style=\"font-family:'Mangal'\">दो</span> <span style=\"font-family:'Mangal'\">वर्ष</span>     <span style=\"font-family:'Mangal'\">पूर्व</span>     <span style=\"font-family:'Mangal'\">यह</span> <span style=\"font-family:'Mangal'\">कितनी</span>     <span style=\"font-family:'Mangal'\">थी</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     56200</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     52600</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     62500</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     65200</p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_fc99d60e7fa9610c.jpg\" width=\"336\" height=\"228\" > </p>",
+    "question_index": 3
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">मिश्र</span>     <span style=\"font-family:'Mangal'\">धातु</span>     <span style=\"font-family:'Mangal'\">के</span> </span>720     gm <span><span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">तांबा</span>     <span style=\"font-family:'Mangal'\">और</span>     <span style=\"font-family:'Mangal'\">कांस्य</span>     </span>5 : 7 <span><span style=\"font-family:'Mangal'\">के</span>     <span style=\"font-family:'Mangal'\">अनुपात</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">हैं।</span>     </span>7 : 5 <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">अनुपात</span>     <span style=\"font-family:'Mangal'\">बनाने</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span>     <span style=\"font-family:'Mangal'\">इसमें</span>     <span style=\"font-family:'Mangal'\">तांबे</span>     <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">कितनी</span>     <span style=\"font-family:'Mangal'\">मात्रा</span>     </span>(gm <span><span style=\"font-family:'Mangal'\">में</span></span>)     <span><span style=\"font-family:'Mangal'\">मिलाई</span>     <span style=\"font-family:'Mangal'\">जानी</span>     <span style=\"font-family:'Mangal'\">चाहिए</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     144     gm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     288     gm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     250     gm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     432     gm</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_53072853c37b8445.jpg\" width=\"292\" height=\"307\" > </p>",
+    "question_index": 4
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">निम्नलिखित</span>     <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">कौन</span></span>-<span><span style=\"font-family:'Mangal'\">सी</span>     <span style=\"font-family:'Mangal'\">संख्या</span>     </span>55 <span><span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">विभाज्य</span>     <span style=\"font-family:'Mangal'\">है</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     171125</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     178765</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     164485</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     185625</p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a30a519b0e09a0fb.gif\" alt=\"Picture 11\" width=\"388\" height=\"291\" > </p>",
+    "question_index": 5
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">पासे</span> <span style=\"font-family:'Mangal'\">को</span> 150 <span style=\"font-family:'Mangal'\">बार</span> <span style=\"font-family:'Mangal'\">फेंका</span> <span style=\"font-family:'Mangal'\">जाता</span> <span style=\"font-family:'Mangal'\">है</span>, <span style=\"font-family:'Mangal'\">जिसके</span> <span style=\"font-family:'Mangal'\">परिणामों</span> <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">बारंबारता</span> 1,2,3,4,5 <span style=\"font-family:'Mangal'\">और</span> 6 <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">जैसा</span> <span style=\"font-family:'Mangal'\">कि</span> <span style=\"font-family:'Mangal'\">निम्न</span> <span style=\"font-family:'Mangal'\">तालिका</span> <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">दिया</span> <span style=\"font-family:'Mangal'\">गया</span> <span style=\"font-family:'Mangal'\">है।</span> <span style=\"font-family:'Mangal'\">पासे</span> <span style=\"font-family:'Mangal'\">पर</span> <span style=\"font-family:'Mangal'\">आने</span> <span style=\"font-family:'Mangal'\">वाली</span> <span style=\"font-family:'Mangal'\">संख्या</span> <span style=\"font-family:'Mangal'\">कितनी</span> <span style=\"font-family:'Mangal'\">बार</span> <span style=\"font-family:'Mangal'\">अभाज्य</span> <span style=\"font-family:'Mangal'\">संख्या</span> <span style=\"font-family:'Mangal'\">होती</span> <span style=\"font-family:'Mangal'\">है</span>?</p>\r\n\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a1804f12c31112d2.png\" style=\"height:80px; width:445px\" /></p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>88</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>66</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>109</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>86</p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_29931cbd10e30f14.jpg\" style=\"height:268px; width:314px\" /></p>",
+    "question_index": 6
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">सरल</span>     <span style=\"font-family:'Mangal'\">कीजिए</span></span>:<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_b6aedd5cf0a3daa.gif\" > </p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     -9<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a3dd58caa064c163.gif\" > </p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     -9<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_8e0e5ba1ed34ad06.gif\" > </p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     -8<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_9df45b55bb86688c.gif\" > </p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     -9<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_327e7eee9f8d8f9c.gif\" > </p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_588c06c8d0b23c81.jpg\" width=\"319\" height=\"316\" > </p>",
+    "question_index": 7
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_1e11171eae2d7537.gif\" >      <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">मान</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">कीजिए </span></span><span style=\"font-family:'Mangal'\">l</span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     10</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a454918b47529834.gif\" > </p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_cb2dd33c313ec5fe.gif\" > </p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     5</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_7a1274301fcb5d24.jpg\" width=\"339\" height=\"254\" > </p>",
+    "question_index": 8
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">दो</span>     <span style=\"font-family:'Mangal'\">उम्मीदवारों</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">बीच</span>     <span style=\"font-family:'Mangal'\">हुए</span> <span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">विधानसभा</span>     <span style=\"font-family:'Mangal'\">चुनाव</span>     <span style=\"font-family:'Mangal'\">में</span></span>,     <span><span style=\"font-family:'Mangal'\">विजेता</span>     <span style=\"font-family:'Mangal'\">को</span> <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">वैध</span>     <span style=\"font-family:'Mangal'\">मतों</span>     <span style=\"font-family:'Mangal'\">के</span> </span>58%     <span><span style=\"font-family:'Mangal'\">मत</span>     <span style=\"font-family:'Mangal'\">प्राप्त</span>     <span style=\"font-family:'Mangal'\">हुए।</span>     <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">मतों</span>     <span style=\"font-family:'Mangal'\">के</span> </span>13%     <span><span style=\"font-family:'Mangal'\">मत</span>     <span style=\"font-family:'Mangal'\">अवैध</span>     <span style=\"font-family:'Mangal'\">घोषित</span>     <span style=\"font-family:'Mangal'\">किए</span>     <span style=\"font-family:'Mangal'\">गए।</span>     <span style=\"font-family:'Mangal'\">यदि</span>     <span style=\"font-family:'Mangal'\">मतदाताओं</span>     <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">संख्या</span>     </span>4,20,000 <span><span style=\"font-family:'Mangal'\">है</span></span>,     <span><span style=\"font-family:'Mangal'\">तो</span>     <span style=\"font-family:'Mangal'\">जीतने</span>     <span style=\"font-family:'Mangal'\">वाले</span>     <span style=\"font-family:'Mangal'\">उम्मीदवार</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span>     <span style=\"font-family:'Mangal'\">डाले</span>     <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">वैध</span>     <span style=\"font-family:'Mangal'\">मतों</span>     <span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">संख्या</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">करें।</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     210932</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     211932</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     211900</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     210900</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_bf32beeec1903bcd.jpg\" width=\"373\" height=\"178\" > </p>",
+    "question_index": 9
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appx-content-v2.classx.co.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">किसी</span> <span style=\"font-family:'Mangal'\">वस्तु</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">अंकित</span> <span style=\"font-family:'Mangal'\">मूल्य</span> <span style=\"font-family:'Mangal'\">पर</span> 20% <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">प्रारंभिक</span> <span style=\"font-family:'Mangal'\">छूट</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">बाद</span> <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">व्यापारी</span> <span style=\"font-family:'Mangal'\">उस</span> <span style=\"font-family:'Mangal'\">पर</span> 10% <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">अतिरिक्त</span> <span style=\"font-family:'Mangal'\">छूट</span> <span style=\"font-family:'Mangal'\">देता</span> <span style=\"font-family:'Mangal'\">है।</span> <span style=\"font-family:'Mangal'\">वह</span> <span style=\"font-family:'Mangal'\">उत्पाद</span> <span style=\"font-family:'Mangal'\">को</span> ₹26,640&nbsp;<span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">बेचकर</span> 9.09% <span style=\"font-family:'Mangal'\">लाभ</span> <span style=\"font-family:'Mangal'\">अर्जित</span> <span style=\"font-family:'Mangal'\">करने</span> <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">सफल</span> <span style=\"font-family:'Mangal'\">रहा।</span> <span style=\"font-family:'Mangal'\">उस</span> <span style=\"font-family:'Mangal'\">वस्तु</span> <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">अंकित</span> <span style=\"font-family:'Mangal'\">मूल्य</span> <span style=\"font-family:'Mangal'\">क्या</span> <span style=\"font-family:'Mangal'\">था</span>?</p>\r\n\r\n<p>&nbsp;</p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>₹37,500</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>₹32,500</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>₹35,000</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>₹37,000</p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_dabbf50c61148371.jpg\" style=\"height:298px; width:381px\" /></p>",
+    "question_index": 10
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">यदि</span>     </span>x, 81 <span><span style=\"font-family:'Mangal'\">और</span>     </span>49 <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">औसत</span>     <span style=\"font-family:'Mangal'\">अनुपात</span>     <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">और</span>     </span>y 4 <span><span style=\"font-family:'Mangal'\">और</span>     </span>9 <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">औसत</span>     <span style=\"font-family:'Mangal'\">अनुपात</span>     <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">तो</span>     </span>(x – 10y – 3)     <span><span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">मान</span>     <span style=\"font-family:'Mangal'\">है</span></span>:</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     10</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     0</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     8</p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_888111cb741b66a1.jpg\" width=\"381\" height=\"258\" > </p>",
+    "question_index": 11
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">यदि</span>     <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">घनाभ</span>     <span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">लंबाई</span></span>,     <span><span style=\"font-family:'Mangal'\">चौड़ाई</span>     <span style=\"font-family:'Mangal'\">और</span> <span style=\"font-family:'Mangal'\">ऊँचाई</span>     <span style=\"font-family:'Mangal'\">क्रमशः</span>     </span>15 m, 8 m <span><span style=\"font-family:'Mangal'\">और</span>     </span>3000 cm <span><span style=\"font-family:'Mangal'\">हैं</span></span>,     <span><span style=\"font-family:'Mangal'\">तो</span>     <span style=\"font-family:'Mangal'\">उसका</span>     <span style=\"font-family:'Mangal'\">आयतन</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">कीजिए।</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     36000     m<sup>3</sup></p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     360000     m<sup>3</sup></p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     3600     m<sup>3</sup></p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     360     m<sup>3</sup></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_63a272b28639e1f7.jpg\" width=\"380\" height=\"146\" > </p>",
+    "question_index": 12
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appx-content-v2.classx.co.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">दिया</span> <span style=\"font-family:'Mangal'\">गया</span> <span style=\"font-family:'Mangal'\">बार</span> <span style=\"font-family:'Mangal'\">ग्राफ</span> <span style=\"font-family:'Mangal'\">चार</span> <span style=\"font-family:'Mangal'\">वर्षों</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span> <span style=\"font-family:'Mangal'\">चार</span> <span style=\"font-family:'Mangal'\">मोबाइल</span> <span style=\"font-family:'Mangal'\">ब्रांडों</span> <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">बिक्री</span> (<span style=\"font-family:'Mangal'\">हजारों</span> <span style=\"font-family:'Mangal'\">में</span>) <span style=\"font-family:'Mangal'\">दर्शाता</span> <span style=\"font-family:'Mangal'\">है।</span> <span style=\"font-family:'Mangal'\">ग्राफ</span> <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">अध्ययन</span> <span style=\"font-family:'Mangal'\">करें</span> <span style=\"font-family:'Mangal'\">और</span> <span style=\"font-family:'Mangal'\">नीचे</span> <span style=\"font-family:'Mangal'\">दिए</span> <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">प्रश्न</span> <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">उत्तर</span> <span style=\"font-family:'Mangal'\">दें।</span></p>\r\n\r\n<p><img alt=\"Shape1\" src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_35b19985c1277cdd.gif\" style=\"height:292px; width:437px\" /></p>\r\n\r\n<p><span style=\"font-family:'Mangal'\">अगर</span> <span style=\"font-family:'Mangal'\">किसी</span> <span style=\"font-family:'Mangal'\">ब्रांड</span> <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">बिक्री</span> <span style=\"font-family:'Mangal'\">किसी</span> <span style=\"font-family:'Mangal'\">साल</span> <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">इन</span> <span style=\"font-family:'Mangal'\">चार</span> <span style=\"font-family:'Mangal'\">ब्रांडों</span> <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">औसत</span> <span style=\"font-family:'Mangal'\">बिक्री</span> <span style=\"font-family:'Mangal'\">से</span> <span style=\"font-family:'Mangal'\">ज्यादा</span> <span style=\"font-family:'Mangal'\">होती</span> <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">तो</span> <span style=\"font-family:'Mangal'\">उसे</span> <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">स्टार</span> <span style=\"font-family:'Mangal'\">मिलता</span> <span style=\"font-family:'Mangal'\">है।</span> 2016 <span style=\"font-family:'Mangal'\">से</span> 2020&nbsp;<span style=\"font-family:'Mangal'\">तक</span> <span style=\"font-family:'Mangal'\">किस</span> <span style=\"font-family:'Mangal'\">ब्रांड</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">पास</span> <span style=\"font-family:'Mangal'\">सबसे</span> <span style=\"font-family:'Mangal'\">कम</span> <span style=\"font-family:'Mangal'\">स्टार</span> <span style=\"font-family:'Mangal'\">हैं</span>?</p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>B3</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>B1</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>B4</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>B2</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">*{overflow-wrap: break-word;} img {max-width:100% !important}\r\n</style>\r\n<style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_1448f0ffedf1cbea.jpg\" style=\"height:389px; width:334px\" /></p>",
+    "question_index": 13
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">परीक्षा</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">उत्तीर्ण</span>     <span style=\"font-family:'Mangal'\">होने</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span>     <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">अंकों</span>     <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">से</span>     </span>540 <span><span style=\"font-family:'Mangal'\">अंक</span>     <span style=\"font-family:'Mangal'\">प्राप्त</span>     <span style=\"font-family:'Mangal'\">करना</span>     <span style=\"font-family:'Mangal'\">आवश्यक</span>     <span style=\"font-family:'Mangal'\">है।</span> <span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">छात्र</span>     <span style=\"font-family:'Mangal'\">को</span> </span>450     <span><span style=\"font-family:'Mangal'\">अंक</span>     <span style=\"font-family:'Mangal'\">प्राप्त</span>     <span style=\"font-family:'Mangal'\">हुए</span> <span style=\"font-family:'Mangal'\">और</span>     <span style=\"font-family:'Mangal'\">उसे</span>     <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">अंकों</span>     <span style=\"font-family:'Mangal'\">के</span> </span>15%     <span><span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">अनुत्तीर्ण</span>     <span style=\"font-family:'Mangal'\">घोषित</span>     <span style=\"font-family:'Mangal'\">किया</span>     <span style=\"font-family:'Mangal'\">गया।</span>     <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">छात्र</span>     <span style=\"font-family:'Mangal'\">को</span>     <span style=\"font-family:'Mangal'\">अधिकतम</span>     <span style=\"font-family:'Mangal'\">कुल</span>     <span style=\"font-family:'Mangal'\">कितने</span>     <span style=\"font-family:'Mangal'\">अंक</span>     <span style=\"font-family:'Mangal'\">प्राप्त</span>     <span style=\"font-family:'Mangal'\">हो</span> <span style=\"font-family:'Mangal'\">सकते</span>     <span style=\"font-family:'Mangal'\">हैं</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1000</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     600</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     800</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     720</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_c0c727a2faa01944.jpg\" width=\"316\" height=\"251\" > </p>",
+    "question_index": 14
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">व्यक्ति</span>     ₹</span>6,500 <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">राशि</span>     </span>20% <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">वार्षिक</span>     <span style=\"font-family:'Mangal'\">ब्याज</span>     <span style=\"font-family:'Mangal'\">दर</span> <span style=\"font-family:'Mangal'\">पर</span>     <span style=\"font-family:'Mangal'\">उधार</span>     <span style=\"font-family:'Mangal'\">लेता</span>     <span style=\"font-family:'Mangal'\">है</span></span>,     <span><span style=\"font-family:'Mangal'\">जबकि</span>     <span style=\"font-family:'Mangal'\">ब्याज</span>     <span style=\"font-family:'Mangal'\">अर्ध</span></span>-<span><span style=\"font-family:'Mangal'\">वार्षिक</span>     <span style=\"font-family:'Mangal'\">रूप</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">चक्रवृद्धि</span>     <span style=\"font-family:'Mangal'\">होता</span>     <span style=\"font-family:'Mangal'\">है।</span> </span>1     <span><span style=\"font-family:'Mangal'\">वर्ष</span>     <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">अवधि</span>     <span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">चक्रवृद्धि</span>     <span style=\"font-family:'Mangal'\">ब्याज</span>     <span style=\"font-family:'Mangal'\">कितना</span>     <span style=\"font-family:'Mangal'\">होगा</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     ₹1,605</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     ₹805</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     ₹1,365</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     ₹825</p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_f2acb07f73b88eb6.jpg\" width=\"256\" height=\"317\" > </p>",
+    "question_index": 15
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">दिए</span> <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">पाई</span> <span style=\"font-family:'Mangal'\">चार्ट</span> <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">ध्यानपूर्वक</span> <span style=\"font-family:'Mangal'\">अध्ययन</span> <span style=\"font-family:'Mangal'\">कीजिए</span> <span style=\"font-family:'Mangal'\">और</span> <span style=\"font-family:'Mangal'\">नीचे</span> <span style=\"font-family:'Mangal'\">दिए</span> <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">प्रश्नों</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">उत्तर</span> <span style=\"font-family:'Mangal'\">दीजिए।</span></p>\r\n\r\n<p><img alt=\"Shape2\" src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_cfb7dbb7981b7a06.gif\" style=\"height:277px; width:444px\" /></p>\r\n\r\n<p>2021 <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">भोजन</span> (Food) <span style=\"font-family:'Mangal'\">पर</span> <span style=\"font-family:'Mangal'\">व्यय</span><span style=\"font-family:'Mangal'\">,</span> 2020 <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">शिक्षा</span> (Education) <span style=\"font-family:'Mangal'\">पर</span> <span style=\"font-family:'Mangal'\">व्यय</span> <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">कितना</span> <span style=\"font-family:'Mangal'\">प्रतिशत</span> <span style=\"font-family:'Mangal'\">था</span>?</p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>90%</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>80%</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>95%</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>85%</p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_53f940caf20b5b8c.jpg\" style=\"height:168px; width:406px\" /></p>",
+    "question_index": 16
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">निम्नलिखित</span>     <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">कौन</span> <span style=\"font-family:'Mangal'\">सी</span>     <span style=\"font-family:'Mangal'\">योजना</span>     <span style=\"font-family:'Mangal'\">ग्राहक</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span>     <span style=\"font-family:'Mangal'\">सबसे</span>     <span style=\"font-family:'Mangal'\">अधिक</span>     <span style=\"font-family:'Mangal'\">लाभकारी</span>     <span style=\"font-family:'Mangal'\">है</span></span>?</p>     <p style=\"orphans:0;widows:0;margin-bottom:0in\">     i) 25% <span><span style=\"font-family:'Mangal'\">और</span>     </span>25% <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">क्रमिक</span>     <span style=\"font-family:'Mangal'\">छूट</span></span></p>     <p style=\"orphans:0;widows:0;margin-bottom:0in\">     ii) 40% <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">सीधी</span>     <span style=\"font-family:'Mangal'\">छूट</span></span></p>     <p style=\"orphans:0;widows:0;margin-bottom:0in\">     iii) <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">खरीदो</span></span>,     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">मुफ्त</span>     <span style=\"font-family:'Mangal'\">पाओ</span></span></p>     <p style=\"orphans:0;widows:0;margin-bottom:0in\">     iv) 30% <span><span style=\"font-family:'Mangal'\">और</span>     </span>20% <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">क्रमिक</span>     <span style=\"font-family:'Mangal'\">छूट</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     ii</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     iii</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     i</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     iv</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_9bab38125a4f50df.jpg\" width=\"422\" height=\"255\" > </p>",
+    "question_index": 17
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     A <span><span style=\"font-family:'Mangal'\">किसी</span>     <span style=\"font-family:'Mangal'\">काम</span> <span style=\"font-family:'Mangal'\">को</span>     </span>8 <span><span style=\"font-family:'Mangal'\">दिनों</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">पूरा</span>     <span style=\"font-family:'Mangal'\">कर</span> <span style=\"font-family:'Mangal'\">सकता</span>     <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">और</span>     </span>B <span><span style=\"font-family:'Mangal'\">उसी</span>     <span style=\"font-family:'Mangal'\">काम</span> <span style=\"font-family:'Mangal'\">को</span>     </span>18 <span><span style=\"font-family:'Mangal'\">दिनों</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">पूरा</span>     <span style=\"font-family:'Mangal'\">कर</span> <span style=\"font-family:'Mangal'\">सकता</span>     <span style=\"font-family:'Mangal'\">है।</span> </span>A     <span><span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">प्रारंभ</span>     <span style=\"font-family:'Mangal'\">करके</span>     <span style=\"font-family:'Mangal'\">यदि</span> </span>A     <span><span style=\"font-family:'Mangal'\">और</span>     </span>B <span><span style=\"font-family:'Mangal'\">बारी</span></span>-<span><span style=\"font-family:'Mangal'\">बारी</span>     <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">एकांतर</span>     <span style=\"font-family:'Mangal'\">रूप</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">काम</span>     <span style=\"font-family:'Mangal'\">करते</span>     <span style=\"font-family:'Mangal'\">हैं</span></span>,     <span><span style=\"font-family:'Mangal'\">तो</span>     <span style=\"font-family:'Mangal'\">वे</span> <span style=\"font-family:'Mangal'\">उस</span>     <span style=\"font-family:'Mangal'\">काम</span> <span style=\"font-family:'Mangal'\">को</span>     <span style=\"font-family:'Mangal'\">कितने</span>     <span style=\"font-family:'Mangal'\">दिनों</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">पूरा</span>     <span style=\"font-family:'Mangal'\">करेंगे</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     10<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_3c8feea009fcd025.gif\" >      <span><span style=\"font-family:'Mangal'\"><span>दिन</span></span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     10<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a9bc2dd5e0b6320b.gif\" >      <span><span style=\"font-family:'Mangal'\"><span>दिन</span></span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     5<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_3c8feea009fcd025.gif\" >      <span><span style=\"font-family:'Mangal'\"><span>दिन</span></span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     5<img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_a9bc2dd5e0b6320b.gif\" >      <span><span style=\"font-family:'Mangal'\"><span>दिन</span></span></span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_733ecfa5b857977f.jpg\" width=\"318\" height=\"327\" > </p>",
+    "question_index": 18
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appx-content-v2.classx.co.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">यदि</span> A=60&deg; <span style=\"font-family:'Mangal'\">है</span>, <span style=\"font-family:'Mangal'\">तो</span> <span style=\"font-family:'Mangal'\">इसका</span> <span style=\"font-family:'Mangal'\">मान</span> <span style=\"font-family:'Mangal'\">क्या</span> <span style=\"font-family:'Mangal'\">होगा</span>?</p>\r\n\r\n<p>&nbsp;<img height=\"38\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483276_1745483276245209_thump.png\" width=\"190\" /></p>\r\n\r\n<p>&nbsp;</p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>&nbsp;<img height=\"40\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483297_1745483297690657_thump.png\" width=\"65\" /></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><p>&nbsp;<img height=\"40\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483336_1745483336373502_thump.png\" width=\"56\" /></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><p>&nbsp;<img height=\"40\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483360_1745483360311214_thump.png\" width=\"65\" /></p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><p>&nbsp;<img height=\"40\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483404_1745483404229889_thump.png\" width=\"65\" /></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img height=\"371\" src=\"https://appx-content-v2.classx.co.in/paperimages/1745483264_1745483264121187_thump.png\" width=\"345\" /></p>",
+    "question_index": 19
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     85 km/h <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">चाल</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">चल</span> <span style=\"font-family:'Mangal'\">रही</span>     </span>700 <span><span style=\"font-family:'Mangal'\">मीटर</span>     <span style=\"font-family:'Mangal'\">लंबी</span>     <span style=\"font-family:'Mangal'\">रेलगाड़ी</span>     <span style=\"font-family:'Mangal'\">ने</span> <span style=\"font-family:'Mangal'\">उसी</span>     <span style=\"font-family:'Mangal'\">दिशा</span>     <span style=\"font-family:'Mangal'\">में</span> </span>72     km/h <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">चाल</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">चल</span> <span style=\"font-family:'Mangal'\">रही</span>     </span>840 <span><span style=\"font-family:'Mangal'\">मीटर</span>     <span style=\"font-family:'Mangal'\">लंबी</span>     <span style=\"font-family:'Mangal'\">रेलगाड़ी</span>     <span style=\"font-family:'Mangal'\">को</span> <span style=\"font-family:'Mangal'\">पार</span>     <span style=\"font-family:'Mangal'\">किया।</span>     <span style=\"font-family:'Mangal'\">तेज</span>     <span style=\"font-family:'Mangal'\">चाल</span>     <span style=\"font-family:'Mangal'\">वाली</span>     <span style=\"font-family:'Mangal'\">रेलगाड़ी</span>     <span style=\"font-family:'Mangal'\">द्वारा</span>     <span style=\"font-family:'Mangal'\">दूसरी</span>     <span style=\"font-family:'Mangal'\">रेलगाड़ी</span>     <span style=\"font-family:'Mangal'\">को</span> <span style=\"font-family:'Mangal'\">पूरी</span>     <span style=\"font-family:'Mangal'\">तरह</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">पार</span>     <span style=\"font-family:'Mangal'\">करने</span>     <span style=\"font-family:'Mangal'\">में</span>     <span style=\"font-family:'Mangal'\">कितना</span>     <span style=\"font-family:'Mangal'\">समय</span>     <span style=\"font-family:'Mangal'\">लगा</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     7     <span><span style=\"font-family:'Mangal'\">मिनट</span>     </span>09     <span><span style=\"font-family:'Mangal'\">सेकंड</span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     8     <span><span style=\"font-family:'Mangal'\">मिनट</span>     </span>41     <span><span style=\"font-family:'Mangal'\">सेकंड</span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     7     <span><span style=\"font-family:'Mangal'\">मिनट</span>     </span>06     <span><span style=\"font-family:'Mangal'\">सेकंड</span></span></p>",
+      "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;text-decoration:none\">     8     <span><span style=\"font-family:'Mangal'\">मिनट</span>     </span>01     <span><span style=\"font-family:'Mangal'\">सेकंड</span></span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_b7c4a19447c8d78b.gif\" alt=\"Picture 39\" width=\"306\" height=\"284\" > </p>",
+    "question_index": 20
+  },
+  {
+    "question": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><style type=\"text/css\">img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); }\r\n</style>\r\n<p><span style=\"font-family:'Mangal'\">नीचे</span> <span style=\"font-family:'Mangal'\">पाँच</span> <span style=\"font-family:'Mangal'\">त्रिभुजों</span> <span style=\"font-family:'Mangal'\">की</span> <span style=\"font-family:'Mangal'\">भुजाओं</span> <span style=\"font-family:'Mangal'\">और</span> <span style=\"font-family:'Mangal'\">कोणों</span> <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">कुछ</span> <span style=\"font-family:'Mangal'\">माप</span> <span style=\"font-family:'Mangal'\">दिए</span> <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">हैं।</span> <span style=\"font-family:'Mangal'\">विकल्पों</span> <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">दिए</span> <span style=\"font-family:'Mangal'\">गए</span> <span style=\"font-family:'Mangal'\">त्रिभुजों</span> <span style=\"font-family:'Mangal'\">में</span> <span style=\"font-family:'Mangal'\">से</span> <span style=\"font-family:'Mangal'\">कौन</span> <span style=\"font-family:'Mangal'\">सा</span> <span style=\"font-family:'Mangal'\">त्रिभुज</span> ∆ABC <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">सर्वांगसम</span> <span style=\"font-family:'Mangal'\">नहीं</span> <span style=\"font-family:'Mangal'\">है</span>?</p>\r\n\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_22b6b3cce09aac40.png\" style=\"height:159px; width:506px\" /></p>",
+    "options": [
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>∆JKL</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>∆MNO</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>∆GHI</p>",
+      "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p>∆DEF</p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style>*{overflow-wrap: break-word;} img {max-width:100% !important} </style><style type=\"text/css\">img {max-width:100% !important}\r\n</style>\r\n<p><img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_35e0ddffc1c7c657.jpg\" style=\"height:472px; width:363px\" /></p>",
+    "question_index": 21
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">समकोण</span>     <span style=\"font-family:'Mangal'\">त्रिभुज</span>     <span style=\"font-family:'Mangal'\">का</span>     <span style=\"font-family:'Mangal'\">क्षेत्रफल</span>     </span>54 cm² <span><span style=\"font-family:'Mangal'\">है।</span>     <span style=\"font-family:'Mangal'\">यदि</span>     <span style=\"font-family:'Mangal'\">समकोण</span>     <span style=\"font-family:'Mangal'\">बनाने</span>     <span style=\"font-family:'Mangal'\">वाली</span>     <span style=\"font-family:'Mangal'\">इसकी</span>     <span style=\"font-family:'Mangal'\">एक</span> <span style=\"font-family:'Mangal'\">भुजा</span>     <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">माप</span>     </span>12 cm  <span><span style=\"font-family:'Mangal'\">है</span></span>,     <span><span style=\"font-family:'Mangal'\">तो</span>     <span style=\"font-family:'Mangal'\">समकोण</span>     <span style=\"font-family:'Mangal'\">बनाने</span>     <span style=\"font-family:'Mangal'\">वाली</span>     <span style=\"font-family:'Mangal'\">इसकी</span>     <span style=\"font-family:'Mangal'\">दूसरी</span>     <span style=\"font-family:'Mangal'\">भुजा</span>     <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">माप</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">कीजिए।</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     4.5     cm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     9.0     cm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     8.0     cm</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     7.0     cm</p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_5e94d5504294e87d.jpg\" width=\"295\" height=\"239\" > </p>",
+    "question_index": 22
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">उस</span>     <span style=\"font-family:'Mangal'\">घनाभ</span>     <span style=\"font-family:'Mangal'\">का</span> <span style=\"font-family:'Mangal'\">आयतन</span>     <span style=\"font-family:'Mangal'\">ज्ञात</span>     <span style=\"font-family:'Mangal'\">करें</span></span>,     <span><span style=\"font-family:'Mangal'\">जिसकी</span>     <span style=\"font-family:'Mangal'\">विमाएं</span>     </span>17 m, 12 m <span><span style=\"font-family:'Mangal'\">और</span>     </span>6 m <span><span style=\"font-family:'Mangal'\">हैं।</span></span></p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1854     m³</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1654     m³</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1484     m³</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     1224     m³</p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_f016282e3b7191e3.gif\" alt=\"Picture 45\" width=\"372\" height=\"166\" > </p>",
+    "question_index": 23
+  },
+  {
+    "question": "<style> img {max-width:100% !important}  @font-face { font-family: 'Mangal';src: url('https://appxcontent.kaxa.in/fonts/MANGAL.ttf') format('truetype'); } </style><p style=\"orphans:0;widows:0;margin-bottom:0in\">     <span><span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">बस</span> </span>50     km/h <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">चाल</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">यात्रा</span>     <span style=\"font-family:'Mangal'\">करते</span>     <span style=\"font-family:'Mangal'\">हुए</span> <span style=\"font-family:'Mangal'\">एक</span>     <span style=\"font-family:'Mangal'\">निश्चित</span>     <span style=\"font-family:'Mangal'\">दूरी</span>     <span style=\"font-family:'Mangal'\">तय</span> <span style=\"font-family:'Mangal'\">करती</span>     <span style=\"font-family:'Mangal'\">है</span> <span style=\"font-family:'Mangal'\">और</span>     </span>30 km/h <span><span style=\"font-family:'Mangal'\">की</span>     <span style=\"font-family:'Mangal'\">चाल</span> <span style=\"font-family:'Mangal'\">से</span>     <span style=\"font-family:'Mangal'\">प्रारंभिक</span>     <span style=\"font-family:'Mangal'\">बिंदु</span>     <span style=\"font-family:'Mangal'\">पर</span> <span style=\"font-family:'Mangal'\">वापस</span>     <span style=\"font-family:'Mangal'\">आती</span>     <span style=\"font-family:'Mangal'\">है।</span>     <span style=\"font-family:'Mangal'\">पूरी</span>     <span style=\"font-family:'Mangal'\">यात्रा</span>     <span style=\"font-family:'Mangal'\">के</span> <span style=\"font-family:'Mangal'\">लिए</span>     <span style=\"font-family:'Mangal'\">औसत</span>     <span style=\"font-family:'Mangal'\">चाल</span>     </span>(km/h <span><span style=\"font-family:'Mangal'\">में</span></span>)     <span><span style=\"font-family:'Mangal'\">क्</span>‍<span style=\"font-family:'Mangal'\">या</span>     <span style=\"font-family:'Mangal'\">है</span></span>?</p>     <p style=\"orphans:0;widows:0;text-decoration:none\"><br>      </p>",
+    "options": [
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     37.5</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     35.5</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     36.5</p>",
+      "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     38.5</p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> img {max-width:100% !important} </style><p style=\"orphans:0;widows:0;text-decoration:none\">     <img src=\"https://appxcontent.kaxa.in//bulk_uploader_images/1687176676316_html_2c665aeb951bfcf5.jpg\" width=\"295\" height=\"231\" > </p>",
+    "question_index": 24
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 25 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('engBtn').onclick = () => this.setLang(true);
+                document.getElementById('hinBtn').onclick = () => this.setLang(false);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.50;
+                        console.log(`Q${i + 1}: INCORRECT (-0.50 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/50`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
