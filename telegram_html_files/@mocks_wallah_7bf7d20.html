@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">10:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "108261", "question": "<strong>Select the most appropriate idiom to fill the blank in the given situation</strong>.</p> <p>The negotiations are nearly finished, but we still have to__________________.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Show a clean pair of heals", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Throw out of gear", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Take a leaf out of one’s book", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> dot the i's and cross the t's"], "correct_answer": 3, "solution": "D) <strong>Dot the i's and cross the t's</strong> (idiom) – To pay attention to every detail, to finish something carefully and thoroughly हर विवरण पर ध्यान देना, कुछ को सावधानीपूर्वक और पूरी तरह से समाप्त करना"}, {"id": "108262", "question": "<strong>Select the most appropriate idiom to replace the underlined sentence in the given situation</strong>.</p> <p>She would <strong>t<ins>irelessly discuss or think about the same subject</ins></strong>, no matter how many times it had already been covered.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Harp on the same string", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Like a fish out of water", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> At one’s beck and call", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To make both ends meet"], "correct_answer": 0, "solution": "A) <strong>Harp on the same string</strong> (idiom) – To repeatedly discuss or focus on the same subject बार-बार एक ही विषय पर बात करना या ध्यान केंद्रित करना"}, {"id": "108263", "question": "<strong>Select the most appropriate synonym of ‘Attenuate’ to fill the blank.</strong></p> <p>They propose more peacekeeping troops to _____________ the violence.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Lessen", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Exclude", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Limelight", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Induce"], "correct_answer": 0, "solution": "<strong>Synonym</strong>: <strong>Lessen</strong> (verb) – To make or become smaller in size, amount, intensity, or degree; reduce, diminish. कम करना"}, {"id": "108264", "question": "<strong>Select the most appropriate synonym of the underlined word</strong></p> <p>The festival is to <ins><strong>encompass</strong> </ins>everything from music, theatre, and ballet to literature, cinema, and the visual arts.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Uncheck", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Overlook", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Skip", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Embrace"], "correct_answer": 3, "solution": "<strong> Synonym</strong>: <strong>Embrace</strong> (verb) – To include or contain as part of something broader; accept, cover. अपनाना, समाहित करना"}, {"id": "108265", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>Nithya Menen’s Best Actress award is also an unconventional choice — as the effervesce (A)/ Shobhana in Thiruchitrambalam, hers is not a typical award-bait role. (B)/ Yet, within the film’s scheme, it was a stunning performance (C)/ which raised its overall effect by several notches. (D)", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> (A)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (B)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (C)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (D)"], "correct_answer": 0, "solution": "'effervescent' will be used instead of 'effervesce' because an adjective is needed here to describe 'Shobhana' (a character). 'Effervesce' is a verb, while 'effervescent' is an adjective that denotes liveliness. The correct sentence will be: As the effervescent Shobhana in Thiruchitrambalam."}, {"id": "108266", "question": "<strong>Identify the INCORRECTLY spelt word in the given sentence</strong>.</p> <p>After a long, desparate search for peace, she found that a simple walk in nature could both exhilarate her spirit and turn leisure into a moment where she could perceive the beauty around her more clearly.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Desparate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Exhilarate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Leisure", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Perceive"], "correct_answer": 0, "solution": "A) The correct spelling of ‘Desparate’ is ‘Desperate,’ which means “feeling or showing a hopeless sense that a situation is so bad as to be impossible to deal with” निराशाजनक, हताश."}, {"id": "108267", "question": "<strong>Select the appropriate idiom that can replace the underlined phrase in the following sentence</strong>.</p> <p>My parents didn't want me to be an actor, but I <ins><strong>take one to task</strong>.</ins>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Stick to one’s guns", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To cut a sorry figure", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> With a high hand", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Burn one’s fingers"], "correct_answer": 0, "solution": "A) <strong>Stick to one’s guns</strong> (idiom) – To refuse to change one’s beliefs or actions, even when criticized or pressured अपने विश्वासों या कार्यों को आलोचना या दबाव के बावजूद नहीं बदलना"}, {"id": "108268", "question": "<strong>Select the most appropriate pair of words to fill in the blanks</strong>.</p> <p>The investigators had to delve into the __________ web to _________ down the elusive cybercriminal.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> dark, catch", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> light, crack", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> dark, track", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> grey, come"], "correct_answer": 2, "solution": "'Dark' and 'track' will be used because \"dark web\" refers to a place where illegal and hidden activities occur, and \"track down\" means to search and find someone. The sentence talks about investigators delving into this complex and hidden world to catch the elusive cybercriminal, making 'dark' and 'track' appropriate here. Whereas, 'Catch' means to capture, 'Crack' means to break or solve, and 'Come' means to arrive, which do not fit in this context."}, {"id": "108269", "question": "<strong>Select the most appropriate homonyms from the given alternatives to fill in the blanks</strong><br> I couldn’t tell ____________we would be able to __________ the storm before it hit.<br> Alternatives:</p> <p>A. whether</p> <p>B. weather</p> <p>C. weather (of related to climate)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> B, A", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A, C", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> A, B", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> B, C"], "correct_answer": 2, "solution": "'Whether' and 'weather' will be used because \"whether\" indicates uncertainty or choice, and \"weather\" refers to dealing with a situation, not just climate. In this sentence, the context involves enduring a situation (the storm), so 'weather' (dealing with a situation) is correct, not 'weather' (related to climate). The sentence discusses the speaker's uncertainty about whether they could endure the storm before it hit, making 'whether' and 'weather' the correct choices. Other options do not fit in this context."}, {"id": "108270", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>PUNJAB’s drug problem is so severe that every effort aimed at stemming the rot deserves praise. (A)/ It is commendable that many Punjabi celebrities — from renowned (B)/ actors and singers to outstanding sportspersons — (C)/ have exhorted people of the state for shunning drugs and restore the health of Punjabi youth. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (A)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (B)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (C)", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> (D)"], "correct_answer": 3, "solution": "'to shun' will be used instead of 'for shun' because the fixed preposition 'to' is always used with the verb 'exhort.' The correct sentence will be: \"exhorted people of the state to shun drugs and restore the health of Punjabi youth.\""}, {"id": "108271", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>Sri Lanka’s ninth presidential election, (A)/ scheduled for September 21, has attracted a record 39 candidates, (B)/ signalling a return to “business as usual” (C)/ despite of the severe economic crisis of 2022. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (A)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (B)", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (C)", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> (D)"], "correct_answer": 3, "solution": "'despite' will be used instead of 'despite of' because 'despite' does not require the preposition 'of.' It is sufficient on its own and means 'in spite of.' The correct sentence will be: \"despite the severe economic crisis of 2022.\""}, {"id": "108272", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph</strong>.</p> <p><strong>P</strong>. Browsing through the pages, I could not help smiling as</p> <p><strong>Q</strong>. I recalled grandma and mother coming up with in our local language to match each situation that I encountered in my younger days</p> <p><strong>R</strong>. Clearing an overflowing cupboard, I came across an old school notebook filled with English</p> <p><strong>S</strong>. sayings meant to be written on the classroom blackboard at school each day", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> RSPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QRPS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQPS"], "correct_answer": 0, "solution": "<strong>R:</strong> R starts with an adverbial phrase (\"Clearing an overflowing cupboard\") that sets the context. The main clause follows, introducing the subject (notebook)."}, {"id": "108273", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph</strong>.</p> <p><strong>a.</strong> A few months ago, I got a call from my mother at dawn and I indolently picked it up in my bed.</p> <p><strong>b.</strong> Without any reluctance, I quickly recited the number.</p> <p><strong>c.</strong> She asked the contact number of my school maths teacher.</p> <p><strong>d.</strong> She told me to sleep well and I cut the call.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> d, b, a, c", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> c, a, b, d", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a, b, c, d", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> a, c, b, d"], "correct_answer": 3, "solution": "<strong>a:</strong> The sentence starts with a time reference (\"A few months ago\") which is essential in establishing the timeline of events."}, {"id": "108274", "question": "<strong>Read the given sentence carefully. Change the meaning of the sentence by replacing the underlined word with its ANTONYM from the following options</strong>.</p> <p>The joy from their <ins><strong>fleeting</strong> </ins>victory was soon overshadowed by the challenges that lay ahead.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Transitory", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ephemeral", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Evanescent", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Perpetual"], "correct_answer": 3, "solution": "Antonym: <strong>Perpetual</strong> (adjective) – Never ending or changing; everlasting, continuous. शाश्वत, स्थायी"}, {"id": "108275", "question": "<strong>Select the most appropriate ANTONYM of the word given in brackets to fill in the blank</strong>.</p> <p>His once <strong>(impeccable) </strong>reputation was _____________ by the false accusations, leaving a lasting stain on his character.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sullied", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Flawless", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unimpeachable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Immaculate"], "correct_answer": 0, "solution": "<strong>Antonym</strong>: <strong>Sullied</strong> (verb) – Damaged or spoiled the purity or integrity of something; tarnished, stained. कलंकित"}, {"id": "108276", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence</strong>.</p> <p>During their travels, they made <ins><strong>a temporary stay</strong></ins> at a quaint little village nestled in the mountains.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Isolation", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sojourn", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Quarantine", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Jamboree"], "correct_answer": 1, "solution": "B) <strong>Sojourn</strong> (noun) – A temporary stay अस्थायी प्रवास"}, {"id": "108277", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Among the many readings of Verdict 2024 is this one: The outcome, in many parts of the country, may have been shaped by economic issues like berozgari (unemployment) and mehengai (inflation) rising to the surface, and becoming salient. Of the two, the latter may have proved to be more decisive — Indian voters have historically blamed governments for inflation. They might be _____1_____to working for low ______2______, but not to price rise significantly eating into their purchasing power. The average annual consumer price index (CPI) inflation in the 12 months from May 2018 ______3______ the 2019 election was just 3.3 per cent. It _____4____even lower, at 0.03 per cent, for retail food inflation. Benign inflation provided an environment that was conducive to the Narendra Modi government’s return to power by a ____5_____majority, bigger than in 2014.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unbridled", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Uncontrolled", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Startled", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Reconciled"], "correct_answer": 3, "solution": "No solution available"}, {"id": "108278", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Among the many readings of Verdict 2024 is this one: The outcome, in many parts of the country, may have been shaped by economic issues like berozgari (unemployment) and mehengai (inflation) rising to the surface, and becoming salient. Of the two, the latter may have proved to be more decisive — Indian voters have historically blamed governments for inflation. They might be _____1_____to working for low ______2______, but not to price rise significantly eating into their purchasing power. The average annual consumer price index (CPI) inflation in the 12 months from May 2018 ______3______ the 2019 election was just 3.3 per cent. It _____4____even lower, at 0.03 per cent, for retail food inflation. Benign inflation provided an environment that was conducive to the Narendra Modi government’s return to power by a ____5_____majority, bigger than in 2014.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Remuneration", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Intercession", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Replication", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reproduction"], "correct_answer": 0, "solution": "No solution available"}, {"id": "108279", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Among the many readings of Verdict 2024 is this one: The outcome, in many parts of the country, may have been shaped by economic issues like berozgari (unemployment) and mehengai (inflation) rising to the surface, and becoming salient. Of the two, the latter may have proved to be more decisive — Indian voters have historically blamed governments for inflation. They might be _____1_____to working for low ______2______, but not to price rise significantly eating into their purchasing power. The average annual consumer price index (CPI) inflation in the 12 months from May 2018 ______3______ the 2019 election was just 3.3 per cent. It _____4____even lower, at 0.03 per cent, for retail food inflation. Benign inflation provided an environment that was conducive to the Narendra Modi government’s return to power by a ____5_____majority, bigger than in 2014.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> trying to", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> leading to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> relating to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> owing to"], "correct_answer": 1, "solution": "No solution available"}, {"id": "108280", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Among the many readings of Verdict 2024 is this one: The outcome, in many parts of the country, may have been shaped by economic issues like berozgari (unemployment) and mehengai (inflation) rising to the surface, and becoming salient. Of the two, the latter may have proved to be more decisive — Indian voters have historically blamed governments for inflation. They might be _____1_____to working for low ______2______, but not to price rise significantly eating into their purchasing power. The average annual consumer price index (CPI) inflation in the 12 months from May 2018 ______3______ the 2019 election was just 3.3 per cent. It _____4____even lower, at 0.03 per cent, for retail food inflation. Benign inflation provided an environment that was conducive to the Narendra Modi government’s return to power by a ____5_____majority, bigger than in 2014.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Are", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Is", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Were", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Was"], "correct_answer": 3, "solution": "No solution available"}, {"id": "108281", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Among the many readings of Verdict 2024 is this one: The outcome, in many parts of the country, may have been shaped by economic issues like berozgari (unemployment) and mehengai (inflation) rising to the surface, and becoming salient. Of the two, the latter may have proved to be more decisive — Indian voters have historically blamed governments for inflation. They might be _____1_____to working for low ______2______, but not to price rise significantly eating into their purchasing power. The average annual consumer price index (CPI) inflation in the 12 months from May 2018 ______3______ the 2019 election was just 3.3 per cent. It _____4____even lower, at 0.03 per cent, for retail food inflation. Benign inflation provided an environment that was conducive to the Narendra Modi government’s return to power by a ____5_____majority, bigger than in 2014.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Thumping", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Daunting", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Terrifying", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Growing"], "correct_answer": 0, "solution": "No solution available"}, {"id": "108282", "question": "<strong>Select the option that will improve the underlined part of the given sentence.</strong></p> <p>My friend <ins><strong>vanished when the goons came</strong></ins> to fight with me.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> mobilised when the thugs arrived", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> disappeared when the thugs arrived", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> condemned when the thugs arrived", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> attacked when the thugs arrived"], "correct_answer": 1, "solution": "‘disappeared when the thugs arrived' should be used because in the entire context, the sentence implies that the friend suddenly vanished when the thugs came. Here, 'disappeared' is the correct synonym for 'vanished,' and using 'thugs' instead of 'goons' is more appropriate. Thus, \"disappeared when the thugs arrived\" would be the most suitable choice."}, {"id": "108283", "question": "<strong>Select the most appropriate segment to substitute the underlined words in the given sentence.</strong></p> <p>After <ins><strong>he leave</strong></ins>, we discussed his suggestion", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> he will be leaving", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> he has left", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> he had left", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> he was leaving"], "correct_answer": 2, "solution": "'He had left' will be used instead of 'he leave' because the main clause 'we discussed' is in the Past Tense, so the 'after' clause should use the Past Perfect Tense. The correct sentence should be: \"After he had left, we discussed his suggestion.\""}, {"id": "108284", "question": "<strong>Choose the option that is the correct passive form of the sentence.</strong></p> <p>We had eaten the cake", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> The cake had been eaten by us.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The cake will be eaten by us.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The cake is eaten by us.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The cake was eaten by us."], "correct_answer": 0, "solution": "<strong>A) </strong>The cake had been eaten by us."}, {"id": "108285", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>Dwarfed varieties of trees and shrubs in pots", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bonafide", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Orchard", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Botanical", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Bonsai"], "correct_answer": 3, "solution": "<strong>D)</strong> <strong>Bonsai</strong> (noun) – Dwarfed varieties of trees and shrubs in pots बौने पौधे"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=10*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=10*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
