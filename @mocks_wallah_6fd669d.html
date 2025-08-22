@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23972", "question": "Q1. Select the most appropriate meaning of the given idiom.</p> <p>Burn your bridges</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To have a fight", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To disclose a secret", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To be puzzled", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To eliminate the possibility of return or retreat"], "correct_answer": 3, "solution": "D) <strong>Burn your bridges </strong>(phrase) – To eliminate the possibility of return or retreat वापसी की संभावना खत्म करना"}, {"id": "23973", "question": "Q2. Choose the option that is the correct direct form of the sentence.</p> <p>She said, since it was evening, she had to go for a run.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> She said, “It is evening I must ran.”", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> She said, “It is evening I might go for a run.”", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> She said, “It is evening I should go for a run.”", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> She said, “It is evening I must go for a run.”"], "correct_answer": 3, "solution": "D) She said, “It is evening I must go for a run.”"}, {"id": "23974", "question": "Q3. Select the most appropriate option to fill in the blank.</p> <p>In the early autumn fierce fighting took place, the __________ Serbians bearing a prominent part.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> cowardly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> unabashed", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> gallant", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> bore"], "correct_answer": 2, "solution": "C) The term \"Gallant\" refers to behavior filled with bravery or valor, which fits the context perfectly. It has been used in the sentence for \"Serbians\", indicating the bravery of the Serbian people."}, {"id": "23975", "question": "Q4.Choose the incorrectly spelt word.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> WASSE", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> FITTER", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> COURIER", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> COURSE"], "correct_answer": 0, "solution": "A) The correct spelling of ‘Wasse’ is Wise which means “Astute, intelligent, prudent, sage” – बुद्धिमान"}, {"id": "23976", "question": "Q5. The given sentence is in active voice. Change the voice of the sentence. Select the correct option from the sentences given in options.</p> <p>Vasant has delivered the speech.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Vasant delivers the speech on time.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The speech was delivered by Vasant.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The speech was timely delivered by Vasant.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> The speech has been delivered by Vasant."], "correct_answer": 3, "solution": "D) The speech has been delivered by Vasant."}, {"id": "23977", "question": "Q6. Choose the word that is opposite in meaning to the given word.</p> <p>Abduct</p> <p>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Redeem", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Impress", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sociable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hijack"], "correct_answer": 0, "solution": "Antonym: <strong>Redeem</strong> (verb) – Release, liberate, free, emancipate मुक्त करना"}, {"id": "23978", "question": "Q7. Some parts of one or more sentences have been jumbled up, and labelled A, B, C and</p> <p>D. Select the option that gives the correct sequence in which these parts can be rearranged to form a meaningful and grammatically correct sentence.</p> <p>Their approach sensitized</p> <p>A. of it. Similarly, behind them, in the halls,</p> <p>B. flicked on when they came within ten feet</p> <p>C. a switch somewhere and the nursery light</p> <p>D. lights went on and off as they left them behind, with a soft automaticity.<span id=\"cke_bm_523C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> DCBA", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> CBAD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BADC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BCAD"], "correct_answer": 1, "solution": "Their approach sensitized a switch somewhere and the nursery light flicked on when they came within ten feet of it. Similarly, behind them, in the halls, lights went on and off as they left them behind, with a soft automaticity."}, {"id": "23979", "question": "Q8. Select the most appropriate meaning of the given idiom.</p> <p>Save your breath</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To make an effort that will be futile", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To hold one’s anger", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To work hard", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To be resentful"], "correct_answer": 0, "solution": "A) <strong>Save your breath</strong> (phrase) – To make an effort that will be futile"}, {"id": "23980", "question": "Q9. Fill in the blank with an appropriate option.</p> <p>Participants were ______ a meal of steak and French fries under dim light.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> served", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> nerved", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> cured", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> calmed"], "correct_answer": 0, "solution": "The verb \"serve\" means to provide someone with food or drink, usually in a formal or arranged situation such as a meal at a restaurant. It fits well in the sentence since the participants were given (or provided) a meal."}, {"id": "23981", "question": "Q10. Choose the word that can substitute the given group of words.</p> <p>One who does not express oneself freely</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Skeptic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Erudite", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Introvert", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pessimist"], "correct_answer": 2, "solution": "C) <strong>Introvert</strong> – One who does not express oneself freely"}, {"id": "23982", "question": "Q11. Choose the word that means the same as the given word.</p> <p>Faddish</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unpopular", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Phony", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Barge", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Fashionable"], "correct_answer": 3, "solution": "Synonym: Fashionable"}, {"id": "23983", "question": "Q12. Select the most appropriate 'one word' for the expression given below.</p> <p>A person who can speak multiple languages.<span id=\"cke_bm_491C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Minaret", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Polyglot", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Spire", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Intestate"], "correct_answer": 1, "solution": "B) Polyglot – A person who can speak multiple languages"}, {"id": "23984", "question": "Q13. Fill in the blank with an appropriate option.</p> <p>______ threats to elephants requires public and political will to take action.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Dignifying", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Addressing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Perplexing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stagnating"], "correct_answer": 1, "solution": "B) Addressing का प्रयोग होगा क्योंकि हाथियों के लिए खतरों को address (सुलझाना, निपटाना) करने के लिए public और political इच्छाशक्ति की ज़रूरत है!"}, {"id": "23985", "question": "Q14. Select the word that is closest in meaning (SYNONYM) to the word given below.</p> <p>DEPRESSED</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> DOLEFUL", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> DYNAMIC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> STURDY", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> NOISY"], "correct_answer": 0, "solution": "A) <strong>Depressed</strong> (adjective) – Unhappy, miserable, dejected, disheartened उदास"}, {"id": "23986", "question": "<strong>Q15. Some parts of a few sentences have been jumbled up, and labelled A, B, C and D Select the option that gives the correct sequence in which these parts can be rearranged to form a meaningful and grammatically correct sentence.</strong><br> <br> My years in my father’s house<br> A. would have been unbearable had<br> B. the feel of his hand clutching mine, his<br> C. I not had my brother. I never forgot<br> D. refusal to abandon me. Perhaps he and I would have been close even otherwise.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> ACBD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> DBCA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CBDA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BCDA"], "correct_answer": 0, "solution": "My years in my father’s house would have been unbearable had I not had my brother. I never forgot the feel of his hand clutching mine, his refusal to abandon me. Perhaps he and I would have been close even otherwise."}, {"id": "23987", "question": "Q16. Choose the word that can substitute the given group of words.</p> <p>A person who has given up their beliefs</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Misanthrope", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Versatile", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Apostate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Crusade"], "correct_answer": 2, "solution": "C) <strong>Apostate</strong> – A person who has given up their beliefs पक्षत्यागी"}, {"id": "23988", "question": "Q17. Parts of the following sentence are given as options. Identify the part that contains a grammatical error. If there is no error, select 'No error'.</p> <p>Shyam, so good with weapons, fail to find the words / to tell him that everything he’d done / so far, all the compromises he’d made, had been for love.<span id=\"cke_bm_545C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to tell him that everything he’d done", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Shyam, so good with weapons, fail to find the words", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> so far, all the compromises he’d made, had been for love.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 1, "solution": "B) “Fail” के बदले ‘Fails” का प्रयोग होगा क्योंकि Subject ‘Shyam’ singular noun है, इसलिए verb भी उससे मेल खाने के लिए singular रूप में होगा।"}, {"id": "23989", "question": "Q18. Parts of the following sentence are given as options. Identify the part that contains a grammatical error. If there is no error, select 'No error'.</p> <p>That will truly / been a milestone to / celebrate.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> celebrate.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> been a milestone to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> That will truly"], "correct_answer": 2, "solution": "C) ‘Be’ should be used in place of ‘Been’ because Base form of verb (i.e. V1) is used after the Modal verbs (I.e. must, could, will, should, would etc.). The base form of ‘Been’ is ‘Be’."}, {"id": "23990", "question": "Q19. Select the word that is closest in meaning (SYNONYM) to the word given below.</p> <p>THRIFTY</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PRUDENT", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> WASTEFUL", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> GENEROUS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> EXTRAVAGANT"], "correct_answer": 0, "solution": "A) <strong>Thrifty</strong> (adjective) – Frugal, economical, careful, cautious, prudent किफ़ायती"}, {"id": "23991", "question": "Q20. Choose the correctly spelt word.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> TEMPORERY", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CAMOFLAGUE", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PSEUDONYM", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> TABBOO"], "correct_answer": 2, "solution": "C) The correctly spelt word is ‘Pseudonym’ which means “a fictitious name, especially one used by an author” उपनाम"}, {"id": "23992", "question": "Comprehension:</p> <p>In the following passage some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each number.</p> <p>The man with the shotgun (1) ________ the guard to his knees. He handed up the shotgun to his partner and yanked the guard's wrists up behind his back and locked (2) ________ together with a pair of handcuffs. He (3) ________ him onto the floor with a kick between the shoulder blades. Then he took his shotgun back and (4) ________ to the security gate at the end of the counter. He was short and heavy and moved with peculiar slowness. “Buzz him (5)_______,” his partner said.</p> <p>Q21. Select the most appropriate option to fill in the blank No. 1.<span id=\"cke_bm_489C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> steered", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> pushed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> motivated", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> swayed"], "correct_answer": 1, "solution": "Grammatical दृष्टिकोण से, सभी options वाक्य में technical रूप से फिट बैठ रहा हैं, लेकिन वाक्य का संदर्भ और अर्थ ही सबसे best option का निर्धारण करेगा। यहाँ, बन्दूक वाला आदमी गार्ड को घुटनों के बल लाने के लिए physical force का उपयोग कर रहा है, इसलिए ‘Push’ option सबसे उपयुक्त हैं!"}, {"id": "23993", "question": "Comprehension:</p> <p>In the following passage some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each number.</p> <p>The man with the shotgun (1) ________ the guard to his knees. He handed up the shotgun to his partner and yanked the guard's wrists up behind his back and locked (2) ________ together with a pair of handcuffs. He (3) ________ him onto the floor with a kick between the shoulder blades. Then he took his shotgun back and (4) ________ to the security gate at the end of the counter. He was short and heavy and moved with peculiar slowness. “Buzz him (5)_______,” his partner said.</p> <p>Q22. Select the most appropriate option to fill in the blank No. 2<span id=\"cke_bm_489C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> them", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> that", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> these", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> it"], "correct_answer": 0, "solution": "पिछले वाक्य में guard's wrists का उल्लेख किया गया है जिस के लिए \"them\" pronoun का प्रयोग होगा जो guard की wrists को संदर्भित कर रहा है ! \"them\" शब्द \"locked\" verb का object है!"}, {"id": "23994", "question": "Comprehension:</p> <p>In the following passage some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each number.</p> <p>The man with the shotgun (1) ________ the guard to his knees. He handed up the shotgun to his partner and yanked the guard's wrists up behind his back and locked (2) ________ together with a pair of handcuffs. He (3) ________ him onto the floor with a kick between the shoulder blades. Then he took his shotgun back and (4) ________ to the security gate at the end of the counter. He was short and heavy and moved with peculiar slowness. “Buzz him (5)_______,” his partner said.</p> <p>Q23. Select the most appropriate option to fill in the blank No. 3<span id=\"cke_bm_489C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> toppled", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ascended", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> placed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> straightened"], "correct_answer": 0, "solution": "“Toppled” should be used in the given blank because it refers to ‘overbalance or cause to overbalance and fall.’ नीचे गिरा देना"}, {"id": "23995", "question": "Comprehension:</p> <p>In the following passage some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each number.</p> <p>The man with the shotgun (1) ________ the guard to his knees. He handed up the shotgun to his partner and yanked the guard's wrists up behind his back and locked (2) ________ together with a pair of handcuffs. He (3) ________ him onto the floor with a kick between the shoulder blades. Then he took his shotgun back and (4) ________ to the security gate at the end of the counter. He was short and heavy and moved with peculiar slowness. “Buzz him (5)_______,” his partner said.</p> <p>Q24. Select the most appropriate option to fill in the blank No. 4<span id=\"cke_bm_489C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> went over", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> went under", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> went along", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> went besides"], "correct_answer": 0, "solution": "A) Went over (phrasal verb) – This phrase can mean to traverse, pass across or inspect something. In this context, it suggests the man with the shotgun is heading to the security gate."}, {"id": "23996", "question": "Comprehension:</p> <p>In the following passage some words have been deleted. Fill in the blanks with the help of the alternatives given. Select the most appropriate option for each number.</p> <p>The man with the shotgun (1) ________ the guard to his knees. He handed up the shotgun to his partner and yanked the guard's wrists up behind his back and locked (2) ________ together with a pair of handcuffs. He (3) ________ him onto the floor with a kick between the shoulder blades. Then he took his shotgun back and (4) ________ to the security gate at the end of the counter. He was short and heavy and moved with peculiar slowness. “Buzz him (5)_______,” his partner said.</p> <p>Q25. Select the most appropriate option to fill in the blank No. 5", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> on", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> with", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> in"], "correct_answer": 3, "solution": "D) <strong>Buzz in</strong> (phrasal verb) – To come into a place rapidly or unexpectedly."}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
