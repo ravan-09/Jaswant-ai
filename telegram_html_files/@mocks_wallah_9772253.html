@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">20:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "142149", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>The company’s <ins><strong>rigid</strong> </ins>policies made it difficult for employees to adapt to changing circumstances.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Flexible", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Adversity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Juvenile", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Misfortune"], "correct_answer": 0, "solution": "<strong>Antonym: Flexible</strong> (adjective) – Adaptable, Lenient, Pliable, Yielding लचीला"}, {"id": "142152", "question": "<strong>Select the option that can be used as a one-word substitute for the highlighted group of words in the given sentence.</strong></p> <p>The practice of having two or more spouses at the same time was quite common in the olden days.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Patricide", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Patriarchy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Parochialism", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Polygamy"], "correct_answer": 3, "solution": "<strong>Patricide</strong> (noun) – The act of killing one's father. पितृहत्याकांड"}, {"id": "142157", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence. If there is no need to substitute it, select ‘No substitution required’.</strong></p> <p>Manisha <ins><strong>set apart</strong></ins> with her friends to explore the countryside.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> set in", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> set aside", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> set out", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No substitution required"], "correct_answer": 2, "solution": "Set apart' should be replaced with 'set out' because the sentence refers to \"exploring the countryside,\" which implies starting a journey or embarking on an adventure. 'Set out' means \"to begin a journey\" or \"to start with a purpose,\" which fits perfectly here. For example: They set out early in the morning for their trip."}, {"id": "142150", "question": "<strong>Select the best express Antonym of the given underlined word.</strong></p> <p>The <ins><strong>speculative</strong> </ins>nature of the investment made it too risky for conservative investors.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Accelerate", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Certain", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Clutch", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reveal"], "correct_answer": 1, "solution": "<strong>Antonym:</strong> <strong>Certain</strong> (adjective) – Sure, Definite, Reliable, Confident निश्चित"}, {"id": "142161", "question": "<strong>Identify the option that arranges the given parts in the correct order to form a meaningful paragraph</strong>.</p> <p><strong>P.</strong> But one of my enduring memories was the tree-filled gardens that dotted the road.</p> <p><strong>Q. </strong>We lived on Maigandhadeva Mudaliar Road (named after a prominent corporator) in Fraser Town, Bengaluru.</p> <p><strong>R. </strong>Our house, bought in the early 1960s, was just a stone’s throw from the popular Everest cinema, the East Railway Station, the Cox Town market, the government maternity home and the bus stop.</p> <p><strong>S. </strong>A narrow conservancy lane ran behind the house.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQSR", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> QRSP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PSRQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QSPR"], "correct_answer": 1, "solution": "<strong>Q:</strong> Q (Introduction to where they lived)"}, {"id": "142155", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>Stories are how we make ______________________ of our lives and of the world.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sensitivity", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> sense", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> innate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sagacious"], "correct_answer": 1, "solution": "<strong>'Sense'</strong> will be used because it means the ability to understand or derive meaning from something. The sentence implies that stories help us make sense of our lives and the world, making 'sense' the correct choice. 'Sensitivity' means being sensitive or having the ability to perceive, which doesn't fit here. 'Innate' means inborn or natural, which is irrelevant in this context. 'Sagacious' means wise or discerning, but it is not suitable for this sentence."}, {"id": "142145", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>The <ins><strong>malfunction</strong> </ins>of the engine caused the car to stop abruptly in the middle of the road.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Success", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Efficiency", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Failure", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Functionality"], "correct_answer": 2, "solution": "<strong>Synonym: Failure</strong> (noun) – Breakdown, collapse, malfunction, defect, fault विफलता"}, {"id": "142154", "question": "<strong>Select the correct spelling of the underlined word in the given sentence.</strong></p> <p>The <ins><strong>princepal</strong> </ins>of the college announced his early retirement today", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> principel", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> princeaple", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> principal", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> princepil"], "correct_answer": 2, "solution": "C) The correct spelling of ‘<strong>princepal’</strong> is ‘<strong>principal’</strong>, which means \"the head of a school, college, or other educational institution\" विद्यालय/कॉलेज का प्रधान या प्रमुख"}, {"id": "142156", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>Please turn off the lights _________ leaving the house", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> amid", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> before", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> between", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> during"], "correct_answer": 1, "solution": "<strong>'Before'</strong> is the correct choice because it means \"prior to.\" The sentence specifies \"leaving the house,\" indicating that the action of turning off the lights should occur before leaving, making 'before' the most appropriate option. 'Amid' means \"in the midst of,\" which does not fit the context here. 'Between' refers to \"in the middle of two things,\" but it does not align with the time-related context of the sentence. 'During' means \"at the time of,\" which changes the intended meaning of the sentence and is therefore inappropriate."}, {"id": "142144", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>After the storm, the winds began to <ins><strong>abate</strong></ins>, bringing relief to the affected areas.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Opposition", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Entangle", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Decrease", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Enemy"], "correct_answer": 2, "solution": "<strong>Synonym</strong>: <strong>Decrease</strong> (verb) – Diminish, Lessen, Subside, Reduce, Decline (कम होना)"}, {"id": "142153", "question": "<strong>Select the INCORRECTLY spelt word.</strong></p> <p>Nylon was among the first synthitic fibre made by man and is known for its toughness, strength and resistance to oil and grease.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> strength", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> synthitic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> resistance", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> toughness"], "correct_answer": 1, "solution": "B) The correct spelling of ‘<strong>synthitic’</strong> is ‘<strong>synthetic’</strong>, which means “produced by chemical synthesis, especially to imitate a natural product.” \"रासायनिक रूप से निर्मित, विशेष रूप से किसी प्राकृतिक उत्पाद की नकल करने के लिए"}, {"id": "142151", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>A word, number, or other figure that looks the same when viewed (or rotated) upside down .", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Ambigram", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Anadiplosis", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Anagram", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Alliteration"], "correct_answer": 0, "solution": "<strong>Anadiplosis</strong> (noun) – A rhetorical device where the last word of one sentence or clause is repeated as the first word in the next."}, {"id": "142143", "question": "<strong>Select the best express Synonym of the given underlined word.</strong></p> <p>He gained considerable <ins><strong>clout</strong> </ins>in the company after his innovative ideas led to a successful product launch.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Weakness", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Influence", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ineptitude", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Inability"], "correct_answer": 1, "solution": "<strong>Synonym: Influence</strong> (noun) – Clout, authority, power, sway, impact प्रभाव"}, {"id": "142147", "question": "<strong>Select the most appropriate meaning of the underlined idiom in the given sentence.</strong></p> <p>My old car was <ins><strong>pressed into service</strong></ins> as an emergency vehicle for my ailing grandmother.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Asking for special maintenance", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cared for by old people", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To use for a particular purpose when a special need occurs.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Used to take someone to the hospital"], "correct_answer": 2, "solution": "C) <strong>Pressed</strong> <strong>into service</strong> (idiom) – To use something for a specific purpose when it is urgently required or in a situation of necessity. किसी विशेष आवश्यकता के समय किसी चीज़ का use करना।"}, {"id": "142158", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence.</strong></p> <p>Wolves’ teeth are larger and <ins><strong>strong</strong> </ins>than dog’s teeth.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> more strong", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> stronger", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> the stronger", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> strongest"], "correct_answer": 1, "solution": "जैसे: Wolves’ teeth are larger and stronger than dog’s teeth. \"strong\" will be replaced with \"<strong>stronger</strong>\" because the sentence shows a comparison. When two entities are compared, the comparative degree of the adjective is used. Here, \"larger\" and \"than\" already indicate a comparison, so \"stronger\" is the correct choice. For example: Wolves’ teeth are larger and stronger than dog’s teeth."}, {"id": "142148", "question": "<strong>Select the option that will improve the underlined part of the given sentence.</strong></p> <p>I started feeling tired as I had been working for a long time and so I decided to <ins><strong>call the day</strong></ins>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> be called a day", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> call off the day", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> call it a day", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> be a day for calling"], "correct_answer": 2, "solution": "C) <strong>Call it a day</strong> – To stop working for the rest of the day (काम समाप्त कर देना या दिनभर की मेहनत के बाद आराम करना)"}, {"id": "142146", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Baker's Dozen", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Choosing quality over quantity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> When shopkeepers put something extra", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> One unit extra with one dozen", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A pile of bread"], "correct_answer": 2, "solution": "C) <strong>Baker's Dozen</strong> – One unit extra with one dozen एक दर्जन के साथ एक अतिरिक्त इकाई"}, {"id": "142159", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>Parts of northern France were also (A) / put in drought alert, with (B) / water supplies to businesses, (C) / farmers and ordinary residents restricted. (D)</p> <div class=\"simple-translate-system-theme\" id=\"simple-translate\"> <div> <div class=\"simple-translate-button isShow\" style='background-image: url(\"moz-extension://ebf05c29-9dbf-457f-81fa-dde21a9fbf78/icons/512.png\"); height: 22px; width: 22px; top: 74px; left: 636px;'> </div> <div class=\"simple-translate-panel\" style=\"width: 300px; height: 200px; top: 0px; left: 0px; font-size: 13px;\"> <div class=\"simple-translate-result-wrapper\" style=\"overflow: hidden;\"> <div class=\"simple-translate-move\" draggable=\"true\"> </div> <div class=\"simple-translate-result-contents\"> <p class=\"simple-translate-result\" dir=\"auto\"> </p> <p class=\"simple-translate-candidate\" dir=\"auto\"> </p> </div> </div> </div> </div>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (A) Parts of northern France were also", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> (B) put in drought alert, with", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (C) water supplies to businesses,", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (D) farmers and ordinary residents restricted."], "correct_answer": 1, "solution": "The correct preposition to use with \"alert\" in this context is <strong>\"on\"</strong>, not <strong>\"in.\"</strong><br> We say <strong>\"put on alert\"</strong> or <strong>\"placed on drought alert\"</strong> to indicate that a warning or watch has been issued for a particular condition."}, {"id": "142160", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>As the Intergovernmental Panel on Climate Change (IPCC) points out, (A) / drawing over large amounts of carbon dioxide from the atmosphere (B) / is essential if we are to stand any chance of preventing (C) / more than 1. 5C or even 2C of global heating. (D)</p> <div class=\"simple-translate-system-theme\" id=\"simple-translate\"> <div> <div class=\"simple-translate-button isShow\" style='background-image: url(\"moz-extension://ebf05c29-9dbf-457f-81fa-dde21a9fbf78/icons/512.png\"); height: 22px; width: 22px; top: 111px; left: 261px;'> </div> <div class=\"simple-translate-panel\" style=\"width: 300px; height: 200px; top: 0px; left: 0px; font-size: 13px;\"> <div class=\"simple-translate-result-wrapper\" style=\"overflow: hidden;\"> <div class=\"simple-translate-move\" draggable=\"true\"> </div> <div class=\"simple-translate-result-contents\"> <p class=\"simple-translate-result\" dir=\"auto\"> </p> <p class=\"simple-translate-candidate\" dir=\"auto\"> </p> </div> </div> </div> </div>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (A) As the Intergovernmental Panel on Climate Change (IPCC) points out,", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> (B) drawing over large amounts of carbon dioxide from the atmosphere", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (C) is essential if we are to stand any chance of preventing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> (D) more than 1. 5C or even 2C of global heating."], "correct_answer": 1, "solution": "The phrasal verb <strong>\"draw down\"</strong> is commonly used in environmental and climate contexts to mean <strong>\"remove\" or \"reduce\" something, especially from the atmosphere.\"</strong>"}, {"id": "142162", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p><strong>A.</strong> That day and the cash availability, bread and butter were budgeted</p> <p><strong>B.</strong> In the late 1980s and early 1990s when I was growing up, there were mom-and-pop stores for daily essential shopping</p> <p><strong>C.</strong> We did not go to the mall and buy 500 gm of butter; instead, depending on how many people were at our house</p> <p><strong>D.</strong> I remember buying half a pack of bread and 25 gm of butter, which was a quarter piece of a 100-gm pack, from our neighbourhood shop", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> BDAC", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CABD", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> BCAD", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ABCD"], "correct_answer": 2, "solution": "B: B provides a contextual introduction about the time frame and sets the stage for the rest of the story. It provides background about the mom-and-pop stores which were prevalent during the narrator's childhood. B provides the time frame \"late 1980s and early 1990s.\""}, {"id": "142163", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Enlightenment comes when one _____1____ worked through and _____2______ subhuman, human and also, some superhuman parts of being. You realise that everything that has existed, continues to exist and will come into existence, is a _____3_____of the Divine. Those who have experienced this and are constantly ____4______ in it, choose to guide others out of compassion and a sense of duty. Many seekers surrender to such a guru in deep _____5______ hoping to gain salvation. People hold a deep faith that, come what may, a yogi can never go wrong.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Were", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Was", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Have", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Has"], "correct_answer": 3, "solution": "No solution available"}, {"id": "142164", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Enlightenment comes when one _____1____ worked through and _____2______ subhuman, human and also, some superhuman parts of being. You realise that everything that has existed, continues to exist and will come into existence, is a _____3_____of the Divine. Those who have experienced this and are constantly ____4______ in it, choose to guide others out of compassion and a sense of duty. Many seekers surrender to such a guru in deep _____5______ hoping to gain salvation. People hold a deep faith that, come what may, a yogi can never go wrong.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Transcended", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Transgressed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Transfigured", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unbounded"], "correct_answer": 0, "solution": "No solution available"}, {"id": "142165", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Enlightenment comes when one _____1____ worked through and _____2______ subhuman, human and also, some superhuman parts of being. You realise that everything that has existed, continues to exist and will come into existence, is a _____3_____of the Divine. Those who have experienced this and are constantly ____4______ in it, choose to guide others out of compassion and a sense of duty. Many seekers surrender to such a guru in deep _____5______ hoping to gain salvation. People hold a deep faith that, come what may, a yogi can never go wrong.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ramification", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Manipulation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Manifest", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Manifestation"], "correct_answer": 3, "solution": "No solution available"}, {"id": "142166", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Enlightenment comes when one _____1____ worked through and _____2______ subhuman, human and also, some superhuman parts of being. You realise that everything that has existed, continues to exist and will come into existence, is a _____3_____of the Divine. Those who have experienced this and are constantly ____4______ in it, choose to guide others out of compassion and a sense of duty. Many seekers surrender to such a guru in deep _____5______ hoping to gain salvation. People hold a deep faith that, come what may, a yogi can never go wrong.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Dwelling", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unveiling", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Compelling", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Rumbling"], "correct_answer": 0, "solution": "No solution available"}, {"id": "142167", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Enlightenment comes when one _____1____ worked through and _____2______ subhuman, human and also, some superhuman parts of being. You realise that everything that has existed, continues to exist and will come into existence, is a _____3_____of the Divine. Those who have experienced this and are constantly ____4______ in it, choose to guide others out of compassion and a sense of duty. Many seekers surrender to such a guru in deep _____5______ hoping to gain salvation. People hold a deep faith that, come what may, a yogi can never go wrong.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Negotiation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Proliferation", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Veneration", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Denunciation"], "correct_answer": 2, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=20*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=20*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
