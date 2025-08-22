@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">20:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "144864", "question": "<strong>Select the option that can be used as a one-word substitute for the highlighted group of words in the given sentence.</strong></p> <p>There is an increasing number of people who do <ins><strong>not believe in the existence of God.</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> atheists", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> seers", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> cynics", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> fugitives"], "correct_answer": 0, "solution": "<strong>Seers (noun)</strong> – People who are said to have the ability to predict the future or have profound insights. भविष्यद्रष्टा; संत"}, {"id": "144867", "question": "<strong>Select the option with the correctly spelt word to fill in the blank.</strong></p> <p>The delta of river ____________ looks like a bird's foot because a lot of sediment is carried into the calm sea water.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mississipi", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mississipppi", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Mississippi", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Missisippi"], "correct_answer": 2, "solution": "C) The correct spelling is ‘<strong>Mississippi</strong>’ which refers to a major river in the United States. The delta of the river Mississippi looks like a bird's foot because a lot of sediment is carried into the calm sea water.\"अमेरिका की एक प्रमुख नदी जिसका डेल्टा पक्षी के पैर जैसा दिखता है।\""}, {"id": "144872", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>Most schools in Paris (A) / will stay open (B) / until the summer holidays (C) / start after Friday afternoon. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Most schools in Paris", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> will stay open", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> until the summer holidays", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> start after Friday afternoon."], "correct_answer": 3, "solution": "<strong>'starting from Friday afternoon'</strong> will be used instead of 'start after Friday afternoon' because here 'until' is used to indicate the duration up to a specific time (summer holidays), hence 'starting from' is more appropriate; Like— The shop will remain open until the festival starting from tomorrow."}, {"id": "144865", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words.</strong></p> <p>The rules of behaviour which guide one in a formal situation", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Impropriety", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bargain", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Protocol", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Affidavit"], "correct_answer": 2, "solution": "<strong>Impropriety</strong> (noun) – Improper conduct or behavior; failure to observe standards. अनुचित आचरण"}, {"id": "144876", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p><strong>P) </strong>The air was still warm.</p> <p><strong>Q) </strong> The breeze touched my face, drying out the sweat on my forehead.</p> <p><strong>R) </strong> Before I could feel the hotness in the air, dark clouds gathered. Soon the warm air turned into a cold wind.</p> <p><strong>S) </strong>One day in the month of June, I stood on the balcony, enjoying the small breeze of the evening.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> SPQR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QRPS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQPS"], "correct_answer": 0, "solution": "<strong>Options Elimination:</strong><br> <strong>Sentence S</strong> talks about a specific day and a specific action - standing on the balcony. This seems like a good opening statement, setting the scene. So, we can start with S. Based on starting with S, only option A. SPQR"}, {"id": "144870", "question": "<strong>Select the most appropriate option that can substitute the underlined segment in the given sentence. If there is no need to substitute it, select ‘No substitution required’.</strong></p> <p>The car, with all <ins><strong>its features, were meticulously</strong></ins> designed.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> its features, was meticulously", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> no substitution required", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> it's features, were meticulously", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> its features, have meticulously"], "correct_answer": 0, "solution": "In the sentence, the subject is \"The car,\" which is Singular. Therefore, the verb must also be Singular. The phrase \"were meticulously\" is incorrect as it uses a Plural Verb. Instead, \"was meticulously\" should be used because \"The car\" is Singular, and the verb must agree with it. For example— \"The car, with all its features, was meticulously designed.\""}, {"id": "144860", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Clear the decks", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Prepare for an event or course of action by dealing with anything that might hinder progress", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To take something away", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To draw something down", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To remove unnecessary things for further work"], "correct_answer": 0, "solution": "A) <strong>Clear the decks</strong> (idiom) – Prepare for an event or course of action by dealing with anything that might hinder progress किसी घटना या कार्रवाई के लिए तैयारी करना, जिसमें बाधा डालने वाली किसी भी चीज़ को हटाना।"}, {"id": "144869", "question": "<strong>Select the most appropriate adjective to fill in the blank.</strong></p> <p>She always wears dresses of _________ fashion.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> late", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> latest", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> the latest", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> the latter"], "correct_answer": 2, "solution": "<strong>'The latest'</strong> will be used because it refers to the most recent or up-to-date fashion. The sentence indicates that the subject wears dresses of the most current style, making \"the latest\" the appropriate choice. Let us analyze the other options: Late: While \"late\" means occurring after the expected time, it does not fit this context, as the sentence is discussing fashion, not timing. Latest: Although \"latest\" refers to something most recent, it cannot be used without the article \"the\" before it to describe a specific category like fashion. The latter: \"The latter\" is used to refer to the second of two things mentioned earlier and does not relate to the context of fashion."}, {"id": "144871", "question": "<strong>Select the most appropriate option to substitute the underlined segment in the given sentence. If no substitution is required, select 'No substitution required'.</strong></p> <p>Manisha had a great feeling for those who were <ins><strong>junior than</strong></ins> her.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No substitution required", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> junior of", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> junior to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> junior from"], "correct_answer": 2, "solution": "Words like junior, senior, inferior, and superior are always followed by 'to' for comparison. Hence, in the given sentence, the phrase junior than her should be replaced with 'junior to her'. For example: She is junior to me."}, {"id": "144859", "question": "<strong>Select the most appropriate synonym of the given word.</strong></p> <p>The manager explained the <ins><strong>rationale</strong> </ins>behind the new policy to ensure everyone understood its importance.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Reason", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Mistake", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Guess", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Doubt"], "correct_answer": 0, "solution": "<strong>Synonym: Reason</strong> (noun) – Explanation, logic, motive. तर्क"}, {"id": "144868", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The teacher __________ the students to think critically about the topic.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> admonished", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> acquiesced", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> assented", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> advised"], "correct_answer": 3, "solution": "<strong>'Advised'</strong> will be used because it means to suggest or guide someone, which fits the context where the teacher is encouraging students to think critically about a topic. 'Admonished' means to reprimand or warn, which does not fit here. 'Acquiesced' means to accept something reluctantly but without protest, which is not contextually relevant. 'Assented' means to agree, which doesn't align with the teacher's role in this sentence."}, {"id": "144866", "question": "<strong>Select the INCORRECTLY spelt word.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Abodomen", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Abolished", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Adverse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Annoyed"], "correct_answer": 0, "solution": "A) The correct spelling of \"<strong>Abodomen</strong>\" is \"<strong>Abdomen</strong>\", which means “the part of the body containing the stomach and other digestive organs” पेट, शरीर का वह हिस्सा जिसमें पाचन अंग होते हैं।"}, {"id": "144858", "question": "<strong>Select the most appropriate synonym of the given word.</strong></p> <p>His words <ins><strong>resonate</strong> </ins>with many people, inspiring them to take action for positive change.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bored", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Confused", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Echoed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Annoyed"], "correct_answer": 2, "solution": "<strong>Synonym: Echoed</strong> (verb) – Struck a chord, connected, reflected. प्रतिध्वनित होना"}, {"id": "144862", "question": "<strong>Select the most appropriate Antonym of the given word.</strong></p> <p>The new policy aims to <ins><strong>stimulate</strong> </ins>economic growth by encouraging investments in technology.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Discourage", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Energize", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Boost", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Promote"], "correct_answer": 0, "solution": "<strong>Antonym: Discourage</strong> (verb) – Dishearten, demotivate, deter, dissuade. (हतोत्साहित करना)"}, {"id": "144873", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong><br> It’s possible that triclosan exposure could trigger changes (A) / in the production of thyroid hormones and estrogen (B) / that interrupts normal skeletal development and (C) / maintenance of healthy bones as women age. (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> It’s possible that triclosan exposure could trigger changes", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in the production of thyroid hormones and estrogen", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> that interrupts normal skeletal development and", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> maintenance of healthy bones as women age."], "correct_answer": 2, "solution": "'<strong>interrupted</strong>' will be used instead of 'interrupts' because in 'that' clause the verb 'could trigger' is in Past Tense, so in Relative Clause also Verb will be in Past Tense; Like— It was the noise that disturbed my sleep."}, {"id": "144863", "question": "<strong>Select the most appropriate Antonym of the given word.</strong></p> <p>The stock market's <ins><strong>vagary</strong> </ins>makes it difficult to predict future trends.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Whim", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Fluctuation", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Predictability", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Inconsistency"], "correct_answer": 2, "solution": "<strong>Antonym: Predictability</strong> (noun) – Certainty, consistency, reliability. (पूर्वानुमेयता)"}, {"id": "144861", "question": "<strong>Select the most appropriate idiom that can substitute the underlined segment.</strong></p> <p>Despite the difficulties, Sarah <ins><strong>started her business with great energy and hard work</strong></ins>,and performed remarkably well in the industry", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> hit the ground running", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> let sleeping dogs lie", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> hit the hay", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> spilled the beans"], "correct_answer": 0, "solution": "<strong>Let sleeping dogs lie</strong> (idiom) – Avoiding unnecessary trouble by not interfering in a situation बिना वजह मुसीबत मोल न लेना"}, {"id": "144874", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error.</strong></p> <p>The local fire service has (A) / warned that devices should (B) / not be charged on (C) / potentially unflammable surfaces (D)", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The local fire service has", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> warned that devices should", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> not be charged on", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> potentially unflammable surfaces."], "correct_answer": 3, "solution": "'<strong>flammable</strong>' will be used instead of 'unflammable' because the word 'unflammable' is incorrect; the correct word would be 'flammable' or 'inflammable'. 'Non-flammable' can also be used."}, {"id": "144875", "question": "<strong>Given below are four jumbled sentences. Select the option that gives their correct logical sequence.</strong><br> <strong>a)</strong> On May 1, 1886, Chicago in the United States became the major site of a demonstration by labour unions in support of an eight-hour workday.<br> <strong>b)</strong> To condemn anti-worker actions, labour anarchists called for a meeting on May 4, 1886, at the Haymarket Square.<br> <strong>c)</strong> Police brutality and the victimisation of protesting workers by employees did not subdue the spirit of the protesters.<br> <strong>d)</strong> The peaceful meeting turned violent when a bomb exploded in the police ranks, and the police fired in response. The violent confrontation between the workers and the police became a symbol of the international struggle for workers’ rights.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> c, a, d, b", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> c, a, b, d", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> a, c, b, d", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a, c, d, b"], "correct_answer": 2, "solution": "a: Starting with \"a\" makes sense as it introduces the context and setting for the other sentences: the demonstration on May 1, 1886. It provides a starting point for the events that unfold"}, {"id": "144877", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong><br> <strong>P) </strong> The establishment of a Quad-led biomanufacturing hub in India will give the necessary fillip to enhance this cooperation.<br> <strong>Q) </strong> In March 2021, the Quad (Australia, India, Japan, and the United States) set up a Critical and Emerging Technology Working Group to facilitate cooperation, monitor trends, and scout<br> <strong>R) </strong> For opportunities related to developments in critical and emerging technologies, that included biotechnology<br> <strong>S) </strong> However, the potential for Quad cooperation in biotechnology remains insufficiently tapped.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RPSQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RSPQ", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> QRSP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPSR"], "correct_answer": 2, "solution": "<strong>R comes after Q:</strong> Sentence Q ends with the word \"scout\" and it's clear that the sentence is not complete. Sentence R starts with \"For opportunities related to...\" which naturally continues and completes the thought from Sentence Q. The word \"scout\" connects directly to \"for opportunities,\" indicating that the Quad's working group was set up to scout \"for opportunities related to developments in critical and emerging technologies.\" Hence, R is a direct continuation of Q."}, {"id": "144878", "question": "<strong>Comprehension</strong><strong>:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Agriculture, with its (1) ________ sectors, is unquestionably the largest livelihood provider in India, more so in the vast rural areas. It also (2) ________ a significant figure to the Gross Domestic Product (GDP). Sustainable agriculture, in (3) ________ food security, rural employment and environmentally sustainable technologies, such as soil conservation, sustainable natural resource management and biodiversity protection, are essential (4)________ holistic rural development. Indian agriculture and allied activities (5) ________ witnessed a green revolution, a white revolution, a yellow revolution and a blue revolution.</p> <p><strong>Q16. Select the most appropriate option to fill in blank no. 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> social", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> another", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> secured", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> allied"], "correct_answer": 3, "solution": "No solution available"}, {"id": "144879", "question": "<strong>Comprehension</strong><strong>:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Agriculture, with its (1) ________ sectors, is unquestionably the largest livelihood provider in India, more so in the vast rural areas. It also (2) ________ a significant figure to the Gross Domestic Product (GDP). Sustainable agriculture, in (3) ________ food security, rural employment and environmentally sustainable technologies, such as soil conservation, sustainable natural resource management and biodiversity protection, are essential (4)________ holistic rural development. Indian agriculture and allied activities (5) ________ witnessed a green revolution, a white revolution, a yellow revolution and a blue revolution.</p> <p><strong>Q17. Select the most appropriate option to fill in blank no. 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> assume", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> insist", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> contributes", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> insight"], "correct_answer": 2, "solution": "No solution available"}, {"id": "144880", "question": "<strong>Comprehension</strong><strong>:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Agriculture, with its (1) ________ sectors, is unquestionably the largest livelihood provider in India, more so in the vast rural areas. It also (2) ________ a significant figure to the Gross Domestic Product (GDP). Sustainable agriculture, in (3) ________ food security, rural employment and environmentally sustainable technologies, such as soil conservation, sustainable natural resource management and biodiversity protection, are essential (4)________ holistic rural development. Indian agriculture and allied activities (5) ________ witnessed a green revolution, a white revolution, a yellow revolution and a blue revolution.</p> <p><strong>Q18. Select the most appropriate option to fill in blank no. 3</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> condition of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> time of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> spite of", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> terms of"], "correct_answer": 3, "solution": "No solution available"}, {"id": "144881", "question": "<strong>Comprehension</strong><strong>:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Agriculture, with its (1) ________ sectors, is unquestionably the largest livelihood provider in India, more so in the vast rural areas. It also (2) ________ a significant figure to the Gross Domestic Product (GDP). Sustainable agriculture, in (3) ________ food security, rural employment and environmentally sustainable technologies, such as soil conservation, sustainable natural resource management and biodiversity protection, are essential (4)________ holistic rural development. Indian agriculture and allied activities (5) ________ witnessed a green revolution, a white revolution, a yellow revolution and a blue revolution.</p> <p><strong>Q19. Select the most appropriate option to fill in blank no. 4.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> on", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> for", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> as"], "correct_answer": 2, "solution": "No solution available"}, {"id": "144882", "question": "<strong>Comprehension</strong><strong>:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong></p> <p>Agriculture, with its (1) ________ sectors, is unquestionably the largest livelihood provider in India, more so in the vast rural areas. It also (2) ________ a significant figure to the Gross Domestic Product (GDP). Sustainable agriculture, in (3) ________ food security, rural employment and environmentally sustainable technologies, such as soil conservation, sustainable natural resource management and biodiversity protection, are essential (4)________ holistic rural development. Indian agriculture and allied activities (5) ________ witnessed a green revolution, a white revolution, a yellow revolution and a blue revolution.</p> <p><strong>Q20. Select the most appropriate option to fill in blank no. 5.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> being", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> will", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> have", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Be"], "correct_answer": 2, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=20*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=20*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
