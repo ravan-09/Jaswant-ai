@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23132", "question": "<strong>Q1. Choose the sentence with no spelling error</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I was rently at a literary festival.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I was recently at a litrary festival.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> I was recently at a literary festival.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I was recently at a literery estival"], "correct_answer": 2, "solution": "C) I was recently at a literary festival."}, {"id": "23133", "question": "<strong>Q2. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct.</strong></p> <p>There has been a <ins><strong>noticeable fall</strong></ins> in the number of children dying from malnutrition.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> noticeable falling", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> noticeably falling", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> noticeably falls"], "correct_answer": 1, "solution": "B) No improvement"}, {"id": "23134", "question": "<strong>Q3. Rearrange the parts of the sentence in correct order.</strong></p> <p><strong>P.</strong> application, which can also be used to log complaints about</p> <p><strong>Q.</strong> littering or caused by the animals, according to officials</p> <p><strong>R.</strong> registered with the local authority through a mobile phone</p> <p><strong>S.</strong> the residents of Noida can now get their pets like dogs or cats", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QRPS", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> SRPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PRQS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQPS"], "correct_answer": 1, "solution": "The residents of Noida can now get their pets like dogs or cats registered with the local authority through a mobile phone application, which can also be used to log complaints about littering or caused by the animals, according to officials"}, {"id": "23135", "question": "<strong>Q4. Find the part of the given sentence that has an error in it. If there is no error, choose ‘No error’</strong>.</p> <p>Near 800 million people worldwide lack updated sanitation.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> updated sanitation.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> people worldwide lack", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Near 800 million"], "correct_answer": 3, "solution": "D) ‘Near’ should be replaced with ‘Nearly’ because The word \"near\" is a preposition that implies proximity in space or time, while \"nearly\" is an adverb that is used to indicate that something is almost, but not completely, the case or the amount mentioned."}, {"id": "23136", "question": "<strong>Q5. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct</strong>.</p> <p>Scientists have predicted that the cultivation of rice will be <ins><strong>affected severe</strong></ins>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> affect severe", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> effecting severely", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> affected severely"], "correct_answer": 3, "solution": "D) The underlined part of the sentence \"affected severe\" is incorrect because \"severe\" is an adjective, but in this context we need an adverb to modify the verb \"affected\". The adverbial form of \"severe\" is \"severely\"."}, {"id": "23137", "question": "<strong>Q6. The given sentence is in active voice. Change the voice of the sentence. Select the correct option from the sentences given in options</strong>.</p> <p>She used the aerobic ball during workout.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> During workout the aerobic ball were to be used by her.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> During workout the aerobic ball will be used by her.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> During workout the aerobic ball had been used by her.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> During workout the aerobic ball was used by her."], "correct_answer": 3, "solution": "D) During workout the aerobic ball was used by her."}, {"id": "23139", "question": "<strong>Q7. Choose the word that can substitute the given group of words</strong>.</p> <p>A child born after the death of his father", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Orphan", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pseudonym", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Posthumous", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bigot"], "correct_answer": 2, "solution": "<strong>Orphan</strong> (noun) – An orphan is a child who has lost one or both parents. It can also refer to a person who has lost both parents and is not yet legally an adult. अनाथ"}, {"id": "23140", "question": "<strong>Q8. Select the option that will improve the bracketed part of the sentence. In case no improvement is needed, select ‘No improvement’</strong>.</p> <p>Dad said that, <strong>“She would have been a great sister if she was just a bit more careful”.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> that, \"She would have been a great sister if she were just a bit more careful\"", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> \"She would have been a great sister if she were just a bit more careful\"", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> “She would have been a greatest sister if she was just a bit more careful\""], "correct_answer": 2, "solution": "C) Option C offers the next best alternative: \"She would have been a great sister if she were just a bit more careful\". This sentence removes the unnecessary \"that”"}, {"id": "23141", "question": "<strong>Q9. Choose the word that means the same as the given word</strong>.</p> <p>Fad", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sensation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Standard", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Classic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Deviant"], "correct_answer": 0, "solution": "<strong>Sensation</strong> (noun) – a state of intense excitement, interest, or stimulation caused by an event, experience, or something that captures attention. सनसनी, उत्तेजना"}, {"id": "23142", "question": "<strong>Q10. Select the most appropriate option to fill in the blank</strong>.</p> <p>In space it is possible to identify and ________ some unique characteristics of human physiology and biology.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> isolate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> excess", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> replete", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> partition"], "correct_answer": 0, "solution": "<strong>Replete</strong> (adjective) –Full, complete, supplied, abounding भरा हुआ"}, {"id": "23143", "question": "<strong>Q11. Choose the word that is opposite in meaning to the given word</strong>.</p> <p>Devious", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Outspoken", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Circuitous", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Clandestine", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Serpentine"], "correct_answer": 0, "solution": "Antonym: <strong>Outspoken</strong> (adjective) – Frank, honest, candid, open, blunt"}, {"id": "23144", "question": "<strong>Q12. Choose the word that means the same as the given word.</strong></p> <p>Nacreous", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Monochromatic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Pale", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gloom", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Iridescent"], "correct_answer": 3, "solution": "<strong>Monochromatic</strong> (adjective) – Dull, indistinct, insipid, boring एकरंगा"}, {"id": "23145", "question": "<strong>Q13. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct</strong>.</p> <p>Mary doesn’t like cartoons because they are loud, so she<ins> <strong>doesn’t watched them</strong>.</ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> do not watched this", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> doesn’t watch them", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> does watching them"], "correct_answer": 1, "solution": "B) \"doesn't watch them.\" should be used because First form of verb (i.e. V1) is used after ‘Do/does’."}, {"id": "23146", "question": "<strong>Q14. In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase</strong>.</p> <p>To play with fire", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Feel sick", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To take foolish risk", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To abuse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Show disappointment"], "correct_answer": 1, "solution": "B) <strong>To play with fire</strong> (phrase) – To take foolish risk आग से खेलना"}, {"id": "23147", "question": "<strong>Q15. Choose the incorrectly spelt word</strong>.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Flufy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gifted", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Juggler", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Struggler"], "correct_answer": 0, "solution": "A) The correct spelling of ‘Flufy’ is ‘Fluffy’ which means “of, like, or covered with fluff” रोएँदार, फुज्जीदार."}, {"id": "23148", "question": "<strong>Q16. Parts of the following sentence are given as options. Identify the part that contains a grammatical error. If there is no error, select 'No error'</strong>.</p> <p>That was a good / conversation, I look forward / to meet you.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> That was a good", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> to meet you.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> conversation, I look forward", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 1, "solution": "B) “Meet” should be replaced with “meeting’ as gerund is followed by the given below words.<br> ‘be used to, accustomed to, averse to, with a view to, addicted to, devoted to, in addition to, look forward to, object to, owing to, given to, taken to, disposed to, prone to’<br> He is addicted to smoke heavily. (Use ‘smoking’ for ‘smoke’)"}, {"id": "23149", "question": "<strong>Q17. Select the correct indirect form of the given sentence</strong>.</p> <p>Nandini said, “I bought a pen yesterday.”", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nandini said she did bought a pen the previous day.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Nandini said that she had bought a pen the previous day.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nandini said that she had bought a pen yesterday.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nandini says that she had bought a pen the previous day"], "correct_answer": 1, "solution": "B) Nandini said that she had bought a pen the previous day"}, {"id": "23150", "question": "<strong>Q18. Select the most appropriate meaning of the given idiom</strong>.</p> <p>Backseat driver", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> A person who offers unsolicited advice.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To miss an appointed meeting.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Attempt to get control over someone.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To conclude proceedings."], "correct_answer": 0, "solution": "A) <strong>Backseat driver</strong> (phrase) – A person who offers unsolicited advice."}, {"id": "23151", "question": "<strong>Q19. Choose the word that means the same as the given word</strong>.</p> <p>Corrective", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Commuting", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Restorative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Compensatory", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sluggish"], "correct_answer": 1, "solution": "<strong>Commute</strong> (verb) – Travel, go back and forth आना-जाना"}, {"id": "23152", "question": "<strong>Q20. Rearrange the parts of the sentence in correct order. </strong><br> <br> Research shows<br> P. that medium-skilled employees who work<br> Q. in front of a computer and work beyond<br> R. 4.6 effective hours a day produce smaller<br> S. quantities of output per hour due to fatigue", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQSP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQSR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> SQRP", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PQRS"], "correct_answer": 3, "solution": "That medium-skilled employees who work in front of a computer and work beyond 4.6 effective hours a day produce smaller quantities of output per hour due to fatigue."}, {"id": "23153", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Rock candy is actually a collection of large sugar crystals that are \"grown\" from a sugar-water (1)______. Crystals form when the smallest particles of a substance, the molecules, arrange themselves in a/an (2) ______ and repetitive pattern. Molecules are too small for us to see moving around and (3) ______ themselves, but you can get a rough idea of what this would look like by taking a small shallow tray and filling it with marbles, ball bearings, or other spheres. As you (4) ______ more spheres, the bottom of the tray becomes covered, then the spheres must form layers on top of (5) ______, and a structure or pattern emerges.</p> <p><strong>Q21. Select the most appropriate option to fill in blank number 1</strong>.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> convergence", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ramification", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> disposition", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> solution"], "correct_answer": 3, "solution": "In the context of the passage, it's discussing the formation of rock candy, which involves dissolving sugar in water. The term \"solution\" is used in science to refer to a mixture where particles of one or more substances (the solute) are distributed uniformly throughout another substance (the solvent). In this case, sugar (solute) is dissolved in water (solvent) to create a sugar-water solution."}, {"id": "23154", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Rock candy is actually a collection of large sugar crystals that are \"grown\" from a sugar-water (1)______. Crystals form when the smallest particles of a substance, the molecules, arrange themselves in a/an (2) ______ and repetitive pattern. Molecules are too small for us to see moving around and (3) ______ themselves, but you can get a rough idea of what this would look like by taking a small shallow tray and filling it with marbles, ball bearings, or other spheres. As you (4) ______ more spheres, the bottom of the tray becomes covered, then the spheres must form layers on top of (5) ______, and a structure or pattern emerges.</p> <p><strong>Q22. Select the most appropriate option to fill in blank number 2</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> orderly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> vastly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> wholly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> adeptly"], "correct_answer": 0, "solution": "The passage is talking about the formation of crystals from sugar-water. Crystals form when molecules arrange themselves in a pattern. The pattern in which these molecules arrange is not vast, wholly, or adeptly; it is orderly. The term \"orderly\" means arranged or disposed in a neat, tidy manner or in a regular sequence, which is the most apt description for the formation of a crystal structure."}, {"id": "23155", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Rock candy is actually a collection of large sugar crystals that are \"grown\" from a sugar-water (1)______. Crystals form when the smallest particles of a substance, the molecules, arrange themselves in a/an (2) ______ and repetitive pattern. Molecules are too small for us to see moving around and (3) ______ themselves, but you can get a rough idea of what this would look like by taking a small shallow tray and filling it with marbles, ball bearings, or other spheres. As you (4) ______ more spheres, the bottom of the tray becomes covered, then the spheres must form layers on top of (5) ______, and a structure or pattern emerges.</p> <p><strong>Q23. Select the most appropriate option to fill in blank number 3</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> summarizing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> shielding", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> arranging", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> dividing"], "correct_answer": 2, "solution": "The sentence is describing the way that molecules behave when forming a crystal. This process involves the molecules arranging themselves in a specific and repetitive pattern. So, the word \"arranging\" fits best in this context."}, {"id": "23156", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Rock candy is actually a collection of large sugar crystals that are \"grown\" from a sugar-water (1)______. Crystals form when the smallest particles of a substance, the molecules, arrange themselves in a/an (2) ______ and repetitive pattern. Molecules are too small for us to see moving around and (3) ______ themselves, but you can get a rough idea of what this would look like by taking a small shallow tray and filling it with marbles, ball bearings, or other spheres. As you (4) ______ more spheres, the bottom of the tray becomes covered, then the spheres must form layers on top of (5) ______, and a structure or pattern emerges.</p> <p><strong>Q24. Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> add", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> curse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> please", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> toil"], "correct_answer": 0, "solution": "The sentence suggests that as you add more spheres to the tray, a structure or pattern emerges. The word \"add\" fits in this context as it indicates the action of increasing the number of spheres in the tray. The other options (B. curse, C. please, D. toil) do not make sense in the given context and are not related to the process of forming crystals."}, {"id": "23157", "question": "<strong>Comprehension</strong>:</p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Rock candy is actually a collection of large sugar crystals that are \"grown\" from a sugar-water (1)______. Crystals form when the smallest particles of a substance, the molecules, arrange themselves in a/an (2) ______ and repetitive pattern. Molecules are too small for us to see moving around and (3) ______ themselves, but you can get a rough idea of what this would look like by taking a small shallow tray and filling it with marbles, ball bearings, or other spheres. As you (4) ______ more spheres, the bottom of the tray becomes covered, then the spheres must form layers on top of (5) ______, and a structure or pattern emerges.</p> <p><strong>Q25. Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> others", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> one", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> one another", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> every other"], "correct_answer": 2, "solution": "The passage talks about how crystals form in a repetitive pattern, and how layers of spheres form on top of each other in a tray. The phrase \"one another\" indicates the interaction between the spheres or layers in this pattern. It suggests that as each layer forms, it is followed by another layer on top of it, contributing to the overall structure or pattern. Therefore, \"one another\" best fits the context of the passage."}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
