@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/25</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+            <div class="lang">
+                <button class="lang-btn active" id="engBtn">English</button>
+                <button class="lang-btn" id="hinBtn">हिंदी</button>
+            </div>
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 25</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah">Mocks Wallah</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/50</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">If </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image001.png\" width=\"95\" height=\"31\" alt style=\"vertical-align:middle\" ><span style=\"font-family:'Cambria Math'\"> then the value of tan&theta; is: </span></p>",
+    "options": [
+      "<style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image002.png\" width=\"53\" height=\"43\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image003.png\" width=\"53\" height=\"41\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image004.png\" width=\"57\" height=\"43\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image005.png\" width=\"53\" height=\"43\" alt style=\"vertical-align:middle\" ></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image006.png\" width=\"399\" height=\"317\" alt ></p>",
+    "question_index": 0
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">If </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image007.png\" width=\"124\" height=\"21\" alt style=\"vertical-align:middle\" ><span style=\"font-family:'Cambria Math'\"> find the value of x.</span></p>",
+    "options": [
+      "<style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image008.png\" width=\"15\" height=\"18\" alt ></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">1/2^3</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">2^3</span></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image009.png\" width=\"16\" height=\"18\" alt ></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image010.png\" width=\"407\" height=\"366\" alt ></p>",
+    "question_index": 1
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The age of the older of two boys is thrice that of the younger. 9 years ago it was five times that of the younger. Find the present age of each.</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">15 years, 45 years</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">12 years, 36 years</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">18 years, 54 years</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">17 years, 51 years</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image011.png\" width=\"356\" height=\"410\" alt ></p>",
+    "question_index": 2
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">A person drives 110 miles at 55 miles per hour, he drives the next 120 miles at 60 miles per hour, and then he drives the next 60 miles in an hour. What is his average speed for the entire journey in miles per hour ?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">63</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">60</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">58</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">55</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image012.png\" width=\"349\" height=\"308\" alt ></p>",
+    "question_index": 3
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">PQ is a diameter of a circle with centre O. The tangents at R meets PQ produced at A. If &ang;RPQ = 27&deg;, then measure of &ang;RQP is:</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">27&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">54&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">153&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">63&deg;</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image013.png\" width=\"348\" height=\"257\" alt ></p>",
+    "question_index": 4
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The value of </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image014.png\" width=\"124\" height=\"29\" alt style=\"vertical-align:middle\" ><span style=\"font-family:'Cambria Math'\"> is:</span></p>",
+    "options": [
+      "<style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image015.png\" width=\"39\" height=\"38\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image016.png\" width=\"39\" height=\"38\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image017.png\" width=\"39\" height=\"38\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image018.png\" width=\"39\" height=\"38\" alt style=\"vertical-align:middle\" ></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image019.png\" width=\"383\" height=\"412\" alt ></p>",
+    "question_index": 5
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The surface areas of two spheres are in the ratio 25 : 36. What is the ratio of their volumes?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">36/125</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">36/115</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">125/216</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">25/36</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image020.png\" width=\"393\" height=\"335\" alt ></p>",
+    "question_index": 6
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The following bar graph shows the sales (in thousands) of magazines from six branches (A, B, C, D, E and F) of a publishing company during two consecutive years 2021 and 2022.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image021.png\" width=\"382\" height=\"232\" alt ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">What percent of the average sales of branches A, B and C in 2022 is the average sales of branches A, C and F in 2021?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">86.2%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">87.5%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">88.4%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">82.3%</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image022.png\" width=\"362\" height=\"422\" alt ></p>",
+    "question_index": 7
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Reshma took a loan of &#8377;12,00,000 with simple interest for as many years as the rate of interest. If she paid &#8377;9,72,000 as interest at the end of the loan period, what was the rate of interest per annum ?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">8.7%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">7.5%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">9%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">8%</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image023.png\" width=\"411\" height=\"446\" alt ></p>",
+    "question_index": 8
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">In a &#8710;ABC, two medians AD and BE intersect at G at right angles. If AD = 18 cm and BE = 12 cm, then the length of BD is equal to:</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">20 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">15 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">10 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">8 cm</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image024.png\" width=\"364\" height=\"448\" alt ></p>",
+    "question_index": 9
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">If 18 toys out of 75 toys are for boys and the rest are for girls, what is the percentage of girls toys?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">57%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">76%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">67%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">18%</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">% of toys for girls = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image025.png\" width=\"60\" height=\"29\" alt style=\"vertical-align:middle\" ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">=&gt; 76%</span></p>",
+    "question_index": 10
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">What is the value of the following expression?</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image026.png\" width=\"280\" height=\"33\" alt ></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">1759/3250</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">1093/111</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">1113/856</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">853/1610</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image027.png\" width=\"373\" height=\"224\" alt ></p>",
+    "question_index": 11
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Find the number when successively divided by 3,5and 7 leaves remainder 2,1and 3, respectively, and the last quotient is 3.</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">367</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">360</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">365</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">362</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image028.png\" width=\"355\" height=\"337\" alt ></p>",
+    "question_index": 12
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Ram travelled an equal distance with the speed of 40 km/hr, 45 km/hr and 60 km/hr. What is the average speed of Ram during the whole journey? Correct to two decimal places.</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">46.96 km/hr</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">94.66 km/hr</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">66.94 km/hr</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">64.96 km/hr</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image029.png\" width=\"380\" height=\"263\" alt ></p>",
+    "question_index": 13
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">A and B can do a piece of work in 8 days and B alone can do it in 16 days. In how many days, can A do it alone?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">18 days</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">24 days</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">16 days</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">10 days</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image030.png\" width=\"327\" height=\"240\" alt ></p>",
+    "question_index": 14
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Ravi sells his goods at a 25% loss on cost price but uses 45% less weight. What is his percentage profit or loss?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Loss, 47 (9/10)%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Profit, 36 (4/11)%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Profit, 47 (9/10)%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Loss, 36 (4/11)%</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image031.png\" width=\"339\" height=\"154\" alt ></p>",
+    "question_index": 15
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The sides of a cuboid are in the ratio 3 : 4 : 5 and its surface area is equal to the surface area of the cube with side 6 units. What is the approximate volume of the cuboid?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">210</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">150</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">180</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">240</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image032.png\" width=\"367\" height=\"287\" alt ></p>",
+    "question_index": 16
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Three persons ran for office and got, 1136, 7636</span><span style=\"font-family:'Cambria Math'\">&nbsp; </span><span style=\"font-family:'Cambria Math'\">and 11628 votes, respectively. What was the winning candidate's percentage of the total votes?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">59%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">61%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">57%</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">52%</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image033.png\" width=\"366\" height=\"207\" alt ></p>",
+    "question_index": 17
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Study the given three-dimensional chart and answer the question that follows. The chart details the sale of fruits in different months.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image034.png\" width=\"353\" height=\"278\" alt=\"Solved] Study the given three-dimensional chart and answer ...\" ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">In which month was the sale of Melons the lowest and by how much was it more than the sale of Oranges in that month?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">June, 3</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">May, 3</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">April, 3</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">June, 4</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Sale of melons is lowest in June that is 20.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Sale of oranges in June is 17.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, melons are 3 more than oranges in June. </span></p>",
+    "question_index": 18
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The following graph shows the production (in thousands) of two types (A and B) of cars by a company over the years 2016 to 2021.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image035.png\" width=\"335\" height=\"233\" alt ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">In how many of the given years was the production of type A cars more than the average production of this type car in the given years?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">2</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">4</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">1</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">3</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Average production of type A cars over the given years = </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image036.png\" width=\"141\" height=\"29\" alt style=\"vertical-align:middle\" ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">=&gt; 195</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 type A cars over the years 2018, 2019 and 2020 has production more than the average.</span></p>",
+    "question_index": 19
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">In a circle, ABCD is a cyclic quadrilateral in which AE is drawn parallel to CD, and BA is produced to F. If &ang;ABC = 85&deg; and &ang;FAE = 24&deg;, find the value of &ang;BCD.</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">115&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">119&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">124&deg;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">125&deg;</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image037.png\" width=\"409\" height=\"655\" alt ></p>",
+    "question_index": 20
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The price of an electric bike was &#8377;1,25,000 last year. This year, its price got decreased by 30%. What is the price (in &#8377;) of the electric bike this year?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">86,000</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">87,000</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">87,500</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">86,500</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Price of electric bike this year = 1,25,000</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image038.png\" width=\"51\" height=\"21\" alt style=\"vertical-align:middle\" ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">=&gt; &#8377; 87,500</span></p>",
+    "question_index": 21
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The respective ratio between numerical values of the curved surface area and the volume of a right circular cylinder is 2 : 3. If the respective ratio between the radius and the height of the cylinder is 3 : 7, what is the total surface area of the cylinder?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">45&pi; cm&sup2;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">60&pi; cm&sup2;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">62&pi; cm&sup2;</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">65&pi; cm&sup2;</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image039.png\" width=\"317\" height=\"331\" alt ></p>",
+    "question_index": 22
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Two circles touch each other at a point O. AB is a simple common tangent to both the circles touching at point A and point B. If radii of the circles are 9 cm and 4 cm, then find AB.</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">24 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">144 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">12 cm</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">72 cm</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image040.png\" width=\"359\" height=\"195\" alt ></p>",
+    "question_index": 23
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The given table shows the marks obtained by 100 students out of 50 marks in Mathematics and Physics in an examination.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817288635_image041.png\" width=\"412\" height=\"106\" alt ></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">If at least 60% marks in Physics are required for pursuing higher studies in Physics, how many students will be eligible to pursue higher studies in Physics?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">66</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">81</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">21</span></p>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">&nbsp;</span><span style=\"font-family:'Cambria Math'\">27</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">60% of 50 marks means students have to score at least 30 marks for pursuing higher studies in physics.</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">There are 21 students who scored 30 or above in Physics.</span><span style=\"font-family:'Cambria Math'\">&nbsp;&nbsp; </span></p>",
+    "question_index": 24
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 25 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('engBtn').onclick = () => this.setLang(true);
+                document.getElementById('hinBtn').onclick = () => this.setLang(false);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.50;
+                        console.log(`Q${i + 1}: INCORRECT (-0.50 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/50`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
