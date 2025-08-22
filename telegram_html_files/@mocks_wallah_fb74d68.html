@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "95134", "question": "<strong>The sentence below has been divided into three parts. Select the part of the sentence that has an error. If the sentence has no error, select the option 'No Error'.</strong></p> <p>I don't know the reason why he/ has said all this yet it/ puts him in a bad light.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> has said all this yet it", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Puts him in a bad light.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> I don't know the reason why he"], "correct_answer": 0, "solution": "• 'said' will be used instead of 'has said' because the initial part of the sentence 'I don't know the reason why he' indicates an event in the past. Therefore, to maintain the tense consistency in both parts of the sentence, the main verb should be 'said'; Like— He didn't mention the reason why he left the party early."}, {"id": "95161", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The perfume she uses has a strong _____________", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> scend", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> scent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cent"], "correct_answer": 2, "solution": "C) <strong>'Scent'</strong>का प्रयोग होगा क्योंकि इस संदर्भ में, वाक्य उस महिला द्वारा प्रयुक्त परफ्यूम की गंध की चर्चा कर रहा है। 'Scent' शब्द का अर्थ होता है गंध, जो कि परफ्यूम से संबंधित होता है। इसलिए, 'scent' सबसे उपयुक्त विकल्प होगा।"}, {"id": "95135", "question": "Select the word that is opposite in meaning <strong>(ANTONYM)</strong> to the word given below.</p> <p><strong>Corpulent</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Aerial", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Slim", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Anecdotist", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Narrator"], "correct_answer": 1, "solution": "<strong>Antonym: Slim</strong> (adjective) - Gracefully thin; slender, trim, slight. पतला"}, {"id": "95136", "question": "<strong>Select the most appropriate meaning of the given idiom</strong></p> <p>It’s a small world", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Make all possible efforts", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> You frequently see the same people in different places", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> An aggressive and bold confrontation", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A competition where the outcome is difficult to judge or predict"], "correct_answer": 1, "solution": "<strong>B) It’s a small world</strong> (idiom) – You frequently see the same people in different places आप अक्सर विभिन्न स्थानों पर समान लोगों को देखते हैं"}, {"id": "95162", "question": "<strong> Parts of the following sentence have been underlined and given as options. Select the option that contains a spelling error.</strong></p> <p>In the <strong>unscientific</strong> age or community, there are official <ins><strong>repositories</strong> </ins>of wisdom, such as <strong>Egyptian</strong> <strong>preists</strong> and Tibetan Lamas.</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> repositories", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Egyptian", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> unscientific", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> preists"], "correct_answer": 3, "solution": "D) The correct spelling of ‘preists’ is priest which means ‘a person who performs religious ceremonies in some religions’ पुजारी"}, {"id": "95137", "question": "Select the word that is opposite in meaning <strong>(ANTONYM)</strong> to the word given below.</p> <p><strong>Sardonic</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Gracious", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Lengthy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Podgy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Eternal"], "correct_answer": 0, "solution": "<strong>Antonym: Gracious</strong> (adjective) – Courteous, kind, and pleasant, especially towards someone of lower social status. विनम्र"}, {"id": "95138", "question": "<strong>The sentence below has been divided into three parts. Select the part of the sentence that has an error. If the sentence has no error, select the option 'No Error'.</strong></p> <p>Start to relax a hour/ before bedtime with a/ hot bath or your favourite music.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Start to relax a hour", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> before bedtime with a", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> hot bath or your favourite music.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 0, "solution": "• 'an hour' will be used instead of 'a hour' because the word 'hour' begins with a vowel sound, not a consonant sound, and when a word starts with a vowel sound, 'an' is used instead of 'a'; Like— It is an honor to meet you."}, {"id": "95139", "question": "<strong>The sentence below has been divided into three parts. Select the part of the sentence that has an error. If the sentence has no error, select the option 'No Error'.</strong></p> <p>Chasing the white stag through the/ forests, never catching it, of/ course, for it is a creature of legend.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Chasing the white stag through the", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> course, for it is a creature of legend.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> forests, never catching it, of"], "correct_answer": 0, "solution": "A) No error"}, {"id": "95140", "question": "Select the word that is closest in meaning <strong>(SYNONYM) </strong>to the word given below</p> <p><strong>Inertia</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Ardour", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Zeal", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Idleness", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stamina"], "correct_answer": 2, "solution": "<strong>Synonym: Idleness</strong> (noun) – The state of being idle; not being active or in use, laziness, inactivity. आलस्य"}, {"id": "95141", "question": "<strong>Four sentences are given below. Find the odd sentence out.</strong></p> <p><strong>A. </strong>Subsequent generations of kings hid their tombs in the Valley of the Kings in an attempt to elude the robbers.</p> <p><strong>B. </strong>The most imposing tombs are the famous pyramids, shaped like the sacred mound where the gods first appeared in the creation story.</p> <p><strong>C.</strong> The ongoing deciphering of hieroglyphic writings and research on the life of the peasants is answering several questions on Egyptian culture.</p> <p><strong>D. </strong>The gigantic pyramids were conspicuous targets for tomb robbers, whose plundering jeopardizes the hope for eternal life.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sentence D", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sentence B", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sentence C", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sentence A"], "correct_answer": 2, "solution": "<strong>C) Sentence C</strong> is the odd one out because it does not specifically address the topic of tombs or burial practices but rather speaks about Egyptian culture in a broader sense, including aspects beyond tomb architecture and security."}, {"id": "95142", "question": "Select the word that is closest in meaning <strong>(SYNONYM)</strong> to the word given below</p> <p><strong>Exemplary</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Deplorable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Substandard", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unworthy", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Impeccable"], "correct_answer": 3, "solution": "<strong>SYNONYM – Impeccable</strong> (adjective) – In accordance with the highest standards; faultless. This word also suggests something of extremely high quality, without any flaws, akin to being exemplary. निर्दोष, परिपूर्ण"}, {"id": "95145", "question": "<strong>In the following questions, a sentence has been given in Direct/Indirect Speech. Out of the four alternatives suggested, select the one which best expresses the same sentence in Indirect/Direct Speech.</strong><br> Priya assured me, “I can stay in tonight.”", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Priya told me that she could stay in this night.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Priya told me that she could stay in that night.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Priya told me that she could stay in tonight.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Priya told me that she can stay in that night."], "correct_answer": 1, "solution": "Priya told me that she could stay in that night."}, {"id": "95146", "question": "<strong>Choose the alternative which best expresses the meaning of the Idiom/Phrase.</strong></p> <p><strong>Herculean task</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to do nothing and hope that a problem will disappear", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a situation in which someone does not have a good or fair chance of winning, succeeding, etc", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To continue doing what is being done", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Challenging task"], "correct_answer": 3, "solution": "<strong>Herculean</strong> <strong>task</strong> – daunting task, challenging task, demanding task, arduous task, onerous task कठिन कार्य"}, {"id": "95148", "question": "<strong>select the best express synonym of the highlighted phrasal verb</strong></p> <p>She decided to <strong>embark on</strong> a new career path that promised more fulfillment and challenge.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Presumably", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Begin", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Clan", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Attainment"], "correct_answer": 1, "solution": "<strong>B) Embark on</strong> (phrasal verb) – Begin, initiate, start, commence, launch आरंभ करना"}, {"id": "95149", "question": "<strong>Select the option that expresses the given sentence in passive voice</strong>.</p> <p>Pay the electricity bill for the month of April.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The electricity bill for the month of April has to be paid", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> We should pay the electricity bill for the month of April.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Let us pay the electricity bill for the month of April.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Let the electricity bill for the month of April be paid"], "correct_answer": 3, "solution": "<strong>D)</strong> Let the electricity bill for the month of April be paid."}, {"id": "95151", "question": "Select the most appropriate <strong>word</strong> for the given group of words</p> <p>a group of stars found close together", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> concoction", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> conflagration", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> confederation", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> constellation"], "correct_answer": 3, "solution": "D) Constellation</strong> (noun) – A group of stars that forms a recognizable pattern in the sky, often named after its apparent form or identified with a mythological figure<strong>. </strong><strong>तारामंडल"}, {"id": "95160", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The Princess firmly held the ____ in her hands.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rain", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> ran", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> reign", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> rein"], "correct_answer": 3, "solution": "D) 'Rein' का प्रयोग होगा क्योंकि \"rein\" का अर्थ होता है लगाम जो घोड़ों को नियंत्रित करने के लिए प्रयुक्त होता है। जबकि 'Rain' का अर्थ है बारिश, 'Ran' का अर्थ है दौड़ना और 'Reign' का अर्थ है राज्य करना या शासन, जो इस संदर्भ में सही नहीं है।"}, {"id": "95152", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p>P. Every time I have travelled to rural India, I have been astounded by how much the people of urban</p> <p>Q. These necessities remain a dream for some people, as I learned recently</p> <p>R. while travelling in north Maharashtra, a State known to be progressive</p> <p>S. India take access to basic necessities for granted", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RSPQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPRS", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PSQR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQPS"], "correct_answer": 2, "solution": "P: Sentence P is the introductory sentence, setting the context of the author's experiences traveling in rural India. It introduces the subject (author's astonishment)"}, {"id": "95153", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Select the option that gives their correct logical sequence.</strong></p> <p>A. The recent surge, prompting the deployment of the Army, underscores the severity of the situation.</p> <p>B. With 31 fire incidents being reported within a span of 24 hours last week, Chief Minister Pushkar Singh Dhami’s acknowledgment of the enormity of the challenge must be backed by decisive action.</p> <p>C. Since November last year, Uttarakhand has recorded hundreds of forest fire incidents, resulting in the destruction of around 700 hectares of forest land.</p> <p>D. The raging infernos engulfing Uttarakhand’s forests have again turned the spotlight on the perennial problem of forest fires in India.</p> <p>E. Every year, these blazes not only devour precious green cover but also pose a grave threat to human settlements, wildlife and the fragile ecosystem.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> DECAB", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CBDEA", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CABED", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> CBEDA"], "correct_answer": 0, "solution": "<strong>D:</strong> This sentence introduces the main topic of the paragraph, which is the issue of forest fires in Uttarakhand, India."}, {"id": "95154", "question": "<strong>Sentences of a paragraph are given below in jumbled order. Arrange the sentences in the correct order to form a meaningful and coherent paragraph.</strong></p> <p>a. Last year, an incident of a frantic mother who had received an ominous call from “kidnappers.</p> <p>b. ” who had ‘kidnapped’ her daughter, raised an alarm in the U.S. Senate about the detrimental impact of artificial intelligence.</p> <p>c. The news took the nation by a storm as the said “kidnappers” and the daughter’s voice were nothing but hackers utilising generative AI to extort money.</p> <p>d. With such instances on the rise, the human perception of what is real and what is merely generative AI is slowly eroding.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> d, b, a, c", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> c, a, b, d", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> a, b, c, d", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> a, c, b, d"], "correct_answer": 2, "solution": "a: This sentence introduces the main topic of the paragraph—the incident involving a frantic mother and an ominous call."}, {"id": "95155", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> The effects of climate change on the Indian summer _______1_______obvious for at least a decade. In most parts of the country, the spring season has ____2_____. In 2022, the country experienced its hottest March since 1901. Last year, too, heatwaves started in early March, and many areas reported temperatures that were higher than average. This year, several parts of south India experienced a hotter-than-usual March. Climate change is also increasing the frequency and intensity of extreme weather events. On Monday, the India Meteorological Department (IMD) warned that heatwave spells could last 10-20 days, instead of four to eight days. The health effects of heat waves is still a ____3_____field of study and data on mortality caused by it varies — the IMD, National Disaster Management Agency (NDMA) and National Crime Records Bureau cite vastly divergent figures. However, experts _____4_____on the need to put in place measures to protect the most vulnerable from the _____5_____ temperatures.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> has been", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> were been", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> has", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> have been"], "correct_answer": 3, "solution": "No solution available"}, {"id": "95156", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> The effects of climate change on the Indian summer _______1_______obvious for at least a decade. In most parts of the country, the spring season has ____2_____. In 2022, the country experienced its hottest March since 1901. Last year, too, heatwaves started in early March, and many areas reported temperatures that were higher than average. This year, several parts of south India experienced a hotter-than-usual March. Climate change is also increasing the frequency and intensity of extreme weather events. On Monday, the India Meteorological Department (IMD) warned that heatwave spells could last 10-20 days, instead of four to eight days. The health effects of heat waves is still a ____3_____field of study and data on mortality caused by it varies — the IMD, National Disaster Management Agency (NDMA) and National Crime Records Bureau cite vastly divergent figures. However, experts _____4_____on the need to put in place measures to protect the most vulnerable from the _____5_____ temperatures.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Shrunk", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Brink", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Shrinking", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Shrink"], "correct_answer": 0, "solution": "No solution available"}, {"id": "95157", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> The effects of climate change on the Indian summer _______1_______obvious for at least a decade. In most parts of the country, the spring season has ____2_____. In 2022, the country experienced its hottest March since 1901. Last year, too, heatwaves started in early March, and many areas reported temperatures that were higher than average. This year, several parts of south India experienced a hotter-than-usual March. Climate change is also increasing the frequency and intensity of extreme weather events. On Monday, the India Meteorological Department (IMD) warned that heatwave spells could last 10-20 days, instead of four to eight days. The health effects of heat waves is still a ____3_____field of study and data on mortality caused by it varies — the IMD, National Disaster Management Agency (NDMA) and National Crime Records Bureau cite vastly divergent figures. However, experts _____4_____on the need to put in place measures to protect the most vulnerable from the _____5_____ temperatures.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Accentuate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Discernment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Resilient", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Nascent"], "correct_answer": 3, "solution": "No solution available"}, {"id": "95158", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> The effects of climate change on the Indian summer _______1_______obvious for at least a decade. In most parts of the country, the spring season has ____2_____. In 2022, the country experienced its hottest March since 1901. Last year, too, heatwaves started in early March, and many areas reported temperatures that were higher than average. This year, several parts of south India experienced a hotter-than-usual March. Climate change is also increasing the frequency and intensity of extreme weather events. On Monday, the India Meteorological Department (IMD) warned that heatwave spells could last 10-20 days, instead of four to eight days. The health effects of heat waves is still a ____3_____field of study and data on mortality caused by it varies — the IMD, National Disaster Management Agency (NDMA) and National Crime Records Bureau cite vastly divergent figures. However, experts _____4_____on the need to put in place measures to protect the most vulnerable from the _____5_____ temperatures.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Favored", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Concur", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Occur", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Savour"], "correct_answer": 1, "solution": "No solution available"}, {"id": "95159", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank.</strong><br> The effects of climate change on the Indian summer _______1_______obvious for at least a decade. In most parts of the country, the spring season has ____2_____. In 2022, the country experienced its hottest March since 1901. Last year, too, heatwaves started in early March, and many areas reported temperatures that were higher than average. This year, several parts of south India experienced a hotter-than-usual March. Climate change is also increasing the frequency and intensity of extreme weather events. On Monday, the India Meteorological Department (IMD) warned that heatwave spells could last 10-20 days, instead of four to eight days. The health effects of heat waves is still a ____3_____field of study and data on mortality caused by it varies — the IMD, National Disaster Management Agency (NDMA) and National Crime Records Bureau cite vastly divergent figures. However, experts _____4_____on the need to put in place measures to protect the most vulnerable from the _____5_____ temperatures.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Scorching", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Exerting", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Functioning", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Reclaiming"], "correct_answer": 0, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
