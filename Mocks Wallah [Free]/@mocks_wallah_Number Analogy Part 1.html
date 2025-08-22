@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/31</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+            <div class="lang">
+                <button class="lang-btn active" id="engBtn">English</button>
+                <button class="lang-btn" id="hinBtn">हिंदी</button>
+            </div>
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 31</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah" target="_blank" rel="noopener">VISHAL😁RAVAN</a> <a href="https://youtube.com/@Vlogsbyvishalravan" target="_blank" rel="noopener" style="font-size:12px;opacity:.85;margin-left:6px;">(YouTube backup)</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/62</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(21,61,125)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(11,31,65)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (12,35,75)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (16,46,95)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (10,28,58)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,51,104)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\">1st number × 3 - 2 = 2nd number</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\">2nd number × 2 + 3 = 3rd number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(21,61,125)</span></li></ul><p style=\"margin-top:14pt;margin-bottom:14pt;line-height:normal;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">21</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image001.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:14pt;margin-bottom:14pt;line-height:normal;font-size:12pt\"><span style=\"color:#111111;font-family:'Cambria Math'\">61</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image002.png\" width=\"103\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(11,31,65)</span></li></ul><p style=\"margin-top:14pt;margin-bottom:14pt;line-height:normal;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">11</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image003.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"color:#111111;font-family:'Cambria Math'\">31</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image004.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"color:#000000;font-family:'Cambria Math'\">(16,46,95)</span></li></ul><p style=\"margin-top:14pt;margin-bottom:14pt;line-height:normal;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">16</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image005.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"color:#111111;font-family:'Cambria Math'\">46</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image006.png\" width=\"94\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (16,46,95)</span></p><p></p>",
+    "question_index": 0
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(64,17,13)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(65,19,8)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (80,23,11)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (83,22,15)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (62,18,7)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (56,15,9)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The Logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\"> </span><span style=\"font-weight:bold;font-family:'Cambria Math'\">3 × 2nd number + 3rd number = 1st number.</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(64,17,13)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 × 17 + 13 = 64</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(65,19,8)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 × 19 + 8 = 65</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(80,23,11)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 × 23 + 11 = 80</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (80,23,11)</span></p><p></p>",
+    "question_index": 1
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(11,16,20)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(15,27,41)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (15,22,24)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,23,36)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,12,23)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (19,32,44)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-weight:bold;font-family:'Cambria Math'\">3 × (2nd number - 1st number) + 5 = 3rd number.</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(11,16,20)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">3 × (16 - 11) + 5 = 20</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(15,27,41)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 × (27 - 15) + 5 = 41</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(19,32,44)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">3 × (32 - 19) + 5 = 44</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (19,32,44) </span></p><p></p>",
+    "question_index": 2
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(5,80,11)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(9,95,10)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (6,60,7)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (8,95,10)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (6,70,8)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (7,85,11)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\"> </span><span style=\"font-weight:bold;font-family:'Cambria Math'\">(1st number + 3rd number) × 5 = 2nd number.</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(5,80,11)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">(5 + 11) × 5 = 80</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(9,95,10)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(9 + 10) × 5 = 95</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(6,70,8)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">(6 + 8) × 5 = 70</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (6,70,8)</span></p><p></p>",
+    "question_index": 3
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(6,7,38)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8,11,56)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (5,9,40)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (9,13,65)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,5,51)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (12,8,56)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\">(1st number + 2nd number) × 3 - 1 = 3rd number.</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(6,7,38)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(6 + 7) × 3 - 1 = 38</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(8,11,56)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8 + 11) × 3 - 1 = 56</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(9,13,65)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(9 + 13) × 3 - 1 = 65</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (9,13,65)</span></p><p></p>",
+    "question_index": 4
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(17,13,11)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(27,39,29)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,24,17)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (23,28,19)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (19,35,22)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (28,32,25)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image007.png\" width=\"181\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> = 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(17,13,11)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image008.png\" width=\"135\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(27,39,29)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image009.png\" width=\"135\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,24,17)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image010.png\" width=\"135\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (18,24,17)</span></p><p></p>",
+    "question_index": 5
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(32,52,15)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(13,39,21)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,44,23)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,48,26)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (37,60,18)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (28,64,32)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\"> </span><span style=\"font-weight:bold;font-family:'Cambria Math'\">1</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number + 3</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number + 5 = 2</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(32,52,15)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">32 + 15 + 5 = 52</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(13,39,21)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">13 + 21 + 5 = 39</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(37,60,18)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">37 + 18 + 5 = 60</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (37,60,18)</span></p><p></p>",
+    "question_index": 6
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(143,176,209)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(451,512,573) </span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (237,296,317)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (317,364,413)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (373,412,451)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (476,501,529)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number – 1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number = 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number – 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number = same difference</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(143,176,209)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">176-143 = 33</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">209-176 = 33</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(451,512,573) </span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">512-451 = 61</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">573-512 = 61</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(373,412,451)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">412-373 = 39</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">451-412 = 39</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (373,412,451)</span></p><p></p>",
+    "question_index": 7
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(6,4,58)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(12,8,220)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (7,3,65)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (9,5,125)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (4,8,86)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (7,9,137)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image011.png\" width=\"438\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(6,4,58)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image012.png\" width=\"146\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(12,8,220)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image013.png\" width=\"172\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(7,3,65)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image014.png\" width=\"146\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (7,3,65)</span></p><p></p>",
+    "question_index": 8
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(19,12,234)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(22,8,189)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,16,224)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,10,176)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,19,324)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (23,27,626)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><span style=\"font-family:'Cambria Math'\">  </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image015.png\" width=\"361\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(19,12,234)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image016.png\" width=\"169\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(22,8,189)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image017.png\" width=\"160\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(17,10,176)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image018.png\" width=\"169\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (17,10,176)</span></p><p></p>",
+    "question_index": 9
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(7,5,39)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8,6,52)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (2,4,14)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (8,7,67)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (4,9,93)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (10,8,84)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image019.png\" width=\"261\" height=\"30\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(7,5,39)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image020.png\" width=\"93\" height=\"39\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(8,6,52)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image021.png\" width=\"93\" height=\"39\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(10,8,84)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image022.png\" width=\"102\" height=\"39\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (10,8,84)</span></p><p></p>",
+    "question_index": 10
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16,21,9)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(23,36,11)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (7,16,4)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (15,28,6)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,24,9)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (16,25,8)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number – 3</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image023.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-weight:bold;font-family:'Cambria Math'\"> 2</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(16,21,9)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16 – 9)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 21</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(23,36,11)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(23 – 11)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 36</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(17,24,9)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(17 – 9)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 24</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (17,24,9)</span></p><p></p>",
+    "question_index": 11
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(68,48,33)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(83,63,48)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (74,54,42)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (66,51,38)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (92,72,57)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (66,46,33)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is:</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\"> </span><span style=\"font-weight:bold;font-family:'Cambria Math'\">1</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number – 2</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number = 20</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-weight:bold;font-family:'Cambria Math'\">2</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number – 3</span><span style=\"line-height:108%;font-size:8pt;font-weight:bold;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-weight:bold;font-family:'Cambria Math'\"> number = 15</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(68,48,33)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">68 – 48 = 20</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">48 – 33 = 15</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(83,63,48)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">83 – 63 = 20</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">63 – 48 = 15</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(92,72,57)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">92 – 72 = 20</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">57 – 72 = 15</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (92,72,57)</span></p><p></p>",
+    "question_index": 12
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(47,34,54)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(53,43,64)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (63,45,72)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (74,37,76)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (32,43,48)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (91,57,98)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number + 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image025.png\" width=\"56\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(47,34,54)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(47 + 34)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image026.png\" width=\"65\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(53,43,64)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(53 + 43)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image027.png\" width=\"65\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(63,45,72)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(63 + 45)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image028.png\" width=\"65\" height=\"29\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (63,45,72)</span></p><p></p>",
+    "question_index": 13
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(28,16,64)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(42,8,48)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,11,24)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,21,54)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (12,28,32)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (32,14,62)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image029.png\" width=\"295\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(28,16,64)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image030.png\" width=\"94\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(42,8,48)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image031.png\" width=\"85\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,21,54)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image032.png\" width=\"94\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (18,21,54)</span></p><p></p>",
+    "question_index": 14
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(7,58,9)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(11,133,12)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (6,44,7)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (5,33,6)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (8,74,10)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (9,86,3)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image033.png\" width=\"100\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> + 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number = 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(7,58,9)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image034.png\" width=\"30\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> + 9 = 58</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(11,133,12)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image035.png\" width=\"39\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> + 12 = 133</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(8,74,10)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image036.png\" width=\"30\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> + 10 = 74</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (8,74,10)</span></p><p></p>",
+    "question_index": 15
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(59,32,81)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(76,43,99)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (68,52,44)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (81,56,75)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (92,68,76)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (89,58,96)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number – 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(59,32,81)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(59 – 32)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 81</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(76,43,99)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(76 – 43)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 99</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(81,56,75)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(81 – 56)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image024.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 81</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (81,56,75)</span></p><p></p>",
+    "question_index": 16
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(12,8,80)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(14,6,169)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (8,6,36)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (9,6,56)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (10,4,92)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (11,2,112)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image037.png\" width=\"319\" height=\"35\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(12,8,80)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image038.png\" width=\"212\" height=\"41\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(14,6,169)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image039.png\" width=\"221\" height=\"41\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(10,4,92)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image040.png\" width=\"203\" height=\"41\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (10,4,92)</span></p><p></p>",
+    "question_index": 17
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(32,9,49)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(40,11,81)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (21,8,44)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,7,38)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (26,13,144)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (23,12,121)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image041.png\" width=\"315\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(32,9,49)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image042.png\" width=\"193\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(40,11,81)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image043.png\" width=\"211\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(23,12,121)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image044.png\" width=\"219\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (23,12,121)</span></p><p></p>",
+    "question_index": 18
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(76,21,64)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(87,42,54)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (56,26,39)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (61,32,37)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (67,25,52)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (83,27,68)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number – 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number) + 9 = 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(76,21,64)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(76 – 64) + 9 = 12 + 9 = 21</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(87,42,54)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(87 – 54) + 9 = 33 + 9 = 42</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(56,26,39)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(56 – 26) + 9 = 30 + 9 = 39</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (56,26,39)</span></p><p></p>",
+    "question_index": 19
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(49,32,39)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(72,56,37)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (86,53,72)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (93,86,20)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (99,81,41)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (66,56,27)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">2(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number-2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number) + 5 = Third number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(49,32,39)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">2(49 - 32) + 5 = 39</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(72,56,37)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">2(72 - 56) + 5 = 37</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(99,81,41)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">2(99 - 81) + 5 = 41</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (99,81,41)</span></p><p></p>",
+    "question_index": 20
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(60,4,225)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(45,5,216)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (92,4,325)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (56,7,384)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (81,9,160)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (63,7,430)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> </span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image045.png\" width=\"414\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(60,4,225)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image046.png\" width=\"240\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(45,5,216)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image047.png\" width=\"231\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(56,7,384)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image048.png\" width=\"231\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (56,7,384)</span></p><p></p>",
+    "question_index": 21
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16,68,12)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(18,99,21)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,69,13)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,91,19)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,85,19)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,62,13)</span>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(2</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image049.png\" width=\"347\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(16,68,12)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(2</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image050.png\" width=\"140\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 32 + 36 = 68</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,99,21)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(2</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image051.png\" width=\"140\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 36 + 63 = 99</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(14,85,19)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(2</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image052.png\" width=\"140\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 28 + 57 = 85</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (14,85,19).</span></p><p></p>",
+    "question_index": 22
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(11,7,64)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(9,6,37)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (15,12,72)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,9,81)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (12,8,70)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,10,61)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image053.png\" width=\"376\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(11,7,64)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image054.png\" width=\"290\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(9,6,37)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image055.png\" width=\"273\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(13,10,61)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image056.png\" width=\"308\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (13,10,61).</span></p><p></p>",
+    "question_index": 23
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(77,9,7)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(82,5,12)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (87,8,12)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (122,11,14)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (104,8,13)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (75,9,4)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">5</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">(2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number + 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd </span><span style=\"font-family:'Cambria Math'\">number) - 3 = 1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(77,9,7)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">5</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">(9 + 7) - 3 = 77</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(82,5,12)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">5</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">(5 + 12) - 3 = 82</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(122,11,14)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">5</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">(11 + 14) - 3 = 122</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (122,11,14).</span></p><p></p>",
+    "question_index": 24
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(194,14,4)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(47,7,3)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (2,2,2)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (7,3,1)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (525,23,5)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (92,12,6)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image058.png\" width=\"242\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image059.png\" width=\"240\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(194,14,4)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image060.png\" width=\"97\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image061.png\" width=\"119\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(47,7,3)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image062.png\" width=\"88\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image063.png\" width=\"97\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(2,2,2)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image064.png\" width=\"88\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image065.png\" width=\"88\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (2,2,2)</span></p><p></p>",
+    "question_index": 25
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(24,8,256)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(14,12,26)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (12,9,30)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (17,11,84)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,21,132)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,12,90)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image066.png\" width=\"513\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(24,8,256)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><a name=\"_Hlk177127207\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image067.png\" width=\"244\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></a></p><ul><li><span style=\"font-family:'Cambria Math'\">(14,12,26)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image068.png\" width=\"244\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,12,90)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image069.png\" width=\"244\" height=\"38\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (18,12,90).</span></p><p></p>",
+    "question_index": 26
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(36,14,104)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(22,19,108)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (16,22,75)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (18,21,88)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,17,20)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (16,27,112)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number- 10)(2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number-10) = 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(36,14,104)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(36 - 10)(14 - 10) = 26</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image070.png\" width=\"75\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(22,19,108)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(22 - 10)(19 - 10) = 12</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image071.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">108</span></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,21,88)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(18 - 10)(21 - 10) = 8</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image072.png\" width=\"75\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (18,21,88)</span></p><p></p>",
+    "question_index": 27
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16,116,13)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(18,100,7)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (13,121,17)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (19,122,12)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,86,10)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (16,136,18)</span>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">The logic follows here is: </span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\"> </span><span style=\"font-family:'Cambria Math'\">(1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number + 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image073.png\" width=\"136\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(16,116,13)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16 + 13)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image074.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">&gt; 29</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image075.png\" width=\"75\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(18,100,7)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(18 + 7)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image074.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">&gt; 25</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image076.png\" width=\"75\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><ul><li><span style=\"font-family:'Cambria Math'\">(16,136,18)</span></li></ul><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(16 + 18)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image074.png\" width=\"49\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\">&gt; 34 </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image077.png\" width=\"75\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (16,136,18)</span></p><p></p>",
+    "question_index": 28
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8,7,59)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(13,5,68)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (9,7,76)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (3,8,27)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (8,9,78)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (14,4,57)</span>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Logic: (1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number) + 3 = 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8,7,59)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(8 </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 7) + 3 = 59</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(13,5,68)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(13 </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 5) + 3 = 68</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(3,8,27)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(3 </span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image057.png\" width=\"19\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> 8) + 3 = 27</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (3,8,27)</span></p><p></p>",
+    "question_index": 29
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><style> img, svg {vertical-align: middle; max-width:100%; } *{overflow-wrap: break-word;}  </style> <span style=\"font-family:'Cambria Math'\"> Select the set in which the numbers are related in the same way as are the numbers of the following sets.</span><p><span style=\"font-family:'Cambria Math'\">(NOTE: Operations should be performed on the whole numbers, without breaking down the numbers into its constituent digits. E.g. 13 – Operations on 13 such as adding /subtracting /multiplying etc. to 13 can be performed. Breaking down 13 into 1 and 3 and then performing mathematical operations on 1 and 3 is not allowed)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(32,39,46)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(35,49,63)</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (67,44,21)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (46,56,62)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (29,38,48)</span>",
+      "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"> (21,35,29)</span>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> @font-face { font-family: 'Cambria Math'; src: url('https://appx-content-v2.classx.co.in/fonts/cambriamath.ttf') format('truetype');} </style><span style=\"font-family:'Cambria Math'\"></span><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Logic: (1</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">st</span><span style=\"font-family:'Cambria Math'\"> number + 3</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">rd</span><span style=\"font-family:'Cambria Math'\"> number)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image078.png\" width=\"28\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> = 2</span><span style=\"line-height:108%;font-size:8pt;vertical-align:super;font-family:'Cambria Math'\">nd</span><span style=\"font-family:'Cambria Math'\"> number</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(32,39,46)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(32 + 46)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image078.png\" width=\"28\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> = 39</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(35,49,63)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(35 + 63)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image078.png\" width=\"28\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> = 49</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(67,44,21)</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">(67 + 21)</span><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1749368502618_image078.png\" width=\"28\" height=\"21\" alt=\"\" style=\"vertical-align:middle\"><span style=\"font-family:'Cambria Math'\"> = 44</span></p><p style=\"margin-top:0pt;margin-bottom:8pt;line-height:108%;font-size:12pt\"><span style=\"font-family:'Cambria Math'\">Therefore, the correct answer is: (32,39,46)</span></p><p></p>",
+    "question_index": 30
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 31 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('engBtn').onclick = () => this.setLang(true);
+                document.getElementById('hinBtn').onclick = () => this.setLang(false);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.50;
+                        console.log(`Q${i + 1}: INCORRECT (-0.50 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/62`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
