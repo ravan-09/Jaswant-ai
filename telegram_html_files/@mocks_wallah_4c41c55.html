@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">15:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "23328", "question": "<strong>Q1,. Choose the word that means the same as the given word</strong>.</p> <p>Soar</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sweet", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Fly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Bitter", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sour"], "correct_answer": 1, "solution": "A) <strong>Soar</strong> (verb) – Fly, ascend, climb, mount ऊंची उड़ान भरना"}, {"id": "23329", "question": "<strong>Q2. In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase.</strong></p> <p>To miss the bus</p> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Short lived glory", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> To lose an opportunity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Escape by a thin margin", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A problem in a situation"], "correct_answer": 1, "solution": "B) <strong>To miss the bus</strong> (phrase) – To lose an opportunity अवसर खोना"}, {"id": "23330", "question": "<strong>Q3. Find the part of the given sentence that has an error in it. If there is no error, choose ‘No error’.</strong></p> <p>Workers and companies in all sectors can contribute their skills to meet society new needs.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sectors can contribute their skills", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> to meet society new needs.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Workers and companies in all"], "correct_answer": 2, "solution": "C) Replace \"to meet society new needs\" with \"to meet society's new needs\" because possessive apostrophe on \"society\" is missing in the sentence."}, {"id": "23331", "question": "<strong>Q4. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct.</strong></p> <p>We <strong>keeps a</strong> horse, two cows, and six chickens.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> has keeps a", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> keep a", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> keeping a", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement"], "correct_answer": 1, "solution": "B) The sentence should be corrected as \"We keep a horse, two cows, and six chickens.\" The reason is that the pronoun \"we\" takes a plural verb form, \"keep\" in this case"}, {"id": "23332", "question": "<strong>Q5. Select the correct indirect form of the given sentence.</strong></p> <p>Miranda said to her teacher, “I was sick for a day.”</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Miranda told her teacher that she has been sick for a day.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Miranda told her teacher that she is sick for a day.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Miranda told her teacher that she was sick for a day.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Miranda told her teacher that she had been sick for a day."], "correct_answer": 3, "solution": "D) Miranda told her teacher that she had been sick for a day."}, {"id": "23333", "question": "<strong>Q6. Select the word that is opposite in meaning (ANTONYM) to the word given below.</strong></p> <p>Fanatic</p> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Militant", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Moderate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Sectarian", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Zealot"], "correct_answer": 1, "solution": "B) <strong>Fanatic</strong> (adjective) – filled with or expressing excessive zeal कट्टर"}, {"id": "23334", "question": "<strong>Q7. Choose the sentence with no spelling error.</strong></p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He semed to be taller than him.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> He seemed to be taller than him.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He seemed to be taler than him.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He seemed to bee taller then him."], "correct_answer": 1, "solution": "B) He seemed to be taller than him."}, {"id": "23335", "question": "<strong>Q8. Choose the word that is opposite in meaning to the given word.</strong></p> <p>Recondite</p> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Abstruse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Phlegm", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Clear", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Abstract"], "correct_answer": 2, "solution": "Antonym: Clear"}, {"id": "23336", "question": "<strong>Q9. Choose the word that can substitute the given group of words.</strong></p> <p>A fall of water from a great height</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> River", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Stream", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Typhoon", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Cascade"], "correct_answer": 3, "solution": "D) <strong>Cascade</strong> (noun) – A fall of water from a great height झरना"}, {"id": "23337", "question": "<strong>Q10. Rearrange the parts of the sentence in correct order.</strong></p> <p>P. undermining the strict application of comparative anthropology</p> <p>Q. in the early 20th century it was almost universally assumed</p> <p>R. that traditional cultures would be completely assimilated</p> <p>S. into colonial cultures within a few decades, thus</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PSQR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPRS", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> QRSP"], "correct_answer": 3, "solution": "In the early 20th century it was almost universally assumed that traditional cultures would be completely assimilated into colonial cultures within a few decades, thus undermining the strict application of comparative anthropology"}, {"id": "23338", "question": "<strong>Q11. Select the correct passive form of the given sentence.</strong></p> <p>Susan writes recipes for the cookbook.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Recipes are write by Susan for the cookbook.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Recipes were written by Susan for the cookbook.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Recipes are written by Susan for the cookbook.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Recipes are being written by Susan for the cookbook."], "correct_answer": 2, "solution": "C) Recipes are written by Susan for the cookbook"}, {"id": "23339", "question": "<strong>Q12. Rearrange the parts of the sentence in correct order.</strong></p> <p>Some algal blooms</p> <p>P. beneficial to aquatic life, since these tiny</p> <p>Q. nutrient conditions are optimal, and they can be</p> <p>R. occur naturally when temperature, water, and</p> <p>S. organisms form the base of the food chain<span id=\"cke_bm_603C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> RQPS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PRSQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> QPRS", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RQSP"], "correct_answer": 0, "solution": "Some algal blooms occur naturally when temperature, water, and nutrient conditions are optimal, and they can be beneficial to aquatic life, since these tiny organisms form the base of the food chain"}, {"id": "23340", "question": "<strong>Q13. Improve the underlined part of the sentence. Choose ‘No improvement’ as an answer if the sentence is grammatically correct</strong>.</p> <p>If <strong>proper treat</strong>, the wound should heal within a few weeks.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> proper treated", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> properly treated", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> properly treatment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement"], "correct_answer": 1, "solution": "\"treat\" is a verb and needs an adverb (in this case \"properly\") to modify it, and it also needs to be in the passive voice (\"treated\") to fit with the structure of the sentence. Hence, \"properly treated\" is the correct choice."}, {"id": "23341", "question": "<strong>Q14. Find the part of the given sentence that has an error in it. If there is no error, choose</strong></p> <p><strong>‘No error’.</strong></p> <p>We have more then 6 years of experience in field hockey.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> then 6 years of", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> We have more", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> experience in field hockey.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No error"], "correct_answer": 0, "solution": "A) \"then\" should be replaced with \"than\" because \"Than\" is used in comparisons, while \"then\" is used to denote time or sequence. in this sentence, where a comparison is being made between the amount of experience \"we\" have and a duration of six years."}, {"id": "23342", "question": "<strong>Q15. Choose the word that is opposite in meaning to the given word.</strong></p> <p>Algid</p> <ol> </ol> <p>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Algae", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gelid", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Igneous", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Clean"], "correct_answer": 2, "solution": "Antonym: Igneous (adjective) – Hot, fiery गरम"}, {"id": "23343", "question": "Q16. Select the option that will improve the underlined part of the sentence. In case no improvement is needed, select ‘No improvement’.</p> <p>But what of the young people <ins><strong>whom are part of the cricket crowds, some of who are presumably born in England?</strong></ins></p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> who are part of the cricket crowds, some of who are presumably born in England", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No improvement", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> whom are part of the cricket crowds, some of whom are presumably born in England", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> who are part of the cricket crowds, some of whom are presumably born in England"], "correct_answer": 3, "solution": "D) \"who\" is correctly used as the subject in the phrase \"who are part of the cricket crowds\", but \"whom\" should be used as the object of the preposition \"of\" in the phrase \"some of whom are presumably born in England\". Thus, option D is the grammatically correct improvement to the sentence."}, {"id": "23344", "question": "<strong>Q17. Choose the incorrectly spelt word.</strong></p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Cream", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Sleam", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Beam", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Steam"], "correct_answer": 1, "solution": "B) The correct spelling of ‘Sleam’ is ‘slim’ which means ‘(especially of people) attractively thin’ पतला"}, {"id": "23345", "question": "<strong>Q18. Given below are four jumbled sentences. Pick the option that gives their correct order.</strong></p> <p>P. In July 1977, Marley was found to have a type of malignant melanoma (cancer) under the nail of a toe.</p> <p>Q. He died on 11 May 1981 at Cedars of Lebanon Hospital in Miami (now University of Miami Hospital) at the age of 36.</p> <p>R. Despite his illness, he continued touring until his health deteriorated as the cancer had spread throughout his body.</p> <p>S. Marley turned down his doctors' advice to have his toe amputated, citing his religious beliefs.<span id=\"cke_bm_512C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> PSRQ", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PQSR", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> RSQP", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> PSQR"], "correct_answer": 0, "solution": "In July 1977, Marley was found to have a type of malignant melanoma (cancer) under the nail of a toe. Marley turned down his doctors' advice to have his toe amputated, citing his religious beliefs. Despite his illness, he continued touring until his health deteriorated as the cancer had spread throughout his body. He died on 11 May 1981 at Cedars of Lebanon Hospital in Miami (now University of Miami Hospital) at the age of 36."}, {"id": "23346", "question": "<strong>Q19. In the following question, out of the given four alternatives, select the alternative which best expresses the meaning of the Idiom/Phrase.</strong><br> <br> To have a nodding acquaintance<br>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To have a great experience", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To neglect all the parameters", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Know somebody/something slightly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To have nothing in common"], "correct_answer": 2, "solution": "C) <strong>To have a nodding acquaintance </strong>(phrase) – Know somebody/something slightly किसी को थोड़ा-थोड़ा सा जानना"}, {"id": "23347", "question": "<strong>Q20. Fill in the blank with an appropriate option.</strong></p> <p>Taking a deep, ______ breath, I start again, successfully loading the filter and placing the cup underneath.</p> <p> </p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> penetrating", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> surrogating", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> calming", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> jamming"], "correct_answer": 2, "solution": "C) \"calming\" is the most suitable adjective to describe the kind of deep breath one might take before attempting a task again"}, {"id": "23348", "question": "<strong>Comprehension:</strong></p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Yes, there’s definitely something to be said about (1) ______ the perfect cup of coffee. I’m staring (2) ______ the machine again, but today I’m smiling. I’ve done it – the correct amount of foam, the (3) ______ like silk and the little dusting of chocolate, (4) ______ a perfect heart on the top. It’s just a shame that it’s me who is drinking it, not a/an (5) ______ customer.</p> <p><strong>Q21. Select the most appropriate option to fill in blank number 1.</strong><span id=\"cke_bm_511C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> sobbing", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> making", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> breaking", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> loading"], "correct_answer": 1, "solution": "The sentence will read as: \"Yes, there’s definitely something to be said about making the perfect cup of coffee.\" This makes the most sense given the context of the passage, as the speaker is discussing the process of creating an ideal cup of coffee. The options 'sobbing', 'breaking', and 'loading' do not fit contextually with the act of preparing a cup of coffee."}, {"id": "23349", "question": "<strong>Comprehension:</strong></p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Yes, there’s definitely something to be said about (1) ______ the perfect cup of coffee. I’m staring (2) ______ the machine again, but today I’m smiling. I’ve done it – the correct amount of foam, the (3) ______ like silk and the little dusting of chocolate, (4) ______ a perfect heart on the top. It’s just a shame that it’s me who is drinking it, not a/an (5) ______ customer.</p> <p><strong>Q22. Select the most appropriate option to fill in blank number 2</strong><span id=\"cke_bm_511C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> of", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> at", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> to", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> on"], "correct_answer": 1, "solution": "\"at\" is the correct preposition to use because it denotes direction or focus towards a specific object, in this case, the coffee machine."}, {"id": "23350", "question": "<strong>Comprehension:</strong></p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Yes, there’s definitely something to be said about (1) ______ the perfect cup of coffee. I’m staring (2) ______ the machine again, but today I’m smiling. I’ve done it – the correct amount of foam, the (3) ______ like silk and the little dusting of chocolate, (4) ______ a perfect heart on the top. It’s just a shame that it’s me who is drinking it, not a/an (5) ______ customer.</p> <p><strong>Q23. Select the most appropriate option to fill in blank number 3</strong><span id=\"cke_bm_511C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> cruelty", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> irrationality", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rigidity", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> smoothness"], "correct_answer": 3, "solution": "The author is describing the perfection of the coffee they made. When referring to coffee, \"smoothness\" is a common descriptor used to discuss the texture and feel of the coffee, particularly when discussing elements like the foam. Options A, B, and C (\"cruelty\", \"irrationality\", and \"rigidity\") are not typical or meaningful descriptions in the context of coffee preparation."}, {"id": "23351", "question": "<strong>Comprehension:</strong></p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Yes, there’s definitely something to be said about (1) ______ the perfect cup of coffee. I’m staring (2) ______ the machine again, but today I’m smiling. I’ve done it – the correct amount of foam, the (3) ______ like silk and the little dusting of chocolate, (4) ______ a perfect heart on the top. It’s just a shame that it’s me who is drinking it, not a/an (5) ______ customer.</p> <p><strong>Q24. Select the most appropriate option to fill in blank number 4</strong><span id=\"cke_bm_511C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> forming", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> formerly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> forcing", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> formation"], "correct_answer": 0, "solution": "\"forming\" refers to the act of creating or shaping the heart with the dusting of chocolate on top of the coffee."}, {"id": "23352", "question": "<strong>Comprehension:</strong></p> <p>In the following passage some of the words have been deleted. Read the passage carefully and select the correct answer for the given blank out of the four alternatives.</p> <p>Yes, there’s definitely something to be said about (1) ______ the perfect cup of coffee. I’m staring (2) ______ the machine again, but today I’m smiling. I’ve done it – the correct amount of foam, the (3) ______ like silk and the little dusting of chocolate, (4) ______ a perfect heart on the top. It’s just a shame that it’s me who is drinking it, not a/an (5) ______ customer.</p> <p><strong>Q25. Select the most appropriate option to fill in blank number 5</strong><span id=\"cke_bm_511C\" style=\"display:none\"> </span>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> appreciative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> calculative", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> famished", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> satiated"], "correct_answer": 0, "solution": "Because the narrator has successfully made the perfect cup of coffee and would likely desire an appreciative customer to acknowledge and enjoy the effort and skill put into it. The other options do not fit as well contextually."}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=15*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=15*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
