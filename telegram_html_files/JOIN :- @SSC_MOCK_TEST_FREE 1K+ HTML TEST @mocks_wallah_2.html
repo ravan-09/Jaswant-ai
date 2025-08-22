@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#4F46E5;--s:#10B981;--d:#EF4444;--w:#F59E0B;--bg:#F8FAFC;--card:#FFF;--txt:#1F2937;--txtL:#6B7280;--brd:#E5E7EB}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;padding-bottom:80px}
+        
+        /* Image containment styles */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        
+        /* Ensure images don't overflow in any container */
+        .q-txt img, .opt-txt img, .sol img, .comp img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        
+        /* Specific image containers */
+        .img-container {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+        
+        .hdr{background:var(--card);border-bottom:1px solid var(--brd);padding:12px 16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;z-index:100}
+        .hdr-l{display:flex;align-items:center;gap:12px;justify-self:start}
+        .hdr-c{text-align:center;font-weight:600;font-size:15px}
+        .hdr-r{display:flex;justify-self:end;align-items:center;gap:8px}
+        .q-info{font-size:14px;font-weight:600}
+        .timer{background:#FEF3C7;color:#92400E;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:600}
+        .btn{border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:13px}
+        .btn-sm{padding:8px 12px}
+        .btn-p{background:var(--p);color:white}
+        .btn-o{background:transparent;border:1px solid var(--brd);color:var(--txt)}
+        .btn:active{transform:scale(.98)}
+        .cont{padding:16px;max-width:100%;overflow-x:hidden}
+        .q-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--brd);overflow:hidden}
+        .lang{display:flex;background:#F3F4F6;border-radius:8px;padding:2px;margin-bottom:16px}
+        .lang-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:6px;font-size:13px;cursor:pointer;transition:all .2s}
+        .lang-btn.active{background:white;color:var(--p);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+        .comp{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;padding:16px;margin-bottom:20px;overflow:hidden}
+        .comp h4{color:#0369A1;font-size:14px;margin-bottom:8px}
+        .q-txt{font-size:16px;line-height:1.6;margin-bottom:20px;color:var(--txt);overflow:hidden;word-wrap:break-word}
+        .opts{display:flex;flex-direction:column;gap:12px}
+        .opt{display:flex;align-items:center;padding:16px;background:var(--card);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;gap:12px;overflow:hidden}
+        .opt:hover:not(.submitted){border-color:var(--p)}
+        .opt.sel{border-color:var(--p);background:#F0F9FF}
+        .opt.correct{border-color:var(--s);background:#F0FDF4 !important}
+        .opt.wrong{border-color:var(--d);background:#FEF2F2 !important}
+        .opt.submitted{cursor:default}
+        .opt-radio{width:20px;height:20px;border:2px solid var(--brd);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .opt.sel .opt-radio{border-color:var(--p);background:var(--p)}
+        .opt.sel .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.correct .opt-radio{border-color:var(--s) !important;background:var(--s) !important}
+        .opt.correct .opt-radio::after{content:'✓';color:white;font-size:12px;font-weight:bold}
+        .opt.wrong .opt-radio{border-color:var(--d) !important;background:var(--d) !important}
+        .opt.wrong .opt-radio::after{content:'✗';color:white;font-size:12px;font-weight:bold}
+        .opt-txt{flex:1;font-size:15px;overflow:hidden;word-wrap:break-word}
+        .sol{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:20px;display:none;overflow:hidden}
+        .sol.show{display:block}
+        .sol h4{color:var(--s);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--brd);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+        .nav-btn{padding:12px 20px;border-radius:8px;font-weight:600;min-width:80px}
+        .nav-btn:disabled{opacity:.5;cursor:not-allowed}
+        .prog{text-align:center;font-size:13px;color:var(--txtL)}
+        .panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--card);z-index:200;transform:translateY(100%);transition:transform .3s ease;overflow-y:auto}
+        .panel.open{transform:translateY(0)}
+        .panel-hdr{background:var(--p);color:white;padding:16px;display:flex;justify-content:space-between;align-items:center}
+        .panel-close{background:none;border:none;color:white;font-size:18px;cursor:pointer}
+        .q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px}
+        .q-num{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#F3F4F6;border-radius:8px;font-weight:600;cursor:pointer;transition:all .2s;font-size:14px}
+        .q-num.cur{background:var(--p);color:white}
+        .q-num.ans{background:var(--s);color:white}
+        .q-num.wrong{background:var(--d);color:white}
+        .q-num:hover{transform:scale(1.05)}
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal.show{display:flex}
+        .result{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:400px;text-align:center}
+        .score{font-size:2rem;font-weight:bold;color:var(--p);margin:16px 0}
+        .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+        .stat{text-align:center;padding:12px;border-radius:8px;border:1px solid var(--brd)}
+        .stat-val{font-size:1.5rem;font-weight:bold;margin-bottom:4px}
+        .stat-lbl{font-size:12px;color:var(--txtL)}
+        .stat.c{border-color:var(--s);background:#F0FDF4}
+        .stat.c .stat-val{color:var(--s)}
+        .stat.w{border-color:var(--d);background:#FEF2F2}
+        .stat.w .stat-val{color:var(--d)}
+        .modal-acts{display:flex;gap:12px;margin-top:20px}
+        .modal-btn{flex:1;padding:12px;border-radius:8px;font-weight:600}
+        @media (max-width:375px){.hdr{padding:10px 12px}.cont{padding:12px}.q-card{padding:16px}.q-grid{grid-template-columns:repeat(4,1fr)}}
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <div class="hdr-l">
+            <div class="q-info" id="qInfo">Q1/25</div>
+            <div class="timer" id="timer">60:00</div>
+        </div>
+        <div class="hdr-c">Mocks Wallah</div>
+        <div class="hdr-r">
+            <button class="btn btn-o btn-sm" id="menuBtn"><i class="fas fa-th"></i></button>
+            <button class="btn btn-p btn-sm" id="subBtn">Submit</button>
+        </div>
+    </div>
+
+    <div class="cont">
+        <div class="q-card">
+            <div class="lang">
+                <button class="lang-btn active" id="engBtn">English</button>
+                <button class="lang-btn" id="hinBtn">हिंदी</button>
+            </div>
+
+            <div id="compSec" class="comp" style="display:none">
+                <h4><i class="fas fa-book"></i> Comprehension</h4>
+                <div id="compCont"></div>
+            </div>
+
+            <div class="q-txt" id="qTxt"></div>
+            <div class="opts" id="opts"></div>
+
+            <div class="sol" id="sol">
+                <h4><i class="fas fa-lightbulb"></i> Solution</h4>
+                <div id="solCont"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="btn btn-o nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <div class="prog">
+            <div id="progTxt">1 of 25</div>
+            <div style="font-size:11px">Answered: <span id="ansCnt">0</span> | <a href="https://t.me/mocks_wallah">Mocks Wallah</a></div>
+        </div>
+        <button class="btn btn-p nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="panel-hdr">
+            <h3>All Questions</h3>
+            <button class="panel-close" id="panelClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div style="padding:20px;font-size:12px;color:var(--txtL)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div class="q-num ans" style="width:24px;height:24px">✓</div><span>Answered</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="q-num cur" style="width:24px;height:24px">•</div><span>Current</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalOver">
+        <div class="result">
+            <h2>Test Complete!</h2>
+            <div class="score" id="scoreDisp">0/50</div>
+            <div class="stats">
+                <div class="stat c"><div class="stat-val" id="corrStat">0</div><div class="stat-lbl">Correct</div></div>
+                <div class="stat w"><div class="stat-val" id="incStat">0</div><div class="stat-lbl">Incorrect</div></div>
+                <div class="stat"><div class="stat-val" id="unaStat">0</div><div class="stat-lbl">Unattempted</div></div>
+                <div class="stat"><div class="stat-val" id="timeStat">0</div><div class="stat-lbl">Minutes</div></div>
+            </div>
+            <div class="modal-acts">
+                <button class="btn btn-o modal-btn" id="closeModal">Close</button>
+                <button class="btn btn-p modal-btn" id="revBtn">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TestApp {
+            constructor() {
+                this.qs = [
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2313;&#2360; &#2309;&#2343;&#2367;&#2325;&#2340;&#2350; &#2340;&#2381;&#2352;&#2367;&#2332;&#2381;&#2351;&#2366; &#2357;&#2366;&#2354;&#2375; &#2319;&#2325; &#2357;&#2371;&#2340;&#2381;&#2340; &#2325;&#2366; &#2325;&#2381;&#2359;&#2375;&#2340;&#2381;&#2352;&#2347;&#2354; (cm&sup2; &#2350;&#2375;&#2306;) &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;, &#2332;&#2367;&#2360;&#2375; 18 cm &#2354;&#2306;&#2348;&#2366;&#2312; &#2324;&#2352; 12 cm &#2330;&#2380;&#2337;&#2364;&#2366;&#2312; &#2357;&#2366;&#2354;&#2375; &#2319;&#2325; &#2310;&#2351;&#2340; &#2350;&#2375;&#2306; &#2313;&#2340;&#2381;&#2325;&#2368;&#2352;&#2381;&#2339; (inscribe) &#2325;&#2367;&#2351;&#2366; &#2332;&#2366; &#2360;&#2325;&#2340;&#2366; &#2361;&#2376;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">72</span><span style=\"font-family:Calibri\">&pi;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">136</span><span style=\"font-family:Calibri\">&pi;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">36</span><span style=\"font-family:Calibri\">&pi;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">28</span><span style=\"font-family:Calibri\">&pi;</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image001.png\" width=\"463\" height=\"340\" alt ></p>",
+    "question_index": 0
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">PQ &#2325;&#2367;&#2360;&#2368; &#2357;&#2371;&#2340;&#2381;&#2340; &#2325;&#2366; &#2357;&#2381;&#2351;&#2366;&#2360; &#2361;&#2376; &#2324;&#2352; PS &#2319;&#2325; &#2332;&#2368;&#2357;&#2366; &#2361;&#2376;&#2404; &#2351;&#2342;&#2367; PQ, 82 cm &#2361;&#2376; &#2324;&#2352; PS, 80 cm &#2361;&#2376;, &#2340;&#2379; &#2357;&#2371;&#2340;&#2381;&#2340; &#2325;&#2375; &#2325;&#2375;&#2306;&#2342;&#2381;&#2352; &#2360;&#2375; PS &#2325;&#2368; &#2342;&#2370;&#2352;&#2368; (cm &#2350;&#2375;&#2306;) &#2325;&#2367;&#2340;&#2344;&#2368; &#2361;&#2376;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">18</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">9</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">24</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">39</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image002.png\" width=\"374\" height=\"399\" alt ></p>",
+    "question_index": 1
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; &#2319;&#2325; 9 &#2309;&#2306;&#2325;&#2379;&#2306; &#2325;&#2368; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366; 389x6378y, 72 &#2360;&#2375; &#2357;&#2367;&#2349;&#2366;&#2332;&#2381;&#2351; &#2361;&#2376;, &#2340;&#2379; 6x + 7y &#2325;&#2366; &#2350;&#2366;&#2344; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">32</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">16</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">64</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">28</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image003.png\" width=\"417\" height=\"462\" alt ></p>",
+    "question_index": 2
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2319;&#2325; &#2335;&#2381;&#2352;&#2325; &#2346;&#2361;&#2354;&#2375; &#2328;&#2306;&#2335;&#2375; &#2350;&#2375;&#2306; 75 km &#2324;&#2352; &#2342;&#2370;&#2360;&#2352;&#2375; &#2328;&#2306;&#2335;&#2375; &#2350;&#2375;&#2306; 33 km &#2325;&#2368; &#2351;&#2366;&#2340;&#2381;&#2352;&#2366; &#2325;&#2352;&#2340;&#2366; &#2361;&#2376;&#2404; &#2335;&#2381;&#2352;&#2325; &#2325;&#2368; &#2324;&#2360;&#2340; &#2330;&#2366;&#2354; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319; (km/h &#2350;&#2375;&#2306;)&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">108</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">42</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">60</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">54</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image004.png\" width=\"394\" height=\"266\" alt ></p>",
+    "question_index": 3
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">150 m &#2325;&#2368; &#2342;&#2380;&#2337;&#2364; &#2350;&#2375;&#2306;, &#2351;&#2342;&#2367; R &#2325;&#2379; 5 &#2350;&#2368;&#2335;&#2352; &#2325;&#2368; &#2358;&#2369;&#2352;&#2369;&#2310;&#2340;&#2368; &#2348;&#2338;&#2364;&#2340; &#2350;&#2367;&#2354;&#2340;&#2368; &#2361;&#2376;, &#2340;&#2379; &#2357;&#2361; S &#2325;&#2379; 35 &#2350;&#2368;&#2335;&#2352; &#2360;&#2375; &#2361;&#2352;&#2366; &#2342;&#2375;&#2327;&#2366;&#2404; &#2351;&#2342;&#2367; S &#2325;&#2379; 100 &#2350;&#2368;&#2335;&#2352; &#2325;&#2368; &#2342;&#2380;&#2337;&#2364; &#2350;&#2375;&#2306; 25 &#2350;&#2368;&#2335;&#2352; &#2325;&#2368; &#2358;&#2369;&#2352;&#2369;&#2310;&#2340;&#2368; &#2348;&#2338;&#2364;&#2340; &#2350;&#2367;&#2354;&#2340;&#2368; &#2350;&#2368;&#2335;&#2352; &#2361;&#2376;, &#2340;&#2379; _______, ________ &#2350;&#2368;&#2335;&#2352; &#2360;&#2375; &#2342;&#2380;&#2337;&#2364; &#2332;&#2368;&#2340; &#2332;&#2366;&#2319;&#2327;&#2366;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">R; 4.44</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">S; 5.44</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">S; 4.44</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">R; 5.44</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image005.png\" width=\"389\" height=\"388\" alt ></p>",
+    "question_index": 4
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2313;&#2360; &#2360;&#2350;&#2330;&#2340;&#2369;&#2352;&#2381;&#2349;&#2369;&#2332; &#2325;&#2366; &#2325;&#2381;&#2359;&#2375;&#2340;&#2381;&#2352;&#2347;&#2354; (cm&sup2; &#2350;&#2375;&#2306;) &#2325;&#2381;&#2351;&#2366; &#2361;&#2376;, &#2332;&#2367;&#2360;&#2325;&#2368; &#2346;&#2381;&#2352;&#2340;&#2381;&#2351;&#2375;&#2325; &#2349;&#2369;&#2332;&#2366; 13 cm &#2361;&#2376; &#2324;&#2352; &#2319;&#2325; &#2357;&#2367;&#2325;&#2352;&#2381;&#2339; 24 cm &#2361;&#2376;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">130</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">60</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">110</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">120</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image006.png\" width=\"399\" height=\"454\" alt ></p>",
+    "question_index": 5
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2319;&#2325; &#2340;&#2381;&#2352;&#2367;&#2349;&#2369;&#2332; ABC &#2325;&#2368; &#2350;&#2366;&#2343;&#2381;&#2351;&#2367;&#2325;&#2366; AD &#2325;&#2379; &#2348;&#2338;&#2364;&#2366;&#2351;&#2366; &#2332;&#2366;&#2340;&#2366; &#2361;&#2376; &#2324;&#2352; &#2313;&#2360; &#2346;&#2352; &#2319;&#2325; &#2354;&#2306;&#2348; CF &#2337;&#2366;&#2354;&#2366; &#2332;&#2366;&#2340;&#2366; &#2361;&#2376;&#2404; BE, AD &#2325;&#2375; &#2354;&#2306;&#2348;&#2357;&#2340; &#2361;&#2376;&#2404; &#2351;&#2342;&#2367; BC = 34 cm &#2324;&#2352; DF = 8 cm &#2361;&#2376;, &#2340;&#2379; BE &#2325;&#2368; &#2354;&#2306;&#2348;&#2366;&#2312; (cm &#2350;&#2375;&#2306;) &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">19</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">9</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">15</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">17</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image007.png\" width=\"382\" height=\"456\" alt ></p>",
+    "question_index": 6
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2344;&#2367;&#2350;&#2381;&#2344;&#2354;&#2367;&#2326;&#2367;&#2340; &#2350;&#2375;&#2306; &#2360;&#2375; &#2325;&#2380;&#2344;-&#2360;&#2368; &#2351;&#2379;&#2332;&#2344;&#2366; &#8377;x &#2325;&#2368; &#2326;&#2352;&#2368;&#2342; &#2346;&#2352; &#2309;&#2343;&#2367;&#2325;&#2340;&#2350; &#2331;&#2370;&#2335; &#2342;&#2375;&#2327;&#2368;?</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">1) 25% &#2324;&#2352; 15% &#2325;&#2368; 2 &#2325;&#2381;&#2352;&#2350;&#2367;&#2325; &#2331;&#2370;&#2335;</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">2) 20% &#2325;&#2368; &#2319;&#2325;&#2354; &#2331;&#2370;&#2335; </span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">3) 3 &#2357;&#2360;&#2381;&#2340;&#2369;&#2323;&#2306; &#2325;&#2368; &#2326;&#2352;&#2368;&#2342; &#2346;&#2352; 2 &#2357;&#2360;&#2381;&#2340;&#2369;&#2319;&#2306; &#2350;&#2369;&#2347;&#2381;&#2340;</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">4) 7 &#2357;&#2360;&#2381;&#2340;&#2369;&#2323;&#2306; &#2325;&#2368; &#2326;&#2352;&#2368;&#2342; &#2346;&#2352; 3 &#2357;&#2360;&#2381;&#2340;&#2369;&#2319;&#2306; &#2350;&#2369;&#2347;&#2381;&#2340;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">&#2351;&#2379;&#2332;&#2344;&#2366; 2</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">&#2351;&#2379;&#2332;&#2344;&#2366; 3</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">&#2351;&#2379;&#2332;&#2344;&#2366; 1</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">&#2351;&#2379;&#2332;&#2344;&#2366; 4</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image008.png\" width=\"413\" height=\"260\" alt ></p>",
+    "question_index": 7
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#8377;1,250 &#2325;&#2368; &#2343;&#2344;&#2352;&#2366;&#2358;&#2367;, 5 (1/2)% &#2357;&#2366;&#2352;&#2381;&#2359;&#2367;&#2325; &#2360;&#2366;&#2343;&#2366;&#2352;&#2339; &#2348;&#2381;&#2351;&#2366;&#2332; &#2325;&#2368; &#2342;&#2352; &#2346;&#2352; &#2340;&#2368;&#2344; &#2357;&#2352;&#2381;&#2359; &#2325;&#2375; &#2354;&#2367;&#2319; &#2313;&#2343;&#2366;&#2352; &#2342;&#2368; &#2332;&#2366;&#2340;&#2368; &#2361;&#2376;&#2404; &#2348;&#2381;&#2351;&#2366;&#2332; (&#8377; &#2350;&#2375;&#2306;) &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319; &#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">206.25</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">200.00</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">210.25</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">215.75</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image009.png\" width=\"421\" height=\"219\" alt ></p>",
+    "question_index": 8
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; x&sup2;-1, 2x &#2324;&#2352; x&sup2;+1 &#2319;&#2325; &#2360;&#2350;&#2325;&#2379;&#2339; &#2340;&#2381;&#2352;&#2367;&#2349;&#2369;&#2332; &#2325;&#2368; &#2340;&#2368;&#2344; &#2349;&#2369;&#2332;&#2366;&#2319;&#2305; &#2361;&#2376;&#2306;, &#2340;&#2379; &#2344;&#2367;&#2350;&#2381;&#2344;&#2354;&#2367;&#2326;&#2367;&#2340; &#2350;&#2375;&#2306; &#2360;&#2375; &#2325;&#2380;&#2344;-&#2360;&#2366; &#2311;&#2360;&#2325;&#2366; &#2325;&#2352;&#2381;&#2339; &#2361;&#2379; &#2360;&#2325;&#2340;&#2366; &#2361;&#2376;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">2x</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">x&sup2;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">x&sup2; - 1</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">x&sup2; + 1</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image010.png\" width=\"396\" height=\"261\" alt ></p>",
+    "question_index": 9
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; tan </span><span style=\"font-family:Calibri\">&theta;</span><span style=\"font-family:'Nirmala UI'\"> + cot </span><span style=\"font-family:Calibri\">&theta;</span><span style=\"font-family:'Nirmala UI'\"> = 2 &#2361;&#2376; &#2340;&#2379; tan^53 </span><span style=\"font-family:Calibri\">&theta;</span><span style=\"font-family:'Nirmala UI'\"> + cot^38 </span><span style=\"font-family:Calibri\">&theta;</span><span style=\"font-family:Calibri;font-size:10.5pt\"> </span><span style=\"font-family:'Nirmala UI'\">&#2325;&#2366; &#2350;&#2366;&#2344; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">&minus;1</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">1</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">2</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image011.png\" width=\"367\" height=\"218\" alt ></p>",
+    "question_index": 10
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2319;&#2325; &#2357;&#2371;&#2340;&#2381;&#2340; &#2325;&#2375; &#2319;&#2325; &#2340;&#2381;&#2352;&#2367;&#2332;&#2381;&#2351;&#2326;&#2306;&#2337; &#2325;&#2366; &#2325;&#2381;&#2359;&#2375;&#2340;&#2381;&#2352;&#2347;&#2354; 88 &#2360;&#2375;&#2350;&#2368;</span><span style=\"font-family:Calibri\">&sup2;</span><span style=\"font-family:'Nirmala UI'\"> &#2361;&#2376; &#2324;&#2352; &#2340;&#2381;&#2352;&#2367;&#2332;&#2381;&#2351;&#2326;&#2306;&#2337; &#2325;&#2366; &#2325;&#2379;&#2339; 36&deg; &#2361;&#2376;&#2404; &#2357;&#2371;&#2340;&#2381;&#2340; &#2325;&#2368; &#2340;&#2381;&#2352;&#2367;&#2332;&#2381;&#2351;&#2366; (&#2360;&#2375;&#2350;&#2368; &#2350;&#2375;&#2306;) &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404; [</span><span style=\"font-family:Calibri\">&pi;</span><span style=\"font-family:'Nirmala UI'\"> = 22/7 &#2325;&#2366; &#2313;&#2346;&#2351;&#2379;&#2327; &#2325;&#2368;&#2332;&#2367;&#2319;]</span></p>",
+    "options": [
+      "<style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image012.png\" width=\"38\" height=\"23\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image013.png\" width=\"38\" height=\"23\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image014.png\" width=\"38\" height=\"23\" alt style=\"vertical-align:middle\" ></p>",
+      "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image015.png\" width=\"29\" height=\"22\" alt style=\"vertical-align:middle\" ></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image016.png\" width=\"405\" height=\"312\" alt ></p>",
+    "question_index": 11
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2344;&#2367;&#2350;&#2381;&#2344;&#2354;&#2367;&#2326;&#2367;&#2340; &#2350;&#2375;&#2306; &#2360;&#2375; &#2325;&#2380;&#2344;-&#2360;&#2368; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;, 9 &#2360;&#2375; &#2357;&#2367;&#2349;&#2366;&#2332;&#2381;&#2351; &#2361;&#2376;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">553986</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">941201</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">132490</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">350846</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image017.png\" width=\"427\" height=\"150\" alt ></p>",
+    "question_index": 12
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">A &#2324;&#2352; B &#2319;&#2325; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2379; &#2325;&#2381;&#2352;&#2350;&#2358;: 15 &#2342;&#2367;&#2344; &#2324;&#2352; 30 &#2342;&#2367;&#2344; &#2350;&#2375;&#2306; &#2325;&#2352; &#2360;&#2325;&#2340;&#2375; &#2361;&#2376;&#2306;&#2404; &#2357;&#2375; &#2319;&#2325; &#2360;&#2366;&#2341; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2352;&#2344;&#2366; &#2358;&#2369;&#2352;&#2370; &#2325;&#2352;&#2340;&#2375; &#2361;&#2376;&#2306;, &#2354;&#2375;&#2325;&#2367;&#2344; A, 3 &#2342;&#2367;&#2344; &#2348;&#2366;&#2342; &#2325;&#2366;&#2352;&#2381;&#2351; &#2331;&#2379;&#2337;&#2364; &#2342;&#2375;&#2340;&#2366; &#2361;&#2376;&#2404; &#2358;&#2375;&#2359; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2379; &#2346;&#2370;&#2352;&#2366; &#2325;&#2352;&#2344;&#2375; &#2350;&#2375;&#2306; B &#2325;&#2379; &#2325;&#2367;&#2340;&#2344;&#2366; &#2360;&#2350;&#2351; &#2354;&#2327;&#2375;&#2327;&#2366;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">28 &#2342;&#2367;&#2344;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">21 &#2342;&#2367;&#2344;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">32 &#2342;&#2367;&#2344;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">24 &#2342;&#2367;&#2344;</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image018.png\" width=\"377\" height=\"318\" alt ></p>",
+    "question_index": 13
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:11pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; &#2313;&#2360; &#2310;&#2351;&#2340;&#2366;&#2325;&#2366;&#2352; &#2350;&#2376;&#2342;&#2366;&#2344; &#2325;&#2368; &#2309;&#2352;&#2381;&#2343;-&#2346;&#2352;&#2367;&#2343;&#2367; &#2324;&#2352; &#2325;&#2381;&#2359;&#2375;&#2340;&#2381;&#2352;&#2347;&#2354; &#2325;&#2381;&#2352;&#2350;&#2358;&#2307; 12 &#2360;&#2375;&#2350;&#2368; &#2324;&#2352; 28 &#2360;&#2375;&#2350;&#2368;&sup2; &#2361;&#2376;, &#2332;&#2367;&#2360;&#2325;&#2368; &#2354;&#2306;&#2348;&#2366;&#2312; 'x' &#2324;&#2352; &#2330;&#2380;&#2337;&#2364;&#2366;&#2312; 'y' &#2361;&#2379;, &#2340;&#2379; x</span><span style=\"font-family:Arial\">&#8308;</span><span style=\"font-family:'Nirmala UI'\"> + x&sup2;y&sup2; + y</span><span style=\"font-family:Arial\">&#8308;</span><span style=\"font-family:'Nirmala UI'\"> &#2325;&#2366; &#2350;&#2366;&#2344; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">6906</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">6609</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">6960</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">6690</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image019.png\" width=\"368\" height=\"355\" alt ></p>",
+    "question_index": 14
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; sin A + cos A = 4/3 &#2361;&#2376; &#2340;&#2379; tan A + cot A &#2325;&#2366; &#2350;&#2366;&#2344; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">3/4</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">4/3</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">18/7</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">7/18</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image020.png\" width=\"447\" height=\"501\" alt ></p>",
+    "question_index": 15
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2310;&#2336; &#2350;&#2332;&#2342;&#2370;&#2352; &#2346;&#2381;&#2352;&#2340;&#2367;&#2342;&#2367;&#2344; 10 &#2328;&#2306;&#2335;&#2375; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2352;&#2325;&#2375; &#2325;&#2367;&#2360;&#2368; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2379; 18 &#2342;&#2367;&#2344;&#2379;&#2306; &#2350;&#2375;&#2306; &#2346;&#2370;&#2352;&#2366; &#2325;&#2352;&#2340;&#2375; &#2361;&#2376;&#2306;&#2404; &#2351;&#2342;&#2367; &#2325;&#2375;&#2357;&#2354; 5 &#2350;&#2332;&#2342;&#2370;&#2352; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2352; &#2352;&#2361;&#2375; &#2361;&#2376;&#2306;, &#2340;&#2379; 24 &#2342;&#2367;&#2344;&#2379;&#2306; &#2350;&#2375;&#2306; &#2325;&#2366;&#2352;&#2381;&#2351; &#2346;&#2370;&#2352;&#2366; &#2325;&#2352;&#2344;&#2375; &#2325;&#2375; &#2354;&#2367;&#2319; &#2313;&#2344;&#2381;&#2361;&#2375;&#2306; &#2346;&#2381;&#2352;&#2340;&#2367;&#2342;&#2367;&#2344; &#2325;&#2367;&#2340;&#2344;&#2375; &#2328;&#2306;&#2335;&#2375; &#2325;&#2366;&#2352;&#2381;&#2351; &#2325;&#2352;&#2344;&#2366; &#2330;&#2366;&#2361;&#2367;&#2319;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">10 &#2328;&#2306;&#2335;&#2375;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">12 &#2328;&#2306;&#2335;&#2375;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">8 &#2328;&#2306;&#2335;&#2375;</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">9 &#2328;&#2306;&#2335;&#2375;</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image021.png\" width=\"452\" height=\"139\" alt ></p>",
+    "question_index": 16
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2352;&#2375;&#2351;&#2366;&#2344; &#2344;&#2375; &#8377;56,000 &#2350;&#2375;&#2306; &#2319;&#2325; &#2354;&#2376;&#2346;&#2335;&#2377;&#2346; &#2324;&#2352; &#8377;22,000 &#2350;&#2375;&#2306; &#2319;&#2325; &#2360;&#2381;&#2325;&#2376;&#2344;&#2352;-&#2325;&#2350;-&#2346;&#2381;&#2352;&#2367;&#2306;&#2335;&#2352; &#2326;&#2352;&#2368;&#2342;&#2366;&#2404; &#2313;&#2360;&#2344;&#2375; &#2354;&#2376;&#2346;&#2335;&#2377;&#2346; &#2325;&#2379; 20% &#2354;&#2366;&#2349; &#2346;&#2352; &#2324;&#2352; &#2360;&#2381;&#2325;&#2376;&#2344;&#2352;-&#2325;&#2350;-&#2346;&#2381;&#2352;&#2367;&#2306;&#2335;&#2352; &#2325;&#2379; 15% &#2354;&#2366;&#2349; &#2346;&#2352; &#2348;&#2375;&#2330; &#2342;&#2367;&#2351;&#2366;&#2404; &#2313;&#2360;&#2325;&#2375; &#2354;&#2366;&#2349; &#2346;&#2381;&#2352;&#2340;&#2367;&#2358;&#2340; &#2325;&#2368; &#2327;&#2339;&#2344;&#2366; &#2325;&#2352;&#2375;&#2306;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">18 (21/37)</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 (23/39)</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 (21/37)</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">18 (23/39)</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image022.png\" width=\"391\" height=\"212\" alt ></p>",
+    "question_index": 17
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2352;&#2350;&#2375;&#2358; &#2309;&#2346;&#2344;&#2368; &#2310;&#2351; &#2325;&#2366; 60% &#2357;&#2381;&#2351;&#2351; &#2325;&#2352;&#2340;&#2366; &#2361;&#2376;&#2404; &#2351;&#2342;&#2367; &#2313;&#2360;&#2325;&#2368; &#2310;&#2351; 30% &#2348;&#2338;&#2364;&#2340;&#2368; &#2361;&#2376; &#2324;&#2352; &#2313;&#2360;&#2325;&#2366; &#2357;&#2381;&#2351;&#2351; 20% &#2348;&#2338;&#2364;&#2340;&#2366; &#2361;&#2376;, &#2340;&#2379; &#2352;&#2350;&#2375;&#2358; &#2325;&#2368; &#2348;&#2330;&#2340; &#2350;&#2375;&#2306; &#2346;&#2381;&#2352;&#2340;&#2367;&#2358;&#2340; &#2357;&#2371;&#2342;&#2381;&#2343;&#2367; &#2325;&#2367;&#2340;&#2344;&#2368; &#2361;&#2379;&#2327;&#2368;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">35%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">50%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">45%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">30%</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image023.png\" width=\"430\" height=\"331\" alt ></p>",
+    "question_index": 18
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2319;&#2325; &#2330;&#2369;&#2344;&#2366;&#2357; &#2350;&#2375;&#2306;, &#2325;&#2375;&#2357;&#2354; &#2342;&#2379; &#2313;&#2350;&#2381;&#2350;&#2368;&#2342;&#2357;&#2366;&#2352; &#2341;&#2375;&#2404; 12% &#2350;&#2340;&#2342;&#2366;&#2340;&#2366;&#2323;&#2306; &#2344;&#2375; &#2350;&#2340; &#2344;&#2361;&#2368;&#2306; &#2337;&#2366;&#2354;&#2366;&#2404; &#2357;&#2367;&#2332;&#2351;&#2368; &#2313;&#2350;&#2381;&#2350;&#2368;&#2342;&#2357;&#2366;&#2352; &#2344;&#2375; &#2325;&#2369;&#2354; &#2350;&#2340;&#2379;&#2306; &#2325;&#2366; 60% &#2346;&#2381;&#2352;&#2366;&#2346;&#2381;&#2340; &#2325;&#2352;&#2325;&#2375; &#2309;&#2346;&#2344;&#2375; &#2357;&#2367;&#2352;&#2379;&#2343;&#2368; &#2313;&#2350;&#2381;&#2350;&#2368;&#2342;&#2357;&#2366;&#2352; &#2325;&#2379; 1200 &#2350;&#2340;&#2379;&#2306; &#2360;&#2375; &#2361;&#2352;&#2366;&#2351;&#2366;&#2404; &#2325;&#2369;&#2354; &#2350;&#2340;&#2379;&#2306; &#2325;&#2368; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">3750</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">5730</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">4000</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">3570</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image024.png\" width=\"377\" height=\"678\" alt ></p>",
+    "question_index": 19
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">12 &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;&#2323;&#2306; &#2325;&#2366; &#2324;&#2360;&#2340; 47 &#2361;&#2376;&#2404; &#2346;&#2361;&#2354;&#2368; 5 &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;&#2323;&#2306; &#2325;&#2366; &#2324;&#2360;&#2340; 45 &#2361;&#2376; &#2324;&#2352; &#2309;&#2327;&#2354;&#2368; 4 &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;&#2323;&#2306; &#2325;&#2366; &#2324;&#2360;&#2340; 52 &#2361;&#2376;&#2404; &#2351;&#2342;&#2367; 10&#2357;&#2368;&#2306; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;, 11&#2357;&#2368;&#2306; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366; &#2360;&#2375; 10 &#2325;&#2350; &#2361;&#2376; &#2324;&#2352; 12&#2357;&#2368;&#2306; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366; &#2360;&#2375; 5 &#2309;&#2343;&#2367;&#2325; &#2361;&#2376;, &#2340;&#2379; 11&#2357;&#2368;&#2306; &#2324;&#2352; 12&#2357;&#2368;&#2306; &#2360;&#2306;&#2326;&#2381;&#2351;&#2366;&#2323;&#2306;</span><span style=\"font-family:'Nirmala UI'\">&nbsp; </span><span style=\"font-family:'Nirmala UI'\">&#2325;&#2366; &#2324;&#2360;&#2340; &#2325;&#2381;&#2351;&#2366; &#2361;&#2379;&#2327;&#2366;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">42.5</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">46.5</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">47.5</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">44.5</span></p>"
+    ],
+    "correct_option_id": 3,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image025.png\" width=\"395\" height=\"459\" alt ></p>",
+    "question_index": 20
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">(0.3-0.2)</span><span style=\"font-family:'Nirmala UI'\">&nbsp; </span><span style=\"font-family:'Nirmala UI'\">(0.3&sup2;+0.3&times;0.2+0.2&sup2; ) &#2357;&#2381;&#2351;&#2306;&#2332;&#2325; &#2325;&#2379; &#2360;&#2352;&#2354; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.053</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.027</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.019</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.035</span></p>"
+    ],
+    "correct_option_id": 2,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image026.png\" width=\"388\" height=\"228\" alt ></p>",
+    "question_index": 21
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2344;&#2367;&#2350;&#2381;&#2344;&#2354;&#2367;&#2326;&#2367;&#2340; &#2357;&#2381;&#2351;&#2306;&#2332;&#2325; &#2325;&#2379; &#2360;&#2352;&#2354; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;:</span></p><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image027.png\" width=\"260\" height=\"43\" alt style=\"vertical-align:middle\" ></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.9</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.7</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.3</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">0.4</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image028.png\" width=\"297\" height=\"293\" alt ></p>",
+    "question_index": 22
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2351;&#2342;&#2367; A : B = 8 : 13, B : C = 5 : 8 &#2324;&#2352; C : D = 4 : 5 &#2361;&#2376;, &#2340;&#2379; A : B : C : D &#2325;&#2367;&#2360;&#2325;&#2375; &#2348;&#2352;&#2366;&#2348;&#2352; &#2361;&#2379;&#2327;&#2366;?</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">40 : 65 : 104 : 130</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">40 : 60 : 103 : 112</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">38 : 65 : 111 : 120</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">20 : 50 : 105 : 119</span></p>"
+    ],
+    "correct_option_id": 0,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image029.png\" width=\"361\" height=\"292\" alt ></p>",
+    "question_index": 23
+  },
+  {
+    "question": "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&#2319;&#2325; &#2325;&#2354;&#2366;&#2312; &#2328;&#2337;&#2364;&#2368; &#8377;3,000 &#2350;&#2375;&#2306; &#2326;&#2352;&#2368;&#2342;&#2368; &#2327;&#2312; &#2324;&#2352; &#8377;3,500 &#2350;&#2375;&#2306; &#2348;&#2375;&#2330;&#2368; &#2327;&#2312;&#2404; &#2354;&#2366;&#2349; &#2346;&#2381;&#2352;&#2340;&#2367;&#2358;&#2340; &#2332;&#2381;&#2334;&#2366;&#2340; &#2325;&#2368;&#2332;&#2367;&#2319;&#2404;</span></p>",
+    "options": [
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">20.50%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">16.66%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">19.58%</span></p>",
+      "<style> @font-face { font-family: 'Nirmala UI'; src: url('https://appx-content-v2.classx.co.in/fonts/Nirmala.ttf') format('truetype');} </style><style> *{overflow-wrap: break-word;} </style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><span style=\"font-family:'Nirmala UI'\">&nbsp;</span><span style=\"font-family:'Nirmala UI'\">18.33%</span></p>"
+    ],
+    "correct_option_id": 1,
+    "solution": "<style> *{overflow-wrap: break-word;} </style> <style> img, svg {vertical-align: middle; max-width:100%}</style> <p style=\"margin-top:0pt;margin-bottom:0pt;font-size:12pt\"><img src=\"https://appx-content-v2.classx.co.in/website/bulk_uploader_images/1745817672777_image030.png\" width=\"336\" height=\"187\" alt ></p>",
+    "question_index": 24
+  }
+];
+                this.curQ = 0;
+                this.ans = new Array(this.qs.length).fill(null);
+                this.startT = Date.now();
+                this.timeLeft = 25 * 60;
+                this.sub = false;
+                this.eng = true;
+                this.timer = null;
+                this.initEls();
+                this.init();
+                this.validateData(); // Add data validation
+            }
+            
+            // Add data validation method
+            validateData() {
+                console.log('Validating question data...');
+                this.qs.forEach((q, idx) => {
+                    if (q.correct_option_id !== undefined) {
+                        console.log(`Q${idx + 1}: correct_option_id = ${q.correct_option_id}, options count = ${q.options ? q.options.length : 0}`);
+                        
+                        // Ensure correct_option_id is within valid range
+                        if (q.options && (q.correct_option_id < 0 || q.correct_option_id >= q.options.length)) {
+                            console.warn(`Q${idx + 1}: Invalid correct_option_id ${q.correct_option_id} for ${q.options.length} options`);
+                        }
+                    }
+                });
+            }
+            
+            initEls() {
+                this.els = {
+                    qInfo: document.getElementById('qInfo'),
+                    progTxt: document.getElementById('progTxt'),
+                    ansCnt: document.getElementById('ansCnt'),
+                    timer: document.getElementById('timer'),
+                    qTxt: document.getElementById('qTxt'),
+                    compSec: document.getElementById('compSec'),
+                    compCont: document.getElementById('compCont'),
+                    opts: document.getElementById('opts'),
+                    sol: document.getElementById('sol'),
+                    solCont: document.getElementById('solCont'),
+                    qGrid: document.getElementById('qGrid'),
+                    panel: document.getElementById('panel'),
+                    modalOver: document.getElementById('modalOver'),
+                    scoreDisp: document.getElementById('scoreDisp'),
+                    corrStat: document.getElementById('corrStat'),
+                    incStat: document.getElementById('incStat'),
+                    unaStat: document.getElementById('unaStat'),
+                    timeStat: document.getElementById('timeStat')
+                };
+            }
+            
+            init() {
+                this.createGrid();
+                this.startTimer();
+                this.loadQ(0);
+                this.setupEvents();
+            }
+            
+            setupEvents() {
+                document.getElementById('menuBtn').onclick = () => this.togglePanel();
+                document.getElementById('subBtn').onclick = () => this.confirmSub();
+                document.getElementById('prevBtn').onclick = () => this.nav(-1);
+                document.getElementById('nextBtn').onclick = () => this.nav(1);
+                document.getElementById('engBtn').onclick = () => this.setLang(true);
+                document.getElementById('hinBtn').onclick = () => this.setLang(false);
+                document.getElementById('panelClose').onclick = () => this.closePanel();
+                document.getElementById('closeModal').onclick = () => this.closeModal();
+                document.getElementById('revBtn').onclick = () => this.review();
+            }
+            
+            extractTxt(html, isEng) {
+                if (!html) return '';
+                const cls = isEng ? 'eqt' : 'hqt';
+                const match = html.match(new RegExp(`<span class="${cls}"[^>]*>(.*?)</span>`, 's'));
+                return match ? match[1] : html;
+            }
+            
+            createGrid() {
+                this.els.qGrid.innerHTML = '';
+                this.qs.forEach((_, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-num';
+                    div.textContent = i + 1;
+                    div.onclick = () => this.goToQ(i);
+                    this.els.qGrid.appendChild(div);
+                });
+            }
+            
+            loadQ(idx) {
+                this.curQ = idx;
+                const q = this.qs[idx];
+                
+                this.els.qInfo.textContent = `Q${idx + 1}/${this.qs.length}`;
+                this.els.progTxt.textContent = `${idx + 1} of ${this.qs.length}`;
+                this.updateAnsCnt();
+                this.updateNav();
+                this.updateGrid();
+                
+                if (q.comp) {
+                    this.els.compSec.style.display = 'block';
+                    this.els.compCont.innerHTML = q.comp;
+                } else {
+                    this.els.compSec.style.display = 'none';
+                }
+                
+                this.els.qTxt.innerHTML = this.extractTxt(q.question, this.eng);
+                this.loadOpts(q, idx);
+                
+                if (this.sub && q.solution) {
+                    this.els.solCont.innerHTML = q.solution;
+                    this.els.sol.classList.add('show');
+                } else {
+                    this.els.sol.classList.remove('show');
+                }
+            }
+            
+            loadOpts(q, qIdx) {
+                this.els.opts.innerHTML = '';
+                const userAnswer = this.ans[qIdx];
+                const correctAnswer = q.correct_option_id;
+                
+                console.log(`Loading Q${qIdx + 1} options:`, {
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer,
+                    submitted: this.sub,
+                    optionsCount: q.options ? q.options.length : 0
+                });
+                
+                if (!q.options || !Array.isArray(q.options)) {
+                    console.error(`Q${qIdx + 1}: No valid options array`);
+                    return;
+                }
+                
+                q.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    let cls = 'opt';
+                    
+                    // Add submitted class if test is submitted
+                    if (this.sub) {
+                        cls += ' submitted';
+                    }
+                    
+                    // User's selection
+                    if (userAnswer === i) {
+                        cls += ' sel';
+                        console.log(`Q${qIdx + 1}: User selected option ${i}`);
+                    }
+                    
+                    // After submission - show correct/wrong highlighting
+                    if (this.sub && correctAnswer !== undefined && correctAnswer !== null) {
+                        if (i === correctAnswer) {
+                            // This is the correct answer - always highlight as correct
+                            cls += ' correct';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as correct (is correct answer)`);
+                        } else if (userAnswer === i && userAnswer !== correctAnswer) {
+                            // User selected this option but it's wrong
+                            cls += ' wrong';
+                            console.log(`Q${qIdx + 1}: Option ${i} marked as wrong (user selected but incorrect)`);
+                        }
+                    }
+                    
+                    div.className = cls;
+                    div.innerHTML = `
+                        <div class="opt-radio"></div>
+                        <div class="opt-txt">${this.extractTxt(opt, this.eng)}</div>
+                    `;
+                    
+                    // Only allow clicking if test is not submitted
+                    if (!this.sub) {
+                        div.onclick = () => this.selOpt(i, qIdx);
+                    }
+                    
+                    this.els.opts.appendChild(div);
+                });
+            }
+            
+            selOpt(optIdx, qIdx) {
+                if (this.sub) return;
+                this.ans[qIdx] = this.ans[qIdx] === optIdx ? null : optIdx;
+                console.log(`Q${qIdx + 1}: Selected option ${optIdx}, answer array:`, this.ans[qIdx]);
+                this.loadOpts(this.qs[qIdx], qIdx);
+                this.updateAnsCnt();
+                this.updateGrid();
+            }
+            
+            nav(dir) {
+                const newIdx = this.curQ + dir;
+                if (newIdx >= 0 && newIdx < this.qs.length) {
+                    this.loadQ(newIdx);
+                }
+            }
+            
+            goToQ(idx) {
+                this.loadQ(idx);
+                this.closePanel();
+            }
+            
+            updateNav() {
+                document.getElementById('prevBtn').disabled = this.curQ === 0;
+                document.getElementById('nextBtn').disabled = this.curQ === this.qs.length - 1;
+            }
+            
+            updateGrid() {
+                const nums = this.els.qGrid.querySelectorAll('.q-num');
+                nums.forEach((el, i) => {
+                    el.className = 'q-num';
+                    if (i === this.curQ) {
+                        el.classList.add('cur');
+                    } else if (this.ans[i] !== null) {
+                        // Check if it's correct or wrong after submission
+                        if (this.sub && this.qs[i].correct_option_id !== undefined && this.qs[i].correct_option_id !== null) {
+                            if (this.ans[i] === this.qs[i].correct_option_id) {
+                                el.classList.add('ans'); // Correct answer
+                            } else {
+                                el.classList.add('wrong'); // Wrong answer
+                            }
+                        } else {
+                            el.classList.add('ans'); // Just answered (before submission)
+                        }
+                    }
+                });
+            }
+            
+            updateAnsCnt() {
+                const cnt = this.ans.filter(a => a !== null).length;
+                this.els.ansCnt.textContent = cnt;
+            }
+            
+            setLang(eng) {
+                this.eng = eng;
+                document.getElementById('engBtn').classList.toggle('active', eng);
+                document.getElementById('hinBtn').classList.toggle('active', !eng);
+                this.loadQ(this.curQ);
+            }
+            
+            startTimer() {
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.subTest();
+                        return;
+                    }
+                    const mins = Math.floor(this.timeLeft / 60);
+                    const secs = this.timeLeft % 60;
+                    this.els.timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            }
+            
+            togglePanel() {
+                this.els.panel.classList.toggle('open');
+            }
+            
+            closePanel() {
+                this.els.panel.classList.remove('open');
+            }
+            
+            confirmSub() {
+                const unanswered = this.ans.filter(a => a === null).length;
+                const msg = unanswered > 0 ? `${unanswered} questions unanswered. Submit anyway?` : 'Submit test?';
+                if (confirm(msg)) this.subTest();
+            }
+            
+            subTest() {
+                if (this.sub) return;
+                console.log('Submitting test. Final answers:', this.ans);
+                this.sub = true;
+                this.stopTimer();
+                document.getElementById('subBtn').style.display = 'none';
+                const results = this.calcResults();
+                this.showResults(results);
+                // Reload current question to show correct/incorrect highlighting
+                this.loadQ(this.curQ);
+                this.updateGrid();
+            }
+            
+            calcResults() {
+                const timeTaken = Math.round((Date.now() - this.startT) / 60000);
+                let correct = 0, incorrect = 0, unattempted = 0, score = 0;
+                
+                console.log('Calculating results...');
+                this.qs.forEach((q, i) => {
+                    const userAns = this.ans[i];
+                    const correctAns = q.correct_option_id;
+                    
+                    console.log(`Q${i + 1}: user=${userAns}, correct=${correctAns}`);
+                    
+                    if (userAns === null || userAns === undefined) {
+                        unattempted++;
+                    } else if (correctAns !== undefined && correctAns !== null && userAns === correctAns) {
+                        correct++;
+                        score += 2;
+                        console.log(`Q${i + 1}: CORRECT (+2 marks)`);
+                    } else {
+                        incorrect++;
+                        score -= 0.50;
+                        console.log(`Q${i + 1}: INCORRECT (-0.50 marks)`);
+                    }
+                });
+                
+                const results = { score: Math.max(0, score), correct, incorrect, unattempted, timeTaken };
+                console.log('Final results:', results);
+                return results;
+            }
+            
+            showResults(results) {
+                this.els.scoreDisp.textContent = `${results.score}/50`;
+                this.els.corrStat.textContent = results.correct;
+                this.els.incStat.textContent = results.incorrect;
+                this.els.unaStat.textContent = results.unattempted;
+                this.els.timeStat.textContent = results.timeTaken;
+                this.els.modalOver.classList.add('show');
+            }
+            
+            closeModal() {
+                this.els.modalOver.classList.remove('show');
+            }
+            
+            review() {
+                this.closeModal();
+                this.loadQ(0);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => new TestApp());
+    </script>
+</body>
+</html>
