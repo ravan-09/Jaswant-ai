@@ -1,0 +1,329 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #1e3c72, #2a5298);
+      color: white;
+      margin: 0;
+      padding: 20px;
+      position: relative;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none; /* Initially hidden */
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .section-header img {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+    }
+    .section-header h2 {
+      font-size: 1.5em;
+      margin: 0;
+    }
+    .section-header span {
+      margin-left: 10px;
+      font-size: 1em;
+    }
+    .class-item, .notes-item {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      color: white;
+      display: block;
+    }
+    .class-item:hover, .notes-item:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .fallback-link {
+      font-size: 0.8em;
+      color: #ccc;
+      word-break: break-all;
+      margin-top: 5px;
+    }
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+    .tab {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: linear-gradient(to right, #00cc00, #66ff66);
+      color: white;
+    }
+    .youtube-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .youtube-btn img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
+    .upload-section {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .upload-section input {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- File Upload Section -->
+    <div class="upload-section">
+      <input type="file" id="fileInput" accept=".txt" onchange="loadFile()">
+      <p>Upload your .txt file to display classes</p>
+    </div>
+
+    <!-- Previous Class Section (Dynamic Name) -->
+    <div class="section" id="previousClassSection">
+      <div class="section-header">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/graduation-cap.png" alt="Graduation Cap">
+        <h2 id="previousClassTitle"></h2>
+        <span id="previousClassCount">0 Classes</span>
+        <span id="notesCount" style="margin-left: 5px;">0 Notes</span>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="showTab('classes')">Classes</div>
+        <div class="tab" onclick="showTab('notes')">Notes</div>
+      </div>
+      <div id="classes" class="tab-content"></div>
+      <div id="notes" class="tab-content" style="display: none;"></div>
+    </div>
+
+    <!-- Revision Class Section (Dynamic Name) -->
+    <div class="section" id="revisionClassSection">
+      <div class="section-header">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/graduation-cap.png" alt="Graduation Cap">
+        <h2 id="revisionClassTitle"></h2>
+        <span id="revisionClassCount">0 Classes</span>
+        <span style="margin-left: 5px;">0 Notes</span>
+      </div>
+      <div id="revisionClasses"></div>
+    </div>
+  </div>
+
+  <!-- YouTube Button -->
+  <a href="https://m.youtube.com/@starpranks09" target="_blank" class="youtube-btn">
+    <img src="https://yt3.googleusercontent.com/BCD6wsUKh9xKG8XPxBO6K7l0W9xpQmXQ7TeI_zPr2n4-2J2wtm03-C8WqNM6l73r8zeBiu4Dtw=s160-c-k-c0x00ffffff-no-rj" alt="YouTube">
+  </a>
+
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabName).style.display = 'block';
+      document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+    }
+
+    function loadFile() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        parseFile(text);
+      };
+      reader.readAsText(file);
+    }
+
+    function parseFile(text) {
+      const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      let currentSection = '';
+      let previousClasses = [];
+      let notes = [];
+      let revisionClasses = [];
+      let previousClassTitle = '';
+      let revisionClassTitle = '';
+
+      lines.forEach(line => {
+        if (line.endsWith('=')) {
+          if (line.toLowerCase().includes('previous')) {
+            currentSection = 'previous';
+            previousClassTitle = line.split('=')[0].trim(); // Extract name before '='
+          } else if (line.toLowerCase().includes('revision')) {
+            currentSection = 'revision';
+            revisionClassTitle = line.split('=')[0].trim(); // Extract name before '='
+          } else if (line.toLowerCase().includes('notes')) {
+            currentSection = 'notes';
+          }
+        } else if (line.startsWith('video-title')) {
+          // Skip header line for revision classes
+        } else {
+          if (currentSection === 'previous') {
+            const parts = line.split(/\t/); // Split by tab
+            if (parts.length >= 2) {
+              const title = parts[0].trim();
+              const link = parts[1].trim();
+              if (title && link.startsWith('https://')) {
+                previousClasses.push({ title, link });
+              }
+            }
+          } else if (currentSection === 'notes') {
+            if (line.startsWith('https://')) {
+              notes.push(line.trim());
+            }
+          } else if (currentSection === 'revision') {
+            const parts = line.split(/\t/); // Split by tab
+            if (parts.length >= 2) {
+              const title = parts[0].trim();
+              const link = parts[1].trim();
+              if (title && link.startsWith('https://')) {
+                revisionClasses.push({ title, link });
+              }
+            }
+          }
+        }
+      });
+
+      // Conditionally show Previous Class section
+      const previousClassSection = document.getElementById('previousClassSection');
+      if (previousClasses.length > 0 || notes.length > 0) {
+        previousClassSection.style.display = 'block';
+        document.getElementById('previousClassTitle').textContent = previousClassTitle;
+      } else {
+        previousClassSection.style.display = 'none';
+      }
+
+      // Update Previous Classes
+      const classesDiv = document.getElementById('classes');
+      classesDiv.innerHTML = '';
+      previousClasses.forEach(item => {
+        const a = document.createElement('a');
+        a.className = 'class-item';
+        a.href = item.link;
+        a.target = '_blank';
+        a.textContent = item.title;
+        // Add fallback link text
+        const fallback = document.createElement('div');
+        fallback.className = 'fallback-link';
+        fallback.textContent = `Link: ${item.link}`;
+        a.appendChild(fallback);
+        classesDiv.appendChild(a);
+      });
+      document.getElementById('previousClassCount').textContent = `${previousClasses.length} Classes`;
+
+      // Update Notes
+      const notesDiv = document.getElementById('notes');
+      notesDiv.innerHTML = '';
+      notes.forEach(link => {
+        const a = document.createElement('a');
+        a.className = 'notes-item';
+        a.href = link;
+        a.target = '_blank';
+        a.textContent = 'Complete Notes';
+        // Add fallback link text
+        const fallback = document.createElement('div');
+        fallback.className = 'fallback-link';
+        fallback.textContent = `Link: ${link}`;
+        a.appendChild(fallback);
+        notesDiv.appendChild(a);
+      });
+      document.getElementById('notesCount').textContent = `${notes.length} Notes`;
+
+      // Conditionally show Revision Class section
+      const revisionClassSection = document.getElementById('revisionClassSection');
+      if (revisionClasses.length > 0) {
+        revisionClassSection.style.display = 'block';
+        document.getElementById('revisionClassTitle').textContent = revisionClassTitle;
+      } else {
+        revisionClassSection.style.display = 'none';
+      }
+
+      // Update Revision Classes
+      const revisionDiv = document.getElementById('revisionClasses');
+      revisionDiv.innerHTML = '';
+      revisionClasses.forEach(item => {
+        const a = document.createElement('a');
+        a.className = 'class-item';
+        a.href = item.link;
+        a.target = '_blank';
+        a.textContent = item.title;
+        // Add fallback link text
+        const fallback = document.createElement('div');
+        fallback.className = 'fallback-link';
+        fallback.textContent = `Link: ${item.link}`;
+        a.appendChild(fallback);
+        revisionDiv.appendChild(a);
+      });
+      document.getElementById('revisionClassCount').textContent = `${revisionClasses.length} Classes`;
+    }
+  </script>
+</body>
+</html>
