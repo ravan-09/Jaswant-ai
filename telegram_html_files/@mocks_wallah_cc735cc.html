@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mocks Wallah</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#4361ee;--s:#3f37c9;--ok:#4cc9f0;--err:#f72585;--warn:#f8961e}
+body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;min-height:100vh;color:#2d3436;-webkit-tap-highlight-color:transparent}
+.hdr{position:fixed;top:0;width:100%;background:#fff;padding:16px 20px;z-index:100;box-shadow:0 2px 15px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.ttl{font-weight:700;font-size:18px;color:var(--p)}
+.tmr{font-family:monospace;font-weight:700;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;font-size:14px}
+.sub{background:linear-gradient(135deg,var(--err),#c1121f);border:none;color:#fff;padding:10px 20px;border-radius:25px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s ease}
+.sub:active{transform:scale(.95)}
+.main{margin:80px 0 90px;padding:0 20px}
+.qc{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05);position:relative}
+.qc::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),var(--s))}
+.qn{background:linear-gradient(135deg,var(--p),var(--s));color:#fff;padding:8px 16px;border-radius:20px;display:inline-block;font-weight:700;font-size:12px;margin-bottom:16px}
+.qt{font-size:16px;line-height:1.6;margin-bottom:24px;color:#212529;font-weight:500}
+.qt p{margin:8px 0}
+.qt strong{font-weight:700}
+.qt em{font-style:italic}
+.qt u{text-decoration:underline}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:16px;cursor:pointer;transition:all .2s ease;position:relative;font-size:14px;line-height:1.4;text-align:left}
+.opt p{margin:4px 0}
+.opt strong{font-weight:700}
+.opt em{font-style:italic}
+.opt u{text-decoration:underline}
+.opt:hover{border-color:var(--p)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background-color:#edf2ff;border-color:var(--p);color:var(--p)}
+.opt.cor{background-color:#ebfbee;border-color:#2b8a3e;color:#2b8a3e}
+.opt.inc{background-color:#fff5f5;border-color:#c92a2a;color:#c92a2a}
+.opt.unat{background:#f8f9fa;border-color:#dee2e6;color:#6c757d}
+.opt::after{content:'';position:absolute;right:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;transition:all .2s ease}
+.opt.sel::after{background:var(--p);content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.cor::after{background:#2b8a3e;content:'✓';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.inc::after{background:#c92a2a;content:'✗';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.opt.unat::after{background:transparent;content:'○';display:flex;align-items:center;justify-content:center;color:#6c757d;font-weight:700;font-size:14px}
+.sol{background:#f8f9fa;border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--warn);display:none}
+.sol h4{color:#e67700;margin-bottom:8px;font-weight:700;font-size:14px}
+.sol-content{color:#495057;font-size:14px;line-height:1.6}
+.sol-content p{margin:8px 0}
+.sol-content strong{font-weight:700}
+.sol-content em{font-style:italic}
+.sol-content u{text-decoration:underline}
+.nav{position:fixed;bottom:0;width:100%;background:#fff;padding:16px 20px;display:flex;justify-content:space-between;box-shadow:0 -2px 15px rgba(0,0,0,.08)}
+.nb{padding:12px 20px;border:none;border-radius:25px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s ease;display:flex;align-items:center;gap:6px}
+.nb:disabled{opacity:.5;cursor:not-allowed}
+.nb:not(:disabled):active{transform:scale(.95)}
+.nb.prv{background:linear-gradient(135deg,#adb5bd,#6c757d);color:#fff}
+.nb.nxt{background:linear-gradient(135deg,var(--err),#c1121f);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;animation:fadeIn .3s ease}
+.modal.show{display:flex;align-items:center;justify-content:center;padding:20px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:#fff;border-radius:20px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{text-align:center;padding:32px 24px;background:linear-gradient(135deg,var(--p),var(--s));color:#fff;border-radius:20px 20px 0 0}
+.modal-header h2{font-weight:700;font-size:28px;margin-bottom:8px}
+.modal-header p{font-size:16px;opacity:.9}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:20px}
+.stat{text-align:center;padding:16px}
+.stat h4{color:#6c757d;font-weight:600;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+.stat p{color:#212529;font-weight:700;font-size:18px}
+.mark-breakdown{padding:0 20px;margin-bottom:16px}
+.mark-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f3f4}
+.mark-item:last-child{border-bottom:none}
+.mark-label{color:#6c757d;font-size:14px}
+.mark-value{font-weight:600;color:#212529}
+.mark-value.positive{color:#2b8a3e}
+.mark-value.negative{color:#c92a2a}
+.total-marks{background:#f8f9fa;border-radius:12px;padding:16px;margin:16px 20px;text-align:center}
+.total-marks h3{color:#212529;font-size:18px;font-weight:700;margin-bottom:4px}
+.total-marks p{color:#6c757d;font-size:14px}
+.modal-actions{padding:0 20px 20px;display:flex;gap:12px}
+.act-btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.act-btn:active{transform:scale(.98)}
+.act-btn.blue{background:#edf2ff;color:var(--p)}
+.act-btn.green{background:#ebfbee;color:#2b8a3e}
+.close{position:absolute;top:15px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+</style></head><body>
+<div class="hdr">
+<div class="hdr-left">
+<div class="ttl">Mocks Wallah</div>
+<div class="tmr" id="tmr">12:00</div>
+</div>
+<button class="sub" onclick="sub()" id="sub-btn">Submit</button>
+</div>
+<div class="main">
+<div id="qc" class="qc">
+<div class="qn" id="qn">Question 1</div>
+<div class="qt" id="qt"></div>
+<div class="opts" id="opts"></div>
+<div class="sol" id="sol">
+<h4>💡 Solution</h4>
+<div class="sol-content" id="sol-text"></div>
+</div>
+</div>
+</div>
+<div class="nav">
+<button class="nb prv" id="pb" onclick="prv()">← Previous</button>
+<button class="nb nxt" id="nb" onclick="nxt()">Next →</button>
+</div>
+<div id="modal" class="modal">
+<div class="modal-content">
+<button class="close" onclick="closeModal()">×</button>
+<div class="modal-header">
+<h2 id="fs">Your Score</h2>
+<p id="sp">Marks Obtained</p>
+</div>
+<div class="modal-stats">
+<div class="stat"><h4>Correct</h4><p id="cor">0</p></div>
+<div class="stat"><h4>Incorrect</h4><p id="inc">0</p></div>
+<div class="stat"><h4>Unattempted</h4><p id="unat">0</p></div>
+</div>
+<div class="mark-breakdown">
+<div class="mark-item">
+<span class="mark-label">Correct (2.0 each)</span>
+<span class="mark-value positive" id="pos-marks">+0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Incorrect (0.5 each)</span>
+<span class="mark-value negative" id="neg-marks">0</span>
+</div>
+<div class="mark-item">
+<span class="mark-label">Unattempted (0 each)</span>
+<span class="mark-value" id="una-marks">0</span>
+</div>
+</div>
+<div class="total-marks">
+<h3 id="total-score">0 Marks</h3>
+<p id="percentage">0%</p>
+</div>
+<div class="modal-actions">
+<button class="act-btn blue" onclick="showSol()">View Solutions</button>
+<button class="act-btn green" onclick="location.reload()">Retry Test</button>
+</div>
+</div>
+</div>
+<script>
+const qs=[{"id": "95816", "question": "<strong>The following sentence has been split into four segments. Identify the segment that contains a grammatical error</strong>.</p> <p>The postman / delivers the letters / through hand, / door to door.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> door to door", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> delivers the letters", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The postman", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> through hand"], "correct_answer": 3, "solution": "'by hand' will be used instead of 'through hand' because 'through hand' is an incorrect way to indicate the distribution of letters. The correct phrase is 'by hand'."}, {"id": "95825", "question": "Select the most appropriate <strong>synonym</strong> of the underlined word in the given sentence.</p> <p>The children did not like the <ins><strong>abominable</strong> </ins>table manners of old aunt.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> delectable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> stringent", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> obnoxious", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Inflexible"], "correct_answer": 2, "solution": "<strong>Synonym</strong>: <strong>Obnoxious</strong> (adjective) – Extremely unpleasant, repulsive, objectionable. अप्रिय"}, {"id": "95817", "question": "<strong>Select the most appropriate option to fill in the blank.</strong></p> <p>The committee will ________________ a survey on the government schemes.</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> conduct", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> fight", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> hold", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Originate"], "correct_answer": 0, "solution": "<strong>Conduct'</strong> should be used because in the entire context, the sentence is discussing the action of carrying out a survey on government schemes by the committee. Here, through \"The committee will ________________ a survey on the government schemes\", it is portrayed that the committee will be involved in the process of surveying government schemes. In this context, \"conduct\" would be the most appropriate choice as it is commonly used to describe a formal and organized process."}, {"id": "95818", "question": "Select the most appropriate <strong>antonym</strong> of the given word.</p> <p><strong>VIRULENT</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> dangerous", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> amicable", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> lethal", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> powerful"], "correct_answer": 1, "solution": "Antonym: <strong>Amicable</strong> (adjective) – Characterized by friendliness and absence of discord; friendly, cordial, congenial. <strong>मैत्रीपूर्ण</strong>"}, {"id": "95819", "question": "<strong> Select the most appropriate meaning of the highlighted idiom.</strong></p> <p>Though his staff is often confused by the way he runs the office, I've found that there's <strong>(a) method in/to his madness</strong></p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Someone who is unpredictable and can cause damage if not kept in check.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To get someone drunk.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To state a fact so that there are no doubts or objections.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Strange or crazy actions that appear meaningless but in the end are done for a good reason."], "correct_answer": 3, "solution": "<strong>D) Method to my madness </strong>(phrase) – Strange or crazy actions that appear meaningless but in the end are done for a good reason व्यवहार वास्तव में इतना मूर्खतापूर्ण नहीं जितना दिखाई देता है."}, {"id": "95823", "question": "<strong>Identify the segment in the sentence which contains a grammatical error.</strong></p> <p>There was very poor receptivity due from technological glitches; nonetheless, the online class was continued.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> There was very poor receptivity", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> the online class was continued", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> due from technological glitches", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Nonetheless"], "correct_answer": 2, "solution": "'due to' will be used instead of 'due from' because 'due to' is used to express the reason or cause of something, like— There was very poor receptivity due to technological glitches; nonetheless, the online class was continued"}, {"id": "95821", "question": "<strong>Select the best express ANTONYM</strong> <strong>of the highlighted word</strong></p> <p>The <strong>steep</strong> hike up the mountain proved a challenging endeavor for the inexperienced climbers.", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Easy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Accede", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Exodus", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Evident"], "correct_answer": 0, "solution": "<strong>Antonym:-</strong> Easy, simple, straightforward, uncomplicated, effortless सरल"}, {"id": "95827", "question": "<strong>Select the option that expresses the given sentence in indirect speech.</strong></p> <p>He asked us, “When are you reaching?”", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He asked us whether we are reaching.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He asked us when we will reach.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> He asked us when we were reaching.", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> He asked us when will you reach?"], "correct_answer": 2, "solution": "<strong>C)</strong> He asked us when we were reaching."}, {"id": "95826", "question": "<strong>Select the most appropriate synonym of the underlined word in the given sentence.</strong></p> <p>She became <ins><strong>frantic</strong> </ins>as she lost her purse on the busy streets of the markets.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Hectic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Composed", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Audacious", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Agitated"], "correct_answer": 3, "solution": "<strong>Synonym</strong>: <strong>Agitated</strong> (adjective) – Disturbed, upset, shaken, perturbed. उत्तेजित"}, {"id": "95820", "question": "<strong>Identify the INCORRECTLY spelt word in the following sentence and select its correctspelling from the given options</strong></p> <p>I received good concesions while purchasing a mobile phone", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> recieved", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> whaile", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> concessions", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> paurchasing"], "correct_answer": 2, "solution": "C) The INCORRECTLY spelt word in the sentence is \"concesions\". The correct spelling is: concessions. Which means “a reduction in the usual price of something” उस समान की सामान्य मूल्य में घटाव।"}, {"id": "95822", "question": "<strong>Identify the segment in the sentence which contains a grammatical error.</strong></p> <p>After the rain the roads was wet and waterlogged in some places", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> After the rain", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> wet and waterlogged", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> in some places.", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> the roads was"], "correct_answer": 3, "solution": "the roads were' will be used instead of 'the roads was' because 'roads' is a Plural Noun and with Plural Subject, the Verb 'were' is used; Like— After the rain, the roads were wet and waterlogged in some places"}, {"id": "95824", "question": "<strong>Select the most appropriate synonym for the underlined word in the following sentence.</strong></p> <p>She’s so <ins><strong>benevolent</strong> </ins>that she can’t even harm a fly, let alone hurting someone.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Gloomy", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unfortunate", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Grudging", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Compassionate"], "correct_answer": 3, "solution": "Synonym: <strong>Compassionate</strong> (adjective) – Showing sympathy, pity, concern for the sufferings or misfortunes of others. <strong>सहानुभूतिपूर्ण</strong>"}, {"id": "95828", "question": "<strong>Select the most appropriate meaning of the given idiom.</strong></p> <p>Ethnic Cleansing", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Worshiping of a certain ethnic or religious group on a massive scale", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Killing of a certain ethnic or religious group on a massive scale", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> One who was previously unknown and is now prominent", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A large number of people either falling ill or dying"], "correct_answer": 1, "solution": "<strong>B) Ethnic</strong> <strong>Cleansing</strong> (idiom) – Killing of a certain ethnic or religious group on a massive scale एक विशेष जातीय या धार्मिक समूह की बड़े पैमाने पर हत्या"}, {"id": "95830", "question": "<strong>Select the option that can be used as a one-word substitute for the given group of words</strong></p> <p>Economic structure organized and controlled by capitalists</p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Prophet", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Patronymic", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Capitalism", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Relapse"], "correct_answer": 2, "solution": "Prophet</strong> – One who foretells events correctly <strong>पैगम्बर"}, {"id": "95835", "question": "<strong>Select the INCORRECTLY spelt word from the underlined words in the following sentence.</strong></p> <p>It is important to see school <ins><strong>holistically</strong></ins>, it is not a set of atomic items of rooms, library, assembly halls, canteen and playgrounds; it is all of these but in <ins><strong>symbiotic</strong> </ins>relationship with each other, the <ins><strong>contors</strong> </ins>of which are often far too obvious and often simply <ins><strong>mysterious</strong></ins>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> mysterious", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> contors", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> symbiotic", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> holistically"], "correct_answer": 1, "solution": "<strong>B)</strong> The incorrect spelling in the underlined words is '<strong>contors</strong>'. The correct spelling is '<strong>contours'आकार</strong>, <strong>संरचना</strong>."}, {"id": "95831", "question": "Select the correct <strong>homonym</strong> from the given options to fill in the blank.</p> <p>Which________does the minister take to reach the Assembly?", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> root", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> rot", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> route", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> riot"], "correct_answer": 2, "solution": "'<strong>Route'</strong> should be used because in the entire context, the sentence is discussing the path that the politician takes to reach the Assembly. Here, through \"Which ________ does the minister take to reach the Assembly?\" it refers to the path that the minister takes to reach the Assembly, so \"route\" is the most appropriate option."}, {"id": "95832", "question": "<strong>Select the most appropriate meaning of the underlined word in a sentence.</strong></p> <p>Even though James won the election, he has not brought any of his campaign promises to<ins> <strong>fruition</strong>.</ins></p> <ol>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> concealment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> nourishment", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> disappointment", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Accomplishment"], "correct_answer": 3, "solution": "D) The correct meaning of the underlined word 'fruition' is 'Accomplishment' which means “the realization or fulfillment of a plan or project.” परिपूर्णता, सम्पन्नता."}, {"id": "95833", "question": "<strong>Select the most appropriate option to substitute the underlined segment in the given sentence. If there is no need to substitute it, select No improvement.</strong></p> <p>For most people a six figure salary was unimaginable two decades ago.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> For most of people", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> To much people", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> For a many people", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> No improvement"], "correct_answer": 3, "solution": "No improvement is needed in place of ‘For most people’ because the sentence is already correctly phrased. So, it will be kept as it is."}, {"id": "95834", "question": "<strong>Choose the correct spelling of the underlined word.</strong></p> <p>The school<strong> <ins>calander</ins> </strong>this year has turned out really nice", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> celender", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> calender", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> calendar", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> calunder"], "correct_answer": 2, "solution": "Calendar</strong>–a list that shows the days, weeks and months of a particular year <strong>कैलेंडर"}, {"id": "95829", "question": "<strong>Select the best express synonym of the highlighted phrasal verb</strong></p> <p>They <strong>set about</strong> organizing the community event with great enthusiasm.", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Regime", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Infrastructure", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Spur", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Begin"], "correct_answer": 3, "solution": "<strong>Regime</strong> (noun) – System, method, procedure, व्यवस्था"}, {"id": "95836", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Many people are (1)_________ concerned about the (2)____________of natural resources, increasing global warming, and the vastly uneven distribution of wealth. The root causes are greed and competition, attitudes that (3)_____________change until there is (4)___________expansion of consciousness. That is why Paramhansa Yogananda came, in part, to help correct these attitudes by emphasising high thinking, simple living, and the search for God. A new (5)________of unity is needed. A hallmark of Kali Yuga was that life seemed to be little more than a brutal struggle for survival. But this old paradigm is slowly breaking down.</p> <p><strong>Select the most appropriate option to fill in blank number 1.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Truly", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Negatively", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Only", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Deeply"], "correct_answer": 3, "solution": "No solution available"}, {"id": "95837", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Many people are (1)_________ concerned about the (2)____________of natural resources, increasing global warming, and the vastly uneven distribution of wealth. The root causes are greed and competition, attitudes that (3)_____________change until there is (4)___________expansion of consciousness. That is why Paramhansa Yogananda came, in part, to help correct these attitudes by emphasising high thinking, simple living, and the search for God. A new (5)________of unity is needed. A hallmark of Kali Yuga was that life seemed to be little more than a brutal struggle for survival. But this old paradigm is slowly breaking down.</p> <p><strong>Select the most appropriate option to fill in blank number 2.</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Praise", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Immerse", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Overuse", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Overhaul"], "correct_answer": 2, "solution": "No solution available"}, {"id": "95838", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Many people are (1)_________ concerned about the (2)____________of natural resources, increasing global warming, and the vastly uneven distribution of wealth. The root causes are greed and competition, attitudes that (3)_____________change until there is (4)___________expansion of consciousness. That is why Paramhansa Yogananda came, in part, to help correct these attitudes by emphasising high thinking, simple living, and the search for God. A new (5)________of unity is needed. A hallmark of Kali Yuga was that life seemed to be little more than a brutal struggle for survival. But this old paradigm is slowly breaking down.</p> <p><strong>Select the most appropriate option to fill in blank number 3.</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> won’t", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> will", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> have", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> would"], "correct_answer": 0, "solution": "No solution available"}, {"id": "95839", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Many people are (1)_________ concerned about the (2)____________of natural resources, increasing global warming, and the vastly uneven distribution of wealth. The root causes are greed and competition, attitudes that (3)_____________change until there is (4)___________expansion of consciousness. That is why Paramhansa Yogananda came, in part, to help correct these attitudes by emphasising high thinking, simple living, and the search for God. A new (5)________of unity is needed. A hallmark of Kali Yuga was that life seemed to be little more than a brutal struggle for survival. But this old paradigm is slowly breaking down.</p> <p><strong>Select the most appropriate option to fill in blank number 4</strong>", "options": ["<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> An", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> A", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> The", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> No article"], "correct_answer": 0, "solution": "No solution available"}, {"id": "95840", "question": "<strong>Comprehension:</strong></p> <p><strong>In the following passage, some words have been deleted. Read the passage carefully and select the most appropriate option to fill in each blank</strong><br> Many people are (1)_________ concerned about the (2)____________of natural resources, increasing global warming, and the vastly uneven distribution of wealth. The root causes are greed and competition, attitudes that (3)_____________change until there is (4)___________expansion of consciousness. That is why Paramhansa Yogananda came, in part, to help correct these attitudes by emphasising high thinking, simple living, and the search for God. A new (5)________of unity is needed. A hallmark of Kali Yuga was that life seemed to be little more than a brutal struggle for survival. But this old paradigm is slowly breaking down.</p> <p><strong>Select the most appropriate option to fill in blank number 5</strong>", "options": ["<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Unconsciousness", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Conscience", "<p style=\"display:none\"><img alt=\"reload\" src=\"https://englishmadhyam.info/public/exam-panel/img/reload.png\"/></p> Conscious", "<p style=\"display:none\"><img alt=\"check\" src=\"https://englishmadhyam.info/public/exam-panel/img/check.png\"/></p> Consciousness"], "correct_answer": 3, "solution": "No solution available"}],ans={};
+const posMarks=2.0, negMarks=0.5;
+let ci=0,tl=12*60,ti,fin=0,solMode=0,totalTime=0;
+
+function ini(){
+    disQ();
+    strT();
+}
+
+function disQ(){
+    const q=qs[ci];
+    document.getElementById('qn').textContent=`Question ${ci+1} of ${qs.length}`;
+    document.getElementById('qt').innerHTML=q.question;
+    const oc=document.getElementById('opts'),sc=document.getElementById('sol');
+    oc.innerHTML='';
+    
+    if(solMode){
+        sc.style.display='block';
+        document.getElementById('sol-text').innerHTML=q.solution||'No solution provided.';
+        // Hide submit button in solution mode
+        document.getElementById('sub-btn').style.display='none';
+    }else{
+        sc.style.display='none';
+        // Show submit button in test mode
+        document.getElementById('sub-btn').style.display='block';
+    }
+    
+    q.options.forEach((o,i)=>{
+        const od=document.createElement('div');
+        od.className='opt';
+        od.innerHTML=o;
+        
+        if(solMode){
+            if(i===q.correct_answer) {
+                od.classList.add('cor');
+            } else if(ans[ci]===i) {
+                od.classList.add('inc');
+            } else if(ans[ci]===undefined) {
+                od.classList.add('unat');
+            }
+            od.style.pointerEvents='none';
+        }else{
+            od.onclick=()=>sel(i);
+            if(ans[ci]===i) od.classList.add('sel');
+        }
+        
+        oc.appendChild(od);
+    });
+    
+    upNav();
+}
+
+function sel(i){
+    // If clicking the same option, deselect it (clear response)
+    if(ans[ci]===i){
+        delete ans[ci];
+        document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    }else{
+        // Select new option
+        ans[ci]=i;
+        document.querySelectorAll('.opt').forEach((o,idx)=>o.classList.toggle('sel',idx===i));
+    }
+}
+
+function upNav(){
+    document.getElementById('pb').disabled=ci===0;
+    const nb=document.getElementById('nb');
+    
+    if(solMode){
+        // In solution mode, show same navigation as test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=()=>{
+            if(ci<qs.length-1){
+                ci++;
+                disQ();
+            }else{
+                // Exit solution mode
+                solMode=0;
+                ci=0;
+                disQ();
+            }
+        };
+    }else{
+        // In test mode
+        nb.innerHTML=ci===qs.length-1?'Finish ✓':'Next →';
+        nb.onclick=nxt;
+    }
+}
+
+function prv(){
+    if(ci>0){
+        ci--;
+        disQ();
+    }
+}
+
+function nxt(){
+    if(ci<qs.length-1){
+        ci++;
+        disQ();
+    }else sub();
+}
+
+function strT(){
+    ti=setInterval(()=>{
+        if(tl<=0){
+            sub();
+            return;
+        }
+        tl--;
+        const m=Math.floor(tl/60),s=tl%60;
+        document.getElementById('tmr').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+}
+
+function sub(){
+    if(fin) return;
+    fin=1;
+    clearInterval(ti);
+    totalTime=12*60-tl;
+    
+    // Calculate marks with proper marking system
+    let correct=0, incorrect=0, unattempted=0;
+    let totalMarks=0;
+    
+    qs.forEach((q,i)=>{
+        if(ans[i]===undefined){
+            // Unattempted - no marks deducted
+            unattempted++;
+        }else if(ans[i]===q.correct_answer){
+            // Correct answer - add positive marks
+            correct++;
+            totalMarks += posMarks;
+        }else{
+            // Incorrect answer - deduct negative marks
+            incorrect++;
+            totalMarks -= negMarks;
+        }
+    });
+    
+    // Calculate maximum possible marks and percentage
+    const maxMarks = qs.length * posMarks;
+    const percentage = Math.max(0, Math.round((totalMarks / maxMarks) * 100));
+    
+    const timeStr=`${Math.floor(totalTime/60)}:${(totalTime%60).toString().padStart(2,'0')}`;
+    
+    // Update modal display
+    document.getElementById('fs').textContent=`${correct}/${qs.length}`;
+    document.getElementById('sp').textContent=`${totalMarks} / ${maxMarks} Marks`;
+    document.getElementById('cor').textContent=correct;
+    document.getElementById('inc').textContent=incorrect;
+    document.getElementById('unat').textContent=unattempted;
+    
+    // Update mark breakdown
+    document.getElementById('pos-marks').textContent=`+${correct * posMarks}`;
+    document.getElementById('neg-marks').textContent=`-${incorrect * negMarks}`;
+    document.getElementById('una-marks').textContent=`0`;
+    
+    // Update total score
+    document.getElementById('total-score').textContent=`${totalMarks} Marks`;
+    document.getElementById('percentage').textContent=`${percentage}%`;
+    
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){
+    document.getElementById('modal').classList.remove('show');
+}
+
+function showSol(){
+    closeModal();
+    solMode=1;
+    ci=0;
+    disQ();
+}
+
+window.onload=ini;
+window.addEventListener('beforeunload',e=>{
+    if(!fin){
+        e.preventDefault();
+        e.returnValue='Test in progress';
+    }
+});
+</script></body></html>
