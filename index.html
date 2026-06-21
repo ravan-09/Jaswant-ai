@@ -2,531 +2,656 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Premium Player</title>
-  
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Smart PDF Viewer | Load via URL Params</title>
   <style>
-    :root {
-      --primary: #ffffff;
-      --accent: #E50914; 
-      --glass: rgba(20, 20, 20, 0.9);
-      --text: #ffffff;
-    }
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
-    body { background: #000; overflow: hidden; font-family: 'Inter', sans-serif; height: 100vh; width: 100vw; color: white; }
-    
-    /* Container */
-    #player-wrapper {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: #000; display: flex; align-items: center; justify-content: center;
-    }
-    
-    video { width: 100%; height: 100%; object-fit: contain; }
-
-    /* Watermarks */
-    .watermark {
-      position: absolute;
-      z-index: 8;
-      pointer-events: none;
-      user-select: none;
-    }
-    
-    .logo-watermark {
-      top: 20px;
-      left: 20px;
-      width: 40px;
-      height: 40px;
-      background: url('https://www.selectionway.com/next_images/logo.png') center/contain no-repeat;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
-    }
-    
-    .text-watermark {
-      bottom: 20px;
-      right: 20px;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 4px 12px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 4px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Arial', sans-serif;
     }
 
-    /* Buffering Spinner */
-    .spinner {
-      position: absolute; width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1);
-      border-left-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
-      z-index: 20; display: none; pointer-events: none;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    /* UI Overlay */
-    .ui-layer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 10; display: flex; flex-direction: column; justify-content: space-between;
-      transition: opacity 0.3s ease; opacity: 1;
-    }
-    .ui-layer.hidden { opacity: 0; pointer-events: none; cursor: none; }
-
-    /* Top Gradient */
-    .top-controls {
-      padding: 20px; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .video-title { font-weight: 500; font-size: 14px; opacity: 0.9; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-
-    /* Center Play Button */
-    .center-area {
-      flex: 1; display: flex; align-items: center; justify-content: center; position: relative;
-    }
-    .big-play {
-      width: 65px; height: 65px; background: rgba(0,0,0,0.4); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      backdrop-filter: blur(8px); transition: transform 0.2s, background 0.2s;
-    }
-    .big-play:active { transform: scale(0.9); background: rgba(0,0,0,0.6); }
-    .big-play span { font-size: 32px; }
-
-    /* Bottom Controls Area */
-    .bottom-controls {
-      padding: 0 20px 25px 20px;
-      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0c10;
     }
 
-    /* Progress Bar */
-    .progress-container {
-      width: 100%; height: 20px; display: flex; align-items: center; cursor: pointer;
-      margin-bottom: 5px; touch-action: none;
+    /* landing screen: clean card layout */
+    .landing {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #f8fafc 0%, #eef2f5 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 24px;
+      z-index: 10000;
+      transition: opacity 0.25s ease;
+      backdrop-filter: blur(0px);
     }
-    .progress-track {
-      width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 4px;
-      position: relative; overflow: visible; transition: height 0.2s;
-    }
-    .progress-container:hover .progress-track { height: 6px; }
-    
-    .progress-buffer {
-      position: absolute; height: 100%; background: rgba(255,255,255,0.3); width: 0%; border-radius: 4px;
-    }
-    .progress-fill {
-      position: absolute; height: 100%; background: var(--accent); width: 0%; border-radius: 4px;
-      display: flex; align-items: center;
-    }
-    /* Thumb */
-    .progress-fill::after {
-      content: ''; position: absolute; right: -6px; width: 14px; height: 14px;
-      background: var(--accent); border-radius: 50%; opacity: 0;
-      transition: transform 0.2s, opacity 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    .progress-container:hover .progress-fill::after { opacity: 1; transform: scale(1.2); }
 
-    /* Control Buttons Row */
-    .controls-row {
-      display: flex; align-items: center; justify-content: space-between; height: 40px;
+    .landing.hide {
+      display: none;
     }
-    
-    .left-group, .right-group { display: flex; align-items: center; gap: 15px; }
-    
+
+    .card {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border-radius: 48px;
+      padding: 32px 28px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.02);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1e2b3c, #0f2b3a);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .sub {
+      color: #2c3e44;
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+      border-bottom: 1px dashed #b9cddc;
+      display: inline-block;
+      padding-bottom: 6px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
     .btn {
-      background: none; border: none; color: white; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0.9; transition: opacity 0.2s; padding: 5px; border-radius: 5px;
+      border: none;
+      border-radius: 60px;
+      padding: 14px 20px;
+      font-weight: 600;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    .btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
-    .material-icons-round { font-size: 26px; }
-    
-    .time-display { font-size: 13px; font-weight: 500; opacity: 0.8; margin-left: 5px; font-variant-numeric: tabular-nums; }
 
-    /* Speed Menu (Glassmorphism) */
-    .speed-menu {
-      position: absolute; bottom: 70px; right: 20px;
-      background: var(--glass); backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-      padding: 6px; width: 120px; transform: scale(0.9); opacity: 0;
-      pointer-events: none; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      transform-origin: bottom right; display: flex; flex-direction: column-reverse;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    .btn:active {
+      transform: scale(0.97);
     }
-    .speed-menu.active { transform: scale(1); opacity: 1; pointer-events: auto; }
-    
-    .speed-opt {
-      padding: 10px 12px; font-size: 14px; color: #ccc; cursor: pointer;
-      border-radius: 8px; transition: background 0.2s; display: flex; justify-content: space-between;
-    }
-    .speed-opt:hover { background: rgba(255,255,255,0.1); color: white; }
-    .speed-opt.selected { color: var(--accent); font-weight: 600; }
-    
-    /* Volume Slider */
-    .volume-wrap { display: flex; align-items: center; gap: 8px; width: 0; overflow: hidden; transition: width 0.3s; }
-    .volume-container:hover .volume-wrap { width: 80px; }
-    input[type=range] { width: 100%; height: 3px; accent-color: white; cursor: pointer; }
 
-    /* Double Tap Zones */
-    .tap-layer { position: absolute; top: 0; height: 100%; width: 35%; z-index: 5; display: flex; align-items: center; justify-content: center; }
-    .tap-left { left: 0; }
-    .tap-right { right: 0; }
-    
-    .ripple-icon {
-      background: rgba(0,0,0,0.6); border-radius: 50%; padding: 15px;
-      backdrop-filter: blur(5px); opacity: 0; transform: scale(0.8); transition: all 0.2s;
+    .mozilla-btn {
+      background: #ff6b00;
+      color: white;
+      border: none;
     }
-    .ripple-icon.show { opacity: 1; transform: scale(1); }
 
-    /* Lock Button Styling */
-    .lock-display {
-      position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
-      background: white; color: black; padding: 8px 16px; border-radius: 20px;
-      font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    .google-btn {
+      background: #1a73e8;
+      color: white;
     }
-    .lock-display.visible { opacity: 1; pointer-events: auto; }
 
-    @media (max-width: 768px) {
-      .volume-wrap { display: none; }
-      .top-controls { padding: 15px; }
-      .bottom-controls { padding: 0 15px 15px 15px; }
-      .big-play { width: 55px; height: 55px; }
-      .material-icons-round { font-size: 24px; }
-      
-      /* Smaller watermarks on mobile */
-      .logo-watermark {
-        top: 15px;
-        left: 15px;
-        width: 30px;
-        height: 30px;
+    .download-btn {
+      background: #0f2b3a;
+      color: white;
+    }
+
+    .info-badge {
+      margin-top: 24px;
+      background: #e9edf2;
+      border-radius: 40px;
+      padding: 12px 20px;
+      font-size: 0.8rem;
+      color: #1f4e5c;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+      display: none;
+      z-index: 9990;
+    }
+
+    /* floating download bubble (draggable, progress ring style) */
+    .download-bubble {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #11161c;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 0 3px rgba(255,255,255,0.2);
+      transition: box-shadow 0.1s;
+      user-select: none;
+      touch-action: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .water-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #00e6b8;
+      transition: height 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      border-radius: 50%;
+      z-index: 0;
+    }
+
+    .percent-value {
+      position: relative;
+      z-index: 3;
+      color: white;
+      font-weight: 800;
+      font-size: 1.3rem;
+      text-shadow: 0 1px 2px black;
+      background: rgba(0,0,0,0.4);
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      backdrop-filter: blur(3px);
+    }
+
+    .bubble-icon {
+      font-size: 26px;
+    }
+
+    /* error/retry style */
+    .err-tooltip {
+      font-size: 10px;
+    }
+
+    @media (max-width: 540px) {
+      .card {
+        padding: 24px 20px;
       }
-      
-      .text-watermark {
-        bottom: 15px;
-        right: 15px;
-        font-size: 12px;
-        padding: 3px 8px;
+      .btn {
+        padding: 12px 16px;
       }
     }
   </style>
 </head>
 <body>
 
-<div id="player-wrapper">
-  <video id="video" playsinline src="blob:https://lalitproxy.onrender.com/94cf24ea-78a5-446b-b14d-1f4ed7614bb4"></video>
-  
-  <!-- Watermarks -->
-  <div class="watermark logo-watermark"></div>
-  <div class="watermark text-watermark">VISHAL</div>
-  
-  <div class="spinner" id="spinner" style="display: none;"></div>
-
-  <div class="tap-layer tap-left" id="zone-rewind">
-    <div class="ripple-icon" id="icon-rewind"><span class="material-icons-round">replay_10</span></div>
-  </div>
-  <div class="tap-layer tap-right" id="zone-forward">
-    <div class="ripple-icon" id="icon-forward"><span class="material-icons-round">forward_10</span></div>
-  </div>
-
-  <div class="ui-layer" id="ui">
-    
-    <div class="top-controls">
-      <div class="video-title">Now Playing</div>
-      <button class="btn" id="btn-lock"><span class="material-icons-round">lock_open</span></button>
+<div class="landing" id="landingUI">
+  <div class="card">
+    <h2>📄 PDF Smart Viewer</h2>
+    <div class="sub">Load PDF via URL parameters</div>
+    <div class="btn-group">
+      <button class="btn mozilla-btn" id="mozillaViewBtn">
+        🦊 Mozilla PDF.js Viewer
+      </button>
+      <button class="btn google-btn" id="googleViewBtn">
+        🌐 Google Docs Viewer
+      </button>
+      <button class="btn download-btn" id="directDownloadBtn">
+        ⬇️ Direct Download PDF
+      </button>
     </div>
-
-    <div class="center-area">
-      <div class="big-play" id="center-play">
-        <span class="material-icons-round">play_arrow</span>
-      </div>
-    </div>
-
-    <div class="bottom-controls">
-      <div class="progress-container" id="seek-bar">
-        <div class="progress-track">
-          <div class="progress-buffer" id="buf-bar"></div>
-          <div class="progress-fill" id="fill-bar"></div>
-        </div>
-      </div>
-
-      <div class="controls-row">
-        <div class="left-group">
-          <button class="btn" id="btn-play"><span class="material-icons-round">play_arrow</span></button>
-          
-          <div class="volume-container" style="display:flex; align-items:center;">
-            <button class="btn" id="btn-mute"><span class="material-icons-round">volume_up</span></button>
-            <div class="volume-wrap">
-              <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="1">
-            </div>
-          </div>
-
-          <span class="time-display" id="time-txt">0:00 / 0:00</span>
-        </div>
-
-        <div class="right-group">
-          <div style="position:relative;">
-            <button class="btn" id="btn-speed">
-              <span class="material-icons-round">slow_motion_video</span>
-            </button>
-            <div class="speed-menu" id="speed-menu">
-              <div class="speed-opt" data-val="2.0">2.0x</div>
-              <div class="speed-opt" data-val="1.5">1.5x</div>
-              <div class="speed-opt" data-val="1.25">1.25x</div>
-              <div class="speed-opt selected" data-val="1.0">Normal</div>
-              <div class="speed-opt" data-val="0.75">0.75x</div>
-              <div class="speed-opt" data-val="0.5">0.5x</div>
-            </div>
-          </div>
-          
-          <button class="btn" id="btn-fs"><span class="material-icons-round">fullscreen</span></button>
-        </div>
-      </div>
+    <div class="info-badge" id="paramInfo">
+      📍 Reading parameters: <span id="paramDetails">—</span>
     </div>
   </div>
-
-  <div class="lock-display" id="unlock-msg">
-    <span class="material-icons-round" style="font-size:18px;">lock</span> Tap to Unlock
-  </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<iframe id="pdfFrame" title="PDF Viewer"></iframe>
+
+<div id="downloadFloat" class="download-bubble">
+  <div class="water-fill" id="waterFill"></div>
+  <div class="percent-value" id="percentCircle">↓</div>
+</div>
+
 <script>
-  const video = document.getElementById('video');
-  const ui = document.getElementById('ui');
-  const spinner = document.getElementById('spinner');
-  
-  // Controls
-  const btnPlay = document.getElementById('btn-play');
-  const centerPlay = document.getElementById('center-play');
-  const fillBar = document.getElementById('fill-bar');
-  const bufBar = document.getElementById('buf-bar');
-  const seekBar = document.getElementById('seek-bar');
-  const timeTxt = document.getElementById('time-txt');
-  const btnSpeed = document.getElementById('btn-speed');
-  const speedMenu = document.getElementById('speed-menu');
-  const speedOpts = document.querySelectorAll('.speed-opt');
-  const btnLock = document.getElementById('btn-lock');
-  const unlockMsg = document.getElementById('unlock-msg');
-  const btnFs = document.getElementById('btn-fs');
-  const btnMute = document.getElementById('btn-mute');
-  const volSlider = document.getElementById('vol-slider');
-
-  let isLocked = false;
-  let inactivityTimer;
-
-  // 1. Initialize HLS
-  const url = new URLSearchParams(window.location.search).get('url');
-  
-  if (Hls.isSupported()) {
-    const hls = new Hls({
-      enableWorker: true,
-      lowLatencyMode: true,
-      maxBufferLength: 30, 
-    });
-    hls.loadSource('/proxy?url=' + encodeURIComponent(url));
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => spinner.style.display = 'none');
-    hls.on(Hls.Events.WAITING, () => spinner.style.display = 'block');
-    hls.on(Hls.Events.FRAG_BUFFERED, updateBuffer);
-    hls.on(Hls.Events.ERROR, function (event, data) {
-       if (data.fatal) {
-          switch(data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              hls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              hls.recoverMediaError();
-              break;
-            default:
-              console.log("Fatal error");
-              break;
-          }
-       }
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = '/proxy?url=' + encodeURIComponent(url);
-    video.addEventListener('waiting', () => spinner.style.display = 'block');
-    video.addEventListener('playing', () => spinner.style.display = 'none');
+  // --------------------------------------------------------------
+  // 1. HELPER: parse URL parameters (supports ?pdf1=...&title=... etc.)
+  // We support three distinct modes:
+  // ?pdf1=<url>&title=<name>   => Mozilla viewer
+  // ?pdf2=<url>&title=<name>   => Google viewer
+  // ?pdf3=<url>&title=<name>   => download
+  // also legacy direct ?pdfurl=... but we prioritize above.
+  // --------------------------------------------------------------
+  function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      pdf1: params.get('pdf1'),
+      pdf2: params.get('pdf2'),
+      pdf3: params.get('pdf3'),
+      title: params.get('title'),
+      // fallback for generic (if anyone uses old style)
+      pdfurl: params.get('pdfurl'),
+      legacyTitle: params.get('title')
+    };
   }
 
-  // 2. Play/Pause Logic
-  function togglePlay() {
-    if (video.paused) {
-      video.play().catch(e => console.log('Playback prevented'));
-      updatePlayBtn(true);
+  let activePDFUrl = null;
+  let activeTitle = "Bihar Special Complete Notes";
+
+  // detect which mode is intended based on params (priority: pdf1 > pdf2 > pdf3 > pdfurl)
+  function detectModeAndUrl() {
+    const params = getQueryParams();
+    let mode = null;
+    let pdfUrl = null;
+    let title = params.title || params.legacyTitle || "Bihar Special Complete Notes";
+
+    if (params.pdf1 && params.pdf1.trim() !== "") {
+      mode = "mozilla";
+      pdfUrl = params.pdf1.trim();
+    } 
+    else if (params.pdf2 && params.pdf2.trim() !== "") {
+      mode = "google";
+      pdfUrl = params.pdf2.trim();
+    }
+    else if (params.pdf3 && params.pdf3.trim() !== "") {
+      mode = "download";
+      pdfUrl = params.pdf3.trim();
+    }
+    else if (params.pdfurl && params.pdfurl.trim() !== "") {
+      // generic fallback: treat as mozilla default (safe)
+      mode = "mozilla";
+      pdfUrl = params.pdfurl.trim();
+    }
+    else {
+      // NO PARAMS? use fallback demo pdf (Bihar Special sample from original, but we keep same reliable URL)
+      mode = "mozilla";
+      pdfUrl = "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      title = "Bihar Special Complete Notes (Default)";
+    }
+
+    // validate URL
+    if (pdfUrl && !pdfUrl.startsWith('http')) {
+      // if relative / not secure but we try to make absolute precaution
+      if (!pdfUrl.startsWith('//')) pdfUrl = 'https://' + pdfUrl;
+    }
+    return { mode, pdfUrl, title };
+  }
+
+  // UI elements
+  const landingDiv = document.getElementById('landingUI');
+  const iframeView = document.getElementById('pdfFrame');
+  const bubble = document.getElementById('downloadFloat');
+  const waterFill = document.getElementById('waterFill');
+  const percentCircle = document.getElementById('percentCircle');
+  const paramInfoSpan = document.getElementById('paramDetails');
+
+  // current active mode
+  let currentMode = null;
+  let currentPdfUrl = null;
+  let currentTitle = "Document";
+
+  // build Mozilla viewer URL
+  function getMozillaViewerUrl(pdfUrl, title) {
+    const encodedFile = encodeURIComponent(pdfUrl);
+    const viewerBase = "https://mozilla.github.io/pdf.js/web/viewer.html";
+    return `${viewerBase}?file=${encodedFile}&title=${encodeURIComponent(title)}`;
+  }
+
+  // build Google embedded viewer
+  function getGoogleViewerUrl(pdfUrl, title) {
+    const encodedUrl = encodeURIComponent(pdfUrl);
+    return `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true&hl=en&title=${encodeURIComponent(title)}`;
+  }
+
+  // render inside iframe based on mode
+  function loadPdfInViewer(mode, pdfUrl, title) {
+    if (!pdfUrl) {
+      alert("No valid PDF URL provided.");
+      return false;
+    }
+    let finalSrc = "";
+    if (mode === "mozilla") {
+      finalSrc = getMozillaViewerUrl(pdfUrl, title);
+    } else if (mode === "google") {
+      finalSrc = getGoogleViewerUrl(pdfUrl, title);
     } else {
-      video.pause();
-      updatePlayBtn(false);
+      // download mode doesn't show viewer; we trigger download directly
+      return false;
     }
+    iframeView.src = finalSrc;
+    iframeView.style.display = "block";
+    landingDiv.classList.add("hide");
+    bubble.style.display = "flex";
+    return true;
   }
 
-  function updatePlayBtn(isPlaying) {
-    const icon = isPlaying ? 'pause' : 'play_arrow';
-    btnPlay.innerHTML = `<span class="material-icons-round">${icon}</span>`;
-    centerPlay.innerHTML = `<span class="material-icons-round" style="font-size:32px">${icon}</span>`;
-    
-    if (isPlaying) {
-      centerPlay.style.opacity = '0';
-      centerPlay.style.transform = 'scale(1.5)';
-      resetActivity();
-    } else {
-      centerPlay.style.opacity = '1';
-      centerPlay.style.transform = 'scale(1)';
-      ui.classList.remove('hidden');
+  // ---------- DOWNLOAD LOGIC (with progress bubble) ----------
+  async function performDownload(pdfUrl, filename) {
+    if (!pdfUrl) {
+      alert("No PDF URL to download.");
+      return;
     }
-  }
-
-  video.addEventListener('play', () => { spinner.style.display = 'none'; updatePlayBtn(true); });
-  video.addEventListener('pause', () => updatePlayBtn(false));
-  video.addEventListener('waiting', () => spinner.style.display = 'block');
-  video.addEventListener('playing', () => spinner.style.display = 'none');
-
-  centerPlay.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
-  btnPlay.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
-
-  // 3. Progress & Time
-  video.addEventListener('timeupdate', () => {
-    if (!video.duration) return;
-    const pct = (video.currentTime / video.duration) * 100;
-    fillBar.style.width = pct + '%';
-    timeTxt.textContent = formatTime(video.currentTime) + ' / ' + formatTime(video.duration);
-  });
-
-  function updateBuffer() {
-    if (video.buffered.length) {
-      const bufEnd = video.buffered.end(video.buffered.length - 1);
-      const dur = video.duration;
-      if (dur) bufBar.style.width = (bufEnd / dur) * 100 + '%';
-    }
-  }
-
-  seekBar.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const rect = seekBar.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    video.currentTime = pos * video.duration;
-  });
-
-  // 4. Speed Control
-  btnSpeed.addEventListener('click', (e) => {
-    e.stopPropagation();
-    speedMenu.classList.toggle('active');
-  });
-
-  speedOpts.forEach(opt => {
-    opt.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const val = parseFloat(opt.getAttribute('data-val'));
-      video.playbackRate = val; 
-      speedOpts.forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      speedMenu.classList.remove('active');
-    });
-  });
-
-  // 5. Volume
-  volSlider.addEventListener('input', (e) => {
-    video.volume = e.target.value;
-    updateVolIcon(video.volume);
-  });
-  
-  btnMute.addEventListener('click', (e) => {
-    e.stopPropagation();
-    video.muted = !video.muted;
-    updateVolIcon(video.muted ? 0 : video.volume);
-    if(video.muted) volSlider.value = 0;
-    else volSlider.value = video.volume;
-  });
-
-  function updateVolIcon(vol) {
-    let icon = 'volume_up';
-    if(vol === 0) icon = 'volume_off';
-    else if(vol < 0.5) icon = 'volume_down';
-    btnMute.innerHTML = `<span class="material-icons-round">${icon}</span>`;
-  }
-
-  // 6. Lock System
-  btnLock.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isLocked = true;
-    ui.classList.add('hidden');
-    unlockMsg.classList.add('visible');
-    setTimeout(() => unlockMsg.classList.remove('visible'), 3000);
-  });
-
-  unlockMsg.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isLocked = false;
-    ui.classList.remove('hidden');
-    unlockMsg.classList.remove('visible');
-    resetActivity();
-  });
-
-  document.getElementById('player-wrapper').addEventListener('click', () => {
-    if (isLocked) {
-      unlockMsg.classList.add('visible');
-      setTimeout(() => unlockMsg.classList.remove('visible'), 2000);
-    } else {
-      ui.classList.toggle('hidden');
-      speedMenu.classList.remove('active');
-      if (!ui.classList.contains('hidden')) resetActivity();
-    }
-  });
-
-  // 7. Double Tap Seek
-  let lastTap = 0;
-  function handleTap(isFwd) {
-    const now = new Date().getTime();
-    if (now - lastTap < 300) {
-      const icon = isFwd ? document.getElementById('icon-forward') : document.getElementById('icon-rewind');
-      video.currentTime += isFwd ? 10 : -10;
-      icon.classList.add('show');
-      setTimeout(() => icon.classList.remove('show'), 500);
-    }
-    lastTap = now;
-  }
-  document.getElementById('zone-forward').addEventListener('click', (e) => { e.stopPropagation(); handleTap(true); });
-  document.getElementById('zone-rewind').addEventListener('click', (e) => { e.stopPropagation(); handleTap(false); });
-
-  // 8. Fullscreen
-  btnFs.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const wrapper = document.getElementById('player-wrapper');
-    if (!document.fullscreenElement) {
-      if(wrapper.requestFullscreen) wrapper.requestFullscreen();
-      else if(wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen();
-      if(screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(e => console.log('Lock failed'));
+    try {
+      // reset bubble progress UI
+      waterFill.style.height = "0%";
+      percentCircle.innerHTML = "0%";
+      bubble.style.display = "flex";
+      bubble.style.opacity = "1";
+      
+      const response = await fetch(pdfUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const contentLength = response.headers.get("Content-Length");
+      const total = contentLength ? parseInt(contentLength, 10) : null;
+      let loaded = 0;
+      const reader = response.body.getReader();
+      const chunks = [];
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        if (total) {
+          let percent = Math.round((loaded / total) * 100);
+          percent = Math.min(99, percent);
+          waterFill.style.height = percent + "%";
+          percentCircle.innerHTML = percent + "%";
+        } else {
+          // if no content-length, show indefinite progress
+          percentCircle.innerHTML = "⬇️";
+        }
       }
-    } else {
-      if(document.exitFullscreen) document.exitFullscreen();
-    }
-  });
-
-  // 9. Auto Hide UI
-  function resetActivity() {
-    clearTimeout(inactivityTimer);
-    if (!video.paused && !isLocked) {
-      inactivityTimer = setTimeout(() => {
-        ui.classList.add('hidden');
-        speedMenu.classList.remove('active');
-      }, 3000);
+      
+      // completed 100%
+      waterFill.style.height = "100%";
+      percentCircle.innerHTML = "✓";
+      
+      const blob = new Blob(chunks, { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = blobUrl;
+      anchor.download = filename.endsWith(".pdf") ? filename : filename + ".pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(blobUrl);
+      
+      // after short delay reset bubble text
+      setTimeout(() => {
+        if (bubble.style.display === "flex") {
+          percentCircle.innerHTML = "📄";
+          setTimeout(() => {
+            waterFill.style.height = "0%";
+          }, 800);
+        }
+      }, 1500);
+    } catch (err) {
+      console.error("download failed", err);
+      percentCircle.innerHTML = "⚠️";
+      waterFill.style.height = "30%";
+      setTimeout(() => {
+        if (bubble.style.display === "flex") percentCircle.innerHTML = "↓";
+      }, 2000);
+      alert("Download failed. Check network or PDF URL.");
     }
   }
-  document.addEventListener('mousemove', resetActivity);
-  document.addEventListener('touchstart', resetActivity);
 
-  // Utils
-  function formatTime(s) {
-    if (isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  // generate clean filename from title or URL
+  function getFileNameFromTitle(title, pdfUrl) {
+    let base = title.replace(/[\\/:*?"<>|]/g, '_').trim();
+    if (!base || base.length < 2) base = "document";
+    if (!base.endsWith(".pdf")) base = base + ".pdf";
+    return base;
+  }
+
+  // ********** MAIN EXECUTION based on URL params **********
+  function initFromParams() {
+    const { mode, pdfUrl, title } = detectModeAndUrl();
+    currentMode = mode;
+    currentPdfUrl = pdfUrl;
+    currentTitle = title || "Bihar Special Notes";
+    
+    // display param info in landing card for clarity
+    let displayText = "";
+    if (mode === "mozilla") displayText = `🦊 Mozilla mode | ${currentTitle.substring(0, 40)}`;
+    else if (mode === "google") displayText = `🌐 Google mode | ${currentTitle.substring(0, 40)}`;
+    else if (mode === "download") displayText = `⬇️ Download mode | ${currentTitle.substring(0, 40)}`;
+    else displayText = `📄 PDF ready: ${currentTitle.substring(0, 40)}`;
+    paramInfoSpan.innerText = displayText;
+    
+    // special automatic behavior: 
+    // If URL contains pdf1 or pdf2 => auto open that viewer immediately (no need to click)
+    // but we also allow manual buttons. For better UX, we auto-load if ?pdf1 or ?pdf2 is present.
+    // But we also keep the landing page to allow switching? No, the requirement: "pdf same aise hi open ho, jisme is tarah se pdf khule ?pdf1=...&title=..."
+    // means that when these parameters are present, the respective viewer should open directly.
+    // However for download mode (?pdf3) we shouldn't open viewer but provide download bubble? Actually spec shows 3 variants.
+    // Let's implement: 
+    // - if mode is mozilla -> automatically open Mozilla viewer and hide landing
+    // - if mode is google -> automatically open Google viewer
+    // - if mode is download -> automatically trigger download (and optionally show bubble but keep landing maybe hidden? but requirement: "pdf3 for download" -> we download directly.
+    // But we must also keep possibility to re-access via buttons? Yet landing could be hidden. Buttons are secondary.
+    // To match "pdf same aise hi open ho" - opening automatically is clean.
+    
+    if (mode === "mozilla") {
+      // auto load mozilla viewer
+      loadPdfInViewer("mozilla", currentPdfUrl, currentTitle);
+    } 
+    else if (mode === "google") {
+      loadPdfInViewer("google", currentPdfUrl, currentTitle);
+    }
+    else if (mode === "download") {
+      // download mode: auto trigger download, but we might not show viewer? 
+      // The spec says ?pdf3=url&title=xyz -> for download. So we execute download automatically.
+      // Also we might keep landing hidden? Actually for download we don't need viewer, but we can show landing info and start download.
+      // Better: auto trigger download but keep landing visible? But user expects immediate download. We will trigger download and keep landing visible, but bubble appears.
+      landingDiv.classList.remove("hide"); // keep visible but download starts
+      bubble.style.display = "flex";
+      const fileName = getFileNameFromTitle(currentTitle, currentPdfUrl);
+      performDownload(currentPdfUrl, fileName);
+    }
+    else {
+      // fallback: no recognized param -> show manual mode, landing stays
+      // but we still display default pdf info
+      currentPdfUrl = "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      currentTitle = "Bihar Special Complete Notes";
+      paramInfoSpan.innerText = "📖 Default Demo PDF (click any viewer)";
+    }
   }
   
-  document.addEventListener('contextmenu', e => e.preventDefault());
-
+  // ---- Button Event Listeners (manual override, even after auto load, user can still switch)
+  document.getElementById("mozillaViewBtn").addEventListener("click", () => {
+    let pdf = currentPdfUrl;
+    let title = currentTitle;
+    if (!pdf) {
+      const params = getQueryParams();
+      pdf = params.pdf1 || params.pdfurl || "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      title = params.title || "Bihar Special Notes";
+    }
+    loadPdfInViewer("mozilla", pdf, title);
+    currentMode = "mozilla";
+    currentPdfUrl = pdf;
+    currentTitle = title;
+  });
+  
+  document.getElementById("googleViewBtn").addEventListener("click", () => {
+    let pdf = currentPdfUrl;
+    let title = currentTitle;
+    if (!pdf) {
+      const params = getQueryParams();
+      pdf = params.pdf2 || params.pdfurl || "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      title = params.title || "Bihar Special Notes";
+    }
+    loadPdfInViewer("google", pdf, title);
+    currentMode = "google";
+    currentPdfUrl = pdf;
+    currentTitle = title;
+  });
+  
+  document.getElementById("directDownloadBtn").addEventListener("click", () => {
+    let pdf = currentPdfUrl;
+    let title = currentTitle;
+    if (!pdf) {
+      const params = getQueryParams();
+      pdf = params.pdf3 || params.pdfurl || "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      title = params.title || "Bihar Special Notes";
+      if (!pdf) pdf = "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+    }
+    const fileName = getFileNameFromTitle(title, pdf);
+    performDownload(pdf, fileName);
+    // optionally keep viewer if hidden? but no iframe needed.
+    if (iframeView.style.display === "block") {
+      // don't interfere
+    } else {
+      // keep landing
+    }
+  });
+  
+  // ----- DRAGGABLE BUBBLE (touch + mouse) improved -----
+  const dragBubble = document.getElementById("downloadFloat");
+  let isDragging = false;
+  let startDragX = 0, startDragY = 0;
+  let initialLeft = 0, initialTop = 0;
+  let initialRight = 0, initialBottom = 0;
+  let dragStarted = false;
+  
+  function getPositionStyle() {
+    const rect = dragBubble.getBoundingClientRect();
+    const parentRect = document.documentElement.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: parentRect.width - rect.right,
+      bottom: parentRect.height - rect.bottom
+    };
+  }
+  
+  function onDragStart(e) {
+    e.preventDefault();
+    isDragging = true;
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    startDragX = clientX;
+    startDragY = clientY;
+    const rect = dragBubble.getBoundingClientRect();
+    initialLeft = rect.left;
+    initialTop = rect.top;
+    dragBubble.style.right = 'auto';
+    dragBubble.style.bottom = 'auto';
+    dragBubble.style.left = initialLeft + 'px';
+    dragBubble.style.top = initialTop + 'px';
+    dragStarted = true;
+  }
+  
+  function onDragMove(e) {
+    if (!isDragging || !dragStarted) return;
+    e.preventDefault();
+    let clientX, clientY;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const dx = clientX - startDragX;
+    const dy = clientY - startDragY;
+    let newLeft = initialLeft + dx;
+    let newTop = initialTop + dy;
+    const maxX = window.innerWidth - dragBubble.offsetWidth;
+    const maxY = window.innerHeight - dragBubble.offsetHeight;
+    newLeft = Math.min(Math.max(0, newLeft), maxX);
+    newTop = Math.min(Math.max(0, newTop), maxY);
+    dragBubble.style.left = newLeft + 'px';
+    dragBubble.style.top = newTop + 'px';
+  }
+  
+  function onDragEnd(e) {
+    isDragging = false;
+    dragStarted = false;
+  }
+  
+  dragBubble.addEventListener('mousedown', onDragStart);
+  window.addEventListener('mousemove', onDragMove);
+  window.addEventListener('mouseup', onDragEnd);
+  dragBubble.addEventListener('touchstart', onDragStart, {passive: false});
+  window.addEventListener('touchmove', onDragMove, {passive: false});
+  window.addEventListener('touchend', onDragEnd);
+  
+  // bubble click triggers download (if viewer mode active)
+  bubble.addEventListener('click', (e) => {
+    // prevent if draggable click fire immediate (small threshold)
+    if (dragStarted && isDragging) return;
+    // else trigger download using current pdf url and title
+    let targetPdf = currentPdfUrl;
+    let targetTitle = currentTitle;
+    if (!targetPdf) {
+      const params = getQueryParams();
+      targetPdf = params.pdf1 || params.pdf2 || params.pdf3 || params.pdfurl || "https://kgs-v2.akamaized.net/kgs/kgs/pdfs/052df459-0632-4739-a802-0573c7cb62d3.pdf";
+      targetTitle = params.title || "Bihar Special Notes";
+    }
+    const fileName = getFileNameFromTitle(targetTitle, targetPdf);
+    performDownload(targetPdf, fileName);
+  });
+  
+  // if we are in viewer mode and bubble not shown, but download bubble will appear when viewer opened.
+  // ensure that resetting bubble if needed
+  window.addEventListener('resize', () => {
+    if (dragBubble.style.left && !isDragging) {
+      const maxX = window.innerWidth - dragBubble.offsetWidth;
+      const maxY = window.innerHeight - dragBubble.offsetHeight;
+      let left = parseFloat(dragBubble.style.left);
+      let top = parseFloat(dragBubble.style.top);
+      if (left > maxX) dragBubble.style.left = maxX + 'px';
+      if (top > maxY) dragBubble.style.top = maxY + 'px';
+      if (left < 0) dragBubble.style.left = '0px';
+      if (top < 0) dragBubble.style.top = '0px';
+    }
+  });
+  
+  // Initialize everything
+  initFromParams();
+  
+  // additional: ensure that if viewer is closed? no native back, but landing might reappear ?
+  // we provide a hidden way to go back but nice: you can refresh page but it's fine.
+  // Also for download mode we might hide iframe if needed
+  if (currentMode === "download") {
+    iframeView.style.display = "none";
+  }
+  
+  // style water fill border radius
+  waterFill.style.borderRadius = "50%";
 </script>
 
 </body>
